@@ -415,7 +415,21 @@ def display_splash_screen(args: argparse.Namespace) -> None:
     Args:
         args: Parsed command line arguments
     """
-    # Banner
+    # The banner and section headers use box-drawing characters and emoji. On
+    # Windows stdout defaults to the ANSI codepage (cp1252) whenever it is not a
+    # console -- redirected to a file, piped, or run under a service manager --
+    # and encoding those characters raises, killing the server before it ever
+    # binds. Degrade unencodable glyphs instead of taking the process down.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding="utf-8", errors="replace")
+        except (ValueError, OSError):
+            # Already-detached or non-reconfigurable stream; nothing to do.
+            pass
+
     # Banner
     top_border = "╔══════════════════════════════════════════════════════════════╗"
     bottom_border = "╚══════════════════════════════════════════════════════════════╝"

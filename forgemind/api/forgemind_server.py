@@ -1237,6 +1237,7 @@ def create_app(args):
         "azure_openai",
         "bedrock",
         "gemini",
+        "claude-cli",
     ]:
         raise Exception("llm binding not supported")
 
@@ -1611,6 +1612,10 @@ def create_app(args):
                 from forgemind.llm.lollms import lollms_model_complete
 
                 return lollms_model_complete
+            elif binding == "claude-cli":
+                from forgemind.llm.claude_cli import claude_cli_model_complete
+
+                return claude_cli_model_complete
             elif binding == "ollama":
                 from forgemind.llm.ollama import ollama_model_complete
 
@@ -1768,6 +1773,27 @@ def create_app(args):
         bedrock_aws_options = settings["bedrock_aws_options"]
 
         try:
+            if role_binding == "claude-cli":
+                from forgemind.llm.claude_cli import claude_cli_complete_if_cache
+
+                async def role_claude_cli_complete(
+                    prompt,
+                    system_prompt=None,
+                    history_messages=None,
+                    **kwargs,
+                ):
+                    if history_messages is None:
+                        history_messages = []
+                    kwargs["timeout"] = role_timeout
+                    return await claude_cli_complete_if_cache(
+                        role_model,
+                        prompt,
+                        system_prompt=system_prompt,
+                        history_messages=history_messages,
+                        **kwargs,
+                    )
+
+                return role_claude_cli_complete
             if role_binding == "ollama":
                 from forgemind.llm.ollama import _ollama_model_if_cache
 

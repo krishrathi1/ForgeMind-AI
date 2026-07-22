@@ -80,6 +80,9 @@ def get_default_host(binding_type: str) -> str:
         # Let google-genai pick the correct default endpoint/version unless the
         # user explicitly overrides LLM_BINDING_HOST / EMBEDDING_BINDING_HOST.
         "gemini": os.getenv("LLM_BINDING_HOST", "DEFAULT_GEMINI_ENDPOINT"),
+        # Driven as a local subprocess, so there is no endpoint to dial; the
+        # placeholder keeps the value out of the ollama fallback below.
+        "claude-cli": os.getenv("LLM_BINDING_HOST", "local-claude-cli"),
     }
     return default_hosts.get(
         binding_type, os.getenv("LLM_BINDING_HOST", "http://localhost:11434")
@@ -406,6 +409,7 @@ def parse_args() -> argparse.Namespace:
             "azure_openai",
             "bedrock",
             "gemini",
+            "claude-cli",
         ],
         help="LLM binding type (default: from env or ollama)",
     )
