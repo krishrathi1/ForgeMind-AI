@@ -1150,7 +1150,9 @@ class PostgreSQLDB:
             ON CONFLICT (workspace, id) DO NOTHING;
             """
             await self.execute(migration_sql)
-            logger.info("Data migration to FORGEMIND_VDB_CHUNKS completed successfully.")
+            logger.info(
+                "Data migration to FORGEMIND_VDB_CHUNKS completed successfully."
+            )
 
         except Exception as e:
             logger.error(f"Failed during data migration to FORGEMIND_VDB_CHUNKS: {e}")
@@ -1301,7 +1303,9 @@ class PostgreSQLDB:
 
             column_info = await self.query(check_column_sql)
             if not column_info:
-                logger.info("Adding llm_cache_list column to FORGEMIND_DOC_CHUNKS table")
+                logger.info(
+                    "Adding llm_cache_list column to FORGEMIND_DOC_CHUNKS table"
+                )
                 add_column_sql = """
                 ALTER TABLE FORGEMIND_DOC_CHUNKS
                 ADD COLUMN llm_cache_list JSONB NULL DEFAULT '[]'::jsonb
@@ -1512,7 +1516,9 @@ class PostgreSQLDB:
                     "ALTER TABLE FORGEMIND_DOC_FULL ALTER COLUMN parse_engine TYPE TEXT"
                 )
         except Exception as e:
-            logger.error(f"Failed to widen FORGEMIND_DOC_FULL.parse_engine to TEXT: {e}")
+            logger.error(
+                f"Failed to widen FORGEMIND_DOC_FULL.parse_engine to TEXT: {e}"
+            )
 
     async def _migrate_doc_status_add_content_hash(self):
         """Add content_hash column to FORGEMIND_DOC_STATUS table if it doesn't exist."""
@@ -1592,7 +1598,9 @@ class PostgreSQLDB:
 
         for col_name, col_type in columns_to_add:
             if col_name in existing_names:
-                logger.debug(f"Column {col_name} already exists in FORGEMIND_DOC_CHUNKS")
+                logger.debug(
+                    f"Column {col_name} already exists in FORGEMIND_DOC_CHUNKS"
+                )
                 continue
             try:
                 alter_sql = (

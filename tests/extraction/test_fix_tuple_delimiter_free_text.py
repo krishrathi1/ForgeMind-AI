@@ -6,7 +6,10 @@ from forgemind.operate import (
     _handle_single_entity_extraction,
     _handle_single_relationship_extraction,
 )
-from forgemind.utils import fix_tuple_delimiter_corruption, split_string_by_multi_markers
+from forgemind.utils import (
+    fix_tuple_delimiter_corruption,
+    split_string_by_multi_markers,
+)
 
 pytestmark = pytest.mark.offline
 

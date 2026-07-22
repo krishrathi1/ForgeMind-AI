@@ -1996,7 +1996,8 @@ def test_security_check_passes_for_api_key_only_with_safe_whitelist(
 ) -> None:
     """API-key-only deployment with a safe WHITELIST_PATHS should pass the security check."""
     write_text_lines(
-        tmp_path / ".env", ["FORGEMIND_API_KEY=my-secret-key", "WHITELIST_PATHS=/health"]
+        tmp_path / ".env",
+        ["FORGEMIND_API_KEY=my-secret-key", "WHITELIST_PATHS=/health"],
     )
     result = subprocess.run(
         [

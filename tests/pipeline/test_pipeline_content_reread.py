@@ -248,7 +248,9 @@ async def test_parse_worker_flushes_smart_heading_cache_before_handoff(
         ctx.q_analyze.put = _recording_put
         original_cache = rag.llm_response_cache
         rag.llm_response_cache = _CacheSpy()
-        monkeypatch.setattr("forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser())
+        monkeypatch.setattr(
+            "forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser()
+        )
         await ctx.parse_queues["native"].put(
             (doc_id, _make_status_doc(doc_id, content_hash="hash-smart"))
         )
@@ -307,7 +309,9 @@ async def test_parse_cache_flush_error_does_not_block_handoff(tmp_path, monkeypa
         original_cache = rag.llm_response_cache
         failing_cache = _FailingCache()
         rag.llm_response_cache = failing_cache
-        monkeypatch.setattr("forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser())
+        monkeypatch.setattr(
+            "forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser()
+        )
         await ctx.parse_queues["native"].put(
             (doc_id, _make_status_doc(doc_id, content_hash="hash-smart-error"))
         )
@@ -371,7 +375,9 @@ async def test_post_parse_cancellation_preserves_smart_heading_cache_ids(
         original_cache = rag.llm_response_cache
         cache_spy = _CacheSpy()
         rag.llm_response_cache = cache_spy
-        monkeypatch.setattr("forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser())
+        monkeypatch.setattr(
+            "forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser()
+        )
         await ctx.parse_queues["native"].put(
             (doc_id, _make_status_doc(doc_id, content_hash="hash-smart-cancel"))
         )

@@ -60,7 +60,9 @@ def test_resolve_engine_explicit_wins():
     # A parser that reported its engine (or an enqueue-time directive) is
     # honoured verbatim regardless of format.
     assert (
-        resolve_doc_status_parse_engine(FULL_DOCS_FORMAT_FORGEMIND, PARSER_ENGINE_MINERU)
+        resolve_doc_status_parse_engine(
+            FULL_DOCS_FORMAT_FORGEMIND, PARSER_ENGINE_MINERU
+        )
         == PARSER_ENGINE_MINERU
     )
     assert (

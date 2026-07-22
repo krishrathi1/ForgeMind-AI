@@ -173,9 +173,10 @@ async def test_patch_unions_chunks_and_anchors(tmp_path, monkeypatch):
         ], "patch must UNION into chunks_list, preserving committed chunks"
 
         anchors = await rag.full_entities.get_by_id("doc-1")
-        assert anchors["entity_names"] == ["ALICE", "BOB"], (
-            "patch must union anchors, not overwrite the base document's"
-        )
+        assert anchors["entity_names"] == [
+            "ALICE",
+            "BOB",
+        ], "patch must union anchors, not overwrite the base document's"
     finally:
         await rag.finalize_storages()
 

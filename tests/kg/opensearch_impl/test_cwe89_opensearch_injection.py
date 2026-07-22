@@ -42,7 +42,8 @@ def _mock_lock_factory():
 @pytest.fixture(autouse=True)
 def patch_data_init_lock():
     with patch(
-        "forgemind.kg.opensearch_impl.get_data_init_lock", side_effect=_mock_lock_factory
+        "forgemind.kg.opensearch_impl.get_data_init_lock",
+        side_effect=_mock_lock_factory,
     ):
         yield
 

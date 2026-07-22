@@ -230,7 +230,9 @@ def test_native_forgemind_path_writes_blocks_jsonl_and_skips_meta_on_load(
 
 
 @pytest.mark.offline
-def test_native_forgemind_path_leaves_unknown_table_caption_empty(tmp_path, monkeypatch):
+def test_native_forgemind_path_leaves_unknown_table_caption_empty(
+    tmp_path, monkeypatch
+):
     """The native DOCX parser does not infer table titles, so its table
     sidecar must not synthesize captions like ``表1``.
     """

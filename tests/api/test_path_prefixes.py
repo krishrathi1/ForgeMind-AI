@@ -624,7 +624,9 @@ class TestUvicornRootPathSemantics:
             forgemind_server, "check_and_install_dependencies", lambda: None
         )
         monkeypatch.setattr(forgemind_server, "configure_logging", lambda: None)
-        monkeypatch.setattr(forgemind_server, "update_uvicorn_mode_config", lambda: None)
+        monkeypatch.setattr(
+            forgemind_server, "update_uvicorn_mode_config", lambda: None
+        )
         monkeypatch.setattr(forgemind_server, "display_splash_screen", lambda *_: None)
         with patch("forgemind.api.forgemind_server.ForgeMind") as mock_rag:
             mock_rag.return_value = MagicMock()

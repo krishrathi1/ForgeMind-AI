@@ -1616,7 +1616,9 @@ def _debug_log_failure(message: str, exc: Exception) -> None:
     must not let it propagate and mask the caller's real exception.
     """
     try:
-        logging.getLogger("forgemind").debug("pipeline status log: %s: %r", message, exc)
+        logging.getLogger("forgemind").debug(
+            "pipeline status log: %s: %r", message, exc
+        )
     except Exception:
         pass
 

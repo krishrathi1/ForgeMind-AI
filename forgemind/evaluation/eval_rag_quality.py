@@ -386,7 +386,9 @@ class RAGEvaluator:
                 f"   Error: {str(e)}"
             )
         except Exception as e:
-            raise Exception(f"Error calling ForgeMind API: {type(e).__name__}: {str(e)}")
+            raise Exception(
+                f"Error calling ForgeMind API: {type(e).__name__}: {str(e)}"
+            )
 
     async def evaluate_single_case(
         self,

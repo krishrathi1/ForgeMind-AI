@@ -70,7 +70,8 @@ def _missing_index_error() -> NotFoundError:
 def patch_data_init_lock():
     """Patch get_data_init_lock globally so initialize() works without shared storage."""
     with patch(
-        "forgemind.kg.opensearch_impl.get_data_init_lock", side_effect=_mock_lock_factory
+        "forgemind.kg.opensearch_impl.get_data_init_lock",
+        side_effect=_mock_lock_factory,
     ):
         yield
 
@@ -588,7 +589,8 @@ class TestKVStorage:
         """The flush (during index_done_callback) must not request per-op refresh."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -605,7 +607,8 @@ class TestKVStorage:
         """Buffered docs carry create_time / update_time set eagerly during upsert."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -633,7 +636,8 @@ class TestKVStorage:
         """delete() buffers tombstones; the bulk delete fires on flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -664,7 +668,8 @@ class TestKVStorage:
         )
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -684,7 +689,8 @@ class TestKVStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -823,7 +829,8 @@ class TestKVStorageBatching:
         """Many small upsert() calls collapse to one async_bulk on flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (5, [])
                 s = self._make(global_config, embed_func)
@@ -844,7 +851,8 @@ class TestKVStorageBatching:
         """Upserting the same id twice keeps only the latest payload."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -867,7 +875,8 @@ class TestKVStorageBatching:
         """
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -888,7 +897,8 @@ class TestKVStorageBatching:
         """An upsert after a buffered delete removes the tombstone."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -912,7 +922,8 @@ class TestKVStorageBatching:
         """
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1058,7 +1069,8 @@ class TestKVStorageBatching:
         """finalize() flushes the buffer before releasing the client."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1176,7 +1188,9 @@ class TestKVStorageBatching:
 
         mock_client.indices.delete = AsyncMock(side_effect=watch_indices_delete)
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch(
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk
+            ):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"k1": {"content": "x"}})
@@ -1209,7 +1223,8 @@ class TestKVStorageBatching:
         """Transient (5xx) per-doc failures stay buffered for the next flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (
                     1,
@@ -1233,7 +1248,8 @@ class TestKVStorageBatching:
         flush and poison direct callers); the retryable op stays for retry."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (
                     0,
@@ -1277,7 +1293,9 @@ class TestKVStorageBatching:
             return (len(actions), [])
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch(
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk
+            ):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"k1": {"content": "first"}})
@@ -1314,7 +1332,8 @@ class TestKVStorageBatching:
         """
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1404,7 +1423,8 @@ class TestDocStatusStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1419,7 +1439,8 @@ class TestDocStatusStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (
                     0,
@@ -1948,7 +1969,8 @@ class TestDocStatusStorage:
         )
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1968,7 +1990,8 @@ class TestDocStatusStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -3028,7 +3051,8 @@ class TestGraphStorage:
     async def test_remove_nodes(self, global_config, embed_func, mock_client):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -3791,7 +3815,8 @@ class TestVectorStorage:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -3984,7 +4009,8 @@ class TestVectorStorage:
         """delete() buffers ids; the actual bulk delete fires on flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -4132,7 +4158,8 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (5, [])
                 s = self._make(global_config, embed_func)
@@ -4158,7 +4185,8 @@ class TestVectorStorageBatching:
         config = {**global_config, "embedding_batch_num": 2}
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (5, [])
                 s = self._make(config, embed_func)
@@ -4181,7 +4209,8 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4202,7 +4231,8 @@ class TestVectorStorageBatching:
         """A delete after a buffered upsert removes the upsert from the buffer."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4223,7 +4253,8 @@ class TestVectorStorageBatching:
         """An upsert after a buffered delete removes the tombstone."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4321,7 +4352,8 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4340,7 +4372,8 @@ class TestVectorStorageBatching:
         """finalize() flushes buffered writes before releasing the client."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4440,7 +4473,8 @@ class TestVectorStorageBatching:
         """drop() throws away pending writes; nothing is flushed to a deleted index."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 s = self._make(global_config, embed_func)
                 await s.initialize()
@@ -4459,7 +4493,8 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 # First flush: v1 succeeds, v2 fails with 503 (retryable).
                 mock_bulk.side_effect = [
@@ -4497,7 +4532,8 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc(fail_times=1)
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4547,7 +4583,8 @@ class TestVectorStorageBatching:
         """Pending docs whose src_id/tgt_id match the entity are dropped before delete_by_query."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4658,7 +4695,8 @@ class TestVectorStorageBatching:
         on every later flush), while the retryable op stays for retry."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 # v1 fails permanently (400 mapping error); v2 fails
                 # transiently (503).
@@ -4714,7 +4752,9 @@ class TestVectorStorageBatching:
             return (len(actions), [])
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch(
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk
+            ):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"v1": {"content": "first"}})
@@ -4772,7 +4812,9 @@ class TestVectorStorageBatching:
             )
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch(
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk
+            ):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"v1": {"content": "first"}})
@@ -4926,7 +4968,8 @@ class TestVectorStorageBatching:
         )
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4965,7 +5008,9 @@ class TestVectorStorageBatching:
         mock_client.delete_by_query = AsyncMock(side_effect=watch_delete_by_query)
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch(
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk
+            ):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert(
@@ -5016,7 +5061,9 @@ class TestVectorStorageBatching:
         mock_client.indices.delete = AsyncMock(side_effect=watch_indices_delete)
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch(
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk
+            ):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"v1": {"content": "x"}})
@@ -5059,7 +5106,8 @@ class TestVectorStorageBatching:
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
+                new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)

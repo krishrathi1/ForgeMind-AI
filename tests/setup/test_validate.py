@@ -361,7 +361,10 @@ def test_validate_env_file_handles_supported_and_unsupported_uri_schemes(
             "Invalid REDIS_URI",
         ),
         "valid-rediss-scheme": (
-            ["FORGEMIND_KV_STORAGE=RedisKVStorage", "REDIS_URI=rediss://localhost:6380"],
+            [
+                "FORGEMIND_KV_STORAGE=RedisKVStorage",
+                "REDIS_URI=rediss://localhost:6380",
+            ],
             "yes",
             "",
         ),

@@ -742,7 +742,9 @@ async def test_create_app_query_role_uses_bedrock_binding(tmp_path, monkeypatch)
     monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
     monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server,
+        "create_document_routes",
+        lambda *_args, **_kwargs: APIRouter(),
     )
     monkeypatch.setattr(
         forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
@@ -799,7 +801,9 @@ async def test_create_app_bedrock_query_role_uses_role_sigv4_credentials(
     monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
     monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server,
+        "create_document_routes",
+        lambda *_args, **_kwargs: APIRouter(),
     )
     monkeypatch.setattr(
         forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
@@ -839,7 +843,9 @@ def _setup_bedrock_app_modules(monkeypatch, args):
     monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
     monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server,
+        "create_document_routes",
+        lambda *_args, **_kwargs: APIRouter(),
     )
     monkeypatch.setattr(
         forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
@@ -958,7 +964,9 @@ async def test_create_app_keyword_openai_role_forwards_nested_extra_body(
     monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
     monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server,
+        "create_document_routes",
+        lambda *_args, **_kwargs: APIRouter(),
     )
     monkeypatch.setattr(
         forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
@@ -1043,7 +1051,9 @@ def test_health_role_llm_config_uses_runtime_snapshot(tmp_path, monkeypatch):
     monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
     monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server,
+        "create_document_routes",
+        lambda *_args, **_kwargs: APIRouter(),
     )
     monkeypatch.setattr(
         forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
@@ -1131,7 +1141,9 @@ def test_health_pipeline_active_derivation(
     monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
     monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server,
+        "create_document_routes",
+        lambda *_args, **_kwargs: APIRouter(),
     )
     monkeypatch.setattr(
         forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()

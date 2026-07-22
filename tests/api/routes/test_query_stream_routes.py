@@ -171,7 +171,9 @@ class TestQueryStreamResponseContentType:
 
             mock_rag.aquery_llm.side_effect = _fake_aquery
 
-            with patch("forgemind.api.forgemind_server.ForgeMind", return_value=mock_rag):
+            with patch(
+                "forgemind.api.forgemind_server.ForgeMind", return_value=mock_rag
+            ):
                 app = create_app(args)
 
             client = TestClient(app)

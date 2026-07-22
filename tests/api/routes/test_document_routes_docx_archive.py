@@ -2106,7 +2106,9 @@ async def test_clear_documents_sets_and_clears_destructive_busy(tmp_path):
             self.workspace = ws
 
         async def drop(self):
-            shared_storage_inner = importlib.import_module("forgemind.kg.shared_storage")
+            shared_storage_inner = importlib.import_module(
+                "forgemind.kg.shared_storage"
+            )
             ns = await shared_storage_inner.get_namespace_data(
                 "pipeline_status", workspace=self.workspace
             )

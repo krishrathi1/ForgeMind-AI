@@ -140,7 +140,9 @@ def _attach_chunking_spy(rag: ForgeMind) -> dict:
 # ---------------------------------------------------------------------------
 
 
-async def _seed_forgemind_row(rag: ForgeMind, doc_id: str, *, body: str, file_path: str):
+async def _seed_forgemind_row(
+    rag: ForgeMind, doc_id: str, *, body: str, file_path: str
+):
     """Seed an already-parsed forgemind full_docs row + a PENDING doc_status.
 
     Mirrors how forgemind-format rows exist in production: written by the

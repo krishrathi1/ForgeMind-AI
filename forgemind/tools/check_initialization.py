@@ -159,7 +159,9 @@ async def demo():
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Check ForgeMind initialization status")
+    parser = argparse.ArgumentParser(
+        description="Check ForgeMind initialization status"
+    )
     parser.add_argument(
         "--demo", action="store_true", help="Run a demonstration with a test instance"
     )
@@ -176,4 +178,6 @@ if __name__ == "__main__":
         asyncio.run(demo())
     else:
         print("Run with --demo to see the diagnostic tool in action")
-        print("Or import this module and use check_forgemind_setup() with your instance")
+        print(
+            "Or import this module and use check_forgemind_setup() with your instance"
+        )
