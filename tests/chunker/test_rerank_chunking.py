@@ -2,12 +2,12 @@
 Unit tests for rerank document chunking functionality.
 
 Tests the chunk_documents_for_rerank and aggregate_chunk_scores functions
-in lightrag/rerank.py to ensure proper document splitting and score aggregation.
+in forgemind/rerank.py to ensure proper document splitting and score aggregation.
 """
 
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
-from lightrag.rerank import (
+from forgemind.rerank import (
     chunk_documents_for_rerank,
     aggregate_chunk_scores,
     cohere_rerank,
@@ -65,7 +65,7 @@ class TestChunkDocumentsForRerank:
         long_doc = "a" * 2000  # 2000 characters
         documents = [long_doc, "short doc"]
 
-        with patch("lightrag.utils.TiktokenTokenizer", side_effect=ImportError):
+        with patch("forgemind.utils.TiktokenTokenizer", side_effect=ImportError):
             chunked_docs, doc_indices = chunk_documents_for_rerank(
                 documents,
                 max_tokens=100,  # 100 tokens = ~400 chars
@@ -309,7 +309,7 @@ class TestTopNWithChunking:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("lightrag.rerank.aiohttp.ClientSession", return_value=mock_session):
+        with patch("forgemind.rerank.aiohttp.ClientSession", return_value=mock_session):
             result = await cohere_rerank(
                 query=query,
                 documents=long_docs,
@@ -371,7 +371,7 @@ class TestTopNWithChunking:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("lightrag.rerank.aiohttp.ClientSession", return_value=mock_session):
+        with patch("forgemind.rerank.aiohttp.ClientSession", return_value=mock_session):
             await cohere_rerank(
                 query=query,
                 documents=documents,
@@ -419,7 +419,7 @@ class TestTopNWithChunking:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("lightrag.rerank.aiohttp.ClientSession", return_value=mock_session):
+        with patch("forgemind.rerank.aiohttp.ClientSession", return_value=mock_session):
             await cohere_rerank(
                 query=query,
                 documents=documents,
@@ -445,7 +445,7 @@ class TestCohereRerankChunking:
 
         # Mock the generic_rerank_api
         with patch(
-            "lightrag.rerank.generic_rerank_api", new_callable=AsyncMock
+            "forgemind.rerank.generic_rerank_api", new_callable=AsyncMock
         ) as mock_api:
             mock_api.return_value = [
                 {"index": 0, "relevance_score": 0.9},
@@ -479,7 +479,7 @@ class TestCohereRerankChunking:
         query = "test query"
 
         with patch(
-            "lightrag.rerank.generic_rerank_api", new_callable=AsyncMock
+            "forgemind.rerank.generic_rerank_api", new_callable=AsyncMock
         ) as mock_api:
             mock_api.return_value = [
                 {"index": 0, "relevance_score": 0.9},
@@ -512,7 +512,7 @@ class TestCohereRerankChunking:
         query = "test"
 
         with patch(
-            "lightrag.rerank.generic_rerank_api", new_callable=AsyncMock
+            "forgemind.rerank.generic_rerank_api", new_callable=AsyncMock
         ) as mock_api:
             mock_api.return_value = [{"index": 0, "relevance_score": 0.9}]
 
@@ -569,7 +569,7 @@ class TestEndToEndChunking:
         mock_session.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session.__aexit__ = AsyncMock(return_value=None)
 
-        with patch("lightrag.rerank.aiohttp.ClientSession", return_value=mock_session):
+        with patch("forgemind.rerank.aiohttp.ClientSession", return_value=mock_session):
             result = await cohere_rerank(
                 query=query,
                 documents=documents,

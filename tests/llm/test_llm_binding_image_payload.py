@@ -27,7 +27,7 @@ PNG_B64 = base64.b64encode(PNG_BYTES).decode("ascii")
 
 @pytest.mark.asyncio
 async def test_openai_binding_inserts_image_url_content_block():
-    from lightrag.llm import openai as openai_mod
+    from forgemind.llm import openai as openai_mod
 
     fake_choice = MagicMock()
     fake_choice.message.content = "ok"
@@ -63,7 +63,7 @@ async def test_openai_binding_inserts_image_url_content_block():
 
 @pytest.mark.asyncio
 async def test_openai_binding_text_only_remains_plain_string():
-    from lightrag.llm import openai as openai_mod
+    from forgemind.llm import openai as openai_mod
 
     fake_choice = MagicMock()
     fake_choice.message.content = "ok"
@@ -92,7 +92,7 @@ async def test_openai_binding_text_only_remains_plain_string():
 
 @pytest.mark.asyncio
 async def test_ollama_binding_attaches_images_to_user_message():
-    from lightrag.llm import ollama as ollama_mod
+    from forgemind.llm import ollama as ollama_mod
 
     fake_client = MagicMock()
     fake_client.chat = AsyncMock(return_value={"message": {"content": "ok"}})
@@ -115,7 +115,7 @@ async def test_ollama_binding_attaches_images_to_user_message():
 
 @pytest.mark.asyncio
 async def test_anthropic_binding_inserts_image_content_block():
-    from lightrag.llm import anthropic as anthropic_mod
+    from forgemind.llm import anthropic as anthropic_mod
 
     captured: dict[str, Any] = {}
 
@@ -150,7 +150,7 @@ async def test_anthropic_binding_inserts_image_content_block():
 
 @pytest.mark.asyncio
 async def test_lollms_binding_rejects_image_inputs():
-    from lightrag.llm import lollms as lollms_mod
+    from forgemind.llm import lollms as lollms_mod
 
     with pytest.raises(NotImplementedError):
         await lollms_mod.lollms_model_if_cache(
@@ -162,7 +162,7 @@ async def test_lollms_binding_rejects_image_inputs():
 
 @pytest.mark.asyncio
 async def test_bedrock_binding_forces_non_stream_when_image_present():
-    from lightrag.llm import bedrock as bedrock_mod
+    from forgemind.llm import bedrock as bedrock_mod
 
     captured: dict[str, Any] = {}
 

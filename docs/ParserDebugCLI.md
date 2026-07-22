@@ -1,6 +1,6 @@
 # Parser CLI Debugger Guide
 
-This tool is used to locally debug any parsing engine in LightRAG's registry (the built-in `native` / `legacy` / `mineru` / `docling`, plus third-party engines registered via the `lightrag.parsers` entry point — see `docs/ThirdPartyParser-zh.md`). It drives the same registry dispatch path as the pipeline worker (`get_parser(engine).parse(...)`) for a **single file** and outputs the parsing artifacts (sidecar and raw cache) into a **flat directory layout**. Compared with the production ingestion directory, the only differences are:
+This tool is used to locally debug any parsing engine in ForgeMind's registry (the built-in `native` / `legacy` / `mineru` / `docling`, plus third-party engines registered via the `forgemind.parsers` entry point — see `docs/ThirdPartyParser-zh.md`). It drives the same registry dispatch path as the pipeline worker (`get_parser(engine).parse(...)`) for a **single file** and outputs the parsing artifacts (sidecar and raw cache) into a **flat directory layout**. Compared with the production ingestion directory, the only differences are:
 
 - **No `__parsed__/` intermediate layer**: artifacts land directly under the specified parent directory for easy inspection;
 - **The source file is not archived**: the source file stays at its original location (the production path moves the source file to `<INPUT_DIR>/__parsed__/`);
@@ -11,7 +11,7 @@ The rest of the flow (IR construction, sidecar writing, `full_docs` synchronizat
 ## Command Format
 
 ```bash
-python -m lightrag.parser.cli <input_file> \
+python -m forgemind.parser.cli <input_file> \
     --engine <engine> \
     [-o <sidecar_parent_dir>] \
     [--doc-id <doc-id>] \
@@ -53,7 +53,7 @@ The `native` engine does not produce a raw directory (parsing is local, with no 
 ### A. Locally parse a `.docx` (zero network dependency)
 
 ```bash
-python -m lightrag.parser.cli ./inputs/workspace/sample.docx --engine native
+python -m forgemind.parser.cli ./inputs/workspace/sample.docx --engine native
 # Output: ./inputs/workspace/sample.docx.parsed/  (contains blocks.jsonl + assets)
 ```
 
@@ -61,9 +61,9 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.docx --engine native
 
 ```bash
 # First run: download raw bundle + generate sidecar
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine mineru
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf --engine mineru
 # Second run (no changes): raw directory non-empty → reused directly → only regenerate sidecar, fast
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine mineru
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf --engine mineru
 # The log will show: [mineru] raw cache hit doc_id=...
 ```
 
@@ -71,16 +71,16 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine mineru
 
 ```bash
 # Existing ./inputs/workspace/sample.pdf.docling_raw/ (contains docling's JSON output, etc.)
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine docling
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf --engine docling
 # The CLI does not check the manifest; as long as the raw directory is non-empty, the docling-serve call is skipped
 ```
 
-> Note: this is the equivalent replacement for the "rebuild sidecar from an existing raw directory" scenario that used to live in the legacy `python -m lightrag.parser.external.docling` debug entry point — just place the raw directory at the agreed location (`<sidecar_parent>/<source>.docling_raw/`) to trigger the cache-hit branch.
+> Note: this is the equivalent replacement for the "rebuild sidecar from an existing raw directory" scenario that used to live in the legacy `python -m forgemind.parser.external.docling` debug entry point — just place the raw directory at the agreed location (`<sidecar_parent>/<source>.docling_raw/`) to trigger the cache-hit branch.
 
 ### D. Output to a custom directory
 
 ```bash
-python -m lightrag.parser.cli ./inputs/workspace/sample.docx \
+python -m forgemind.parser.cli ./inputs/workspace/sample.docx \
     --engine native -o /tmp/debug_sidecar
 # Output: /tmp/debug_sidecar/sample.docx.parsed/
 # The source file ./inputs/workspace/sample.docx is not moved
@@ -89,7 +89,7 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.docx \
 ### E. Force re-parse (clear raw and re-download)
 
 ```bash
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf \
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf \
     --engine docling --force-reparse
 # raw directory is cleared → docling-serve is called again to download → sidecar regenerated
 ```
@@ -117,7 +117,7 @@ When the **cache is hit** (the raw directory already exists and is non-empty, an
 
 ## Equivalence with the Production Parsing Path
 
-This CLI drives the same registry dispatch path as the pipeline parse worker — `get_parser(engine).parse(ParseContext(rag, ...))` (with `rag` being the lightweight stand-in in `lightrag/parser/debug.py`), so:
+This CLI drives the same registry dispatch path as the pipeline parse worker — `get_parser(engine).parse(ParseContext(rag, ...))` (with `rag` being the lightweight stand-in in `forgemind/parser/debug.py`), so:
 
 - The sidecar fields, naming, and content format are identical to production ingestion;
 - The IR builders, `write_sidecar` calls, and `_persist_parsed_full_docs` behavior are identical;

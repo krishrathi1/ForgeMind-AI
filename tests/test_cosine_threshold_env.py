@@ -1,4 +1,4 @@
-"""Empty COSINE_THRESHOLD must not crash LightRAG class construction.
+"""Empty COSINE_THRESHOLD must not crash ForgeMind class construction.
 
 ``cosine_better_than_threshold`` previously used bare ``float(os.getenv(...))``,
 which raises ``ValueError`` when the variable is present but empty (common in
@@ -29,8 +29,8 @@ def test_empty_cosine_threshold_env_falls_back_on_import(env_value: str) -> None
         [
             sys.executable,
             "-c",
-            "from lightrag.lightrag import LightRAG; "
-            "print(LightRAG.__dataclass_fields__"
+            "from forgemind.forgemind import ForgeMind; "
+            "print(ForgeMind.__dataclass_fields__"
             "['cosine_better_than_threshold'].default)",
         ],
         cwd=REPO_ROOT,

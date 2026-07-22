@@ -12,8 +12,8 @@ This drives the real merge round-trip against an in-memory graph, no DB or LLM.
 
 import pytest
 
-from lightrag.operate import _merge_edges_then_upsert
-import lightrag.operate as operate
+from forgemind.operate import _merge_edges_then_upsert
+import forgemind.operate as operate
 
 
 class _FakeTokenizer:

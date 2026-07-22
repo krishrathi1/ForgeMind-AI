@@ -1,10 +1,10 @@
-# LightRAG Offline Dependencies - LLM Providers
+# ForgeMind Offline Dependencies - LLM Providers
 # Install with: pip install -r requirements-offline-llm.txt
 # For offline installation:
 #   pip download -r requirements-offline-llm.txt -d ./packages
 #   pip install --no-index --find-links=./packages -r requirements-offline-llm.txt
 #
-# Recommended: Use pip install lightrag-hku[offline-llm] for the same effect
+# Recommended: Use pip install forgemind-ai[offline-llm] for the same effect
 # Or use constraints: pip install --constraint constraints-offline.txt -r requirements-offline-llm.txt
 
 # LLM provider dependencies (with version constraints matching pyproject.toml)

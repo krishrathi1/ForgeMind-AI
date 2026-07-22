@@ -2,7 +2,7 @@
 
 ## Overview
 
-The LightRAG project includes a React-based WebUI frontend. This guide explains how frontend building works in different scenarios.
+The ForgeMind project includes a React-based WebUI frontend. This guide explains how frontend building works in different scenarios.
 
 ## Key Principle
 
@@ -16,7 +16,7 @@ The LightRAG project includes a React-based WebUI frontend. This guide explains 
 
 **Command:**
 ```bash
-pip install lightrag-hku[api]
+pip install forgemind-ai[api]
 ```
 
 **What happens:**
@@ -31,14 +31,14 @@ pip install lightrag-hku[api]
 **Command:**
 ```bash
 # Clone the repository
-git clone https://github.com/HKUDS/LightRAG.git
-cd LightRAG
+git clone https://github.com/krishrathi1/ForgeMind-AI.git
+cd ForgeMind
 
 # Install in editable mode (no frontend build required yet)
 pip install -e ".[api]"
 
 # Build frontend when needed (can be done anytime)
-cd lightrag_webui
+cd forgemind_webui
 bun install --frozen-lockfile
 bun run build
 cd ..
@@ -51,7 +51,7 @@ cd ..
 
 **How it works:**
 - Creates symlinks to source directory
-- Frontend build output goes to `lightrag/api/webui/`
+- Frontend build output goes to `forgemind/api/webui/`
 - Changes are immediately visible in installed package
 
 ---
@@ -61,11 +61,11 @@ cd ..
 **Command:**
 ```bash
 # Clone the repository
-git clone https://github.com/HKUDS/LightRAG.git
-cd LightRAG
+git clone https://github.com/krishrathi1/ForgeMind-AI.git
+cd ForgeMind
 
 # ⚠️ MUST build frontend FIRST
-cd lightrag_webui
+cd forgemind_webui
 bun install --frozen-lockfile
 bun run build
 cd ..
@@ -91,7 +91,7 @@ pip install ".[api]"
 **Command:**
 ```bash
 # Build frontend first
-cd lightrag_webui
+cd forgemind_webui
 bun install --frozen-lockfile --production
 bun run build
 cd ..
@@ -99,7 +99,7 @@ cd ..
 # Create distribution packages
 python -m build
 
-# Output: dist/lightrag_hku-*.whl and dist/lightrag_hku-*.tar.gz
+# Output: dist/forgemind_ai-*.whl and dist/forgemind_ai-*.tar.gz
 ```
 
 **What happens:**
@@ -126,7 +126,7 @@ When creating a release on GitHub:
 
 | Scenario | Command | Frontend Required | Can Build After |
 |----------|---------|-------------------|-----------------|
-| From PyPI | `pip install lightrag-hku[api]` | Included | No (already installed) |
+| From PyPI | `pip install forgemind-ai[api]` | Included | No (already installed) |
 | Development | `pip install -e ".[api]"` | No | ✅ Yes (anytime) |
 | Normal Install | `pip install ".[api]"` | ✅ Yes (before) | No (must reinstall) |
 | Create Package | `python -m build` | ✅ Yes (before) | N/A |
@@ -152,14 +152,14 @@ Official documentation: https://bun.sh
 ## File Structure
 
 ```
-LightRAG/
-├── lightrag_webui/          # Frontend source code
+ForgeMind/
+├── forgemind_webui/          # Frontend source code
 │   ├── src/                 # React components
 │   ├── package.json         # Dependencies
 │   └── vite.config.ts       # Build configuration
-│       └── outDir: ../lightrag/api/webui  # Build output
+│       └── outDir: ../forgemind/api/webui  # Build output
 │
-├── lightrag/
+├── forgemind/
 │   └── api/
 │       └── webui/           # Frontend build output (gitignored)
 │           ├── index.html   # Built files (after running bun run build)
@@ -167,7 +167,7 @@ LightRAG/
 │
 ├── setup.py                 # Build checks
 ├── pyproject.toml           # Package configuration
-└── .gitignore               # Excludes lightrag/api/webui/* (except .gitkeep)
+└── .gitignore               # Excludes forgemind/api/webui/* (except .gitkeep)
 ```
 
 ---
@@ -178,18 +178,18 @@ LightRAG/
 
 **A:** Build the frontend:
 ```bash
-cd lightrag_webui && bun run build
+cd forgemind_webui && bun run build
 ```
 
 ### Q: I built the frontend but it's not in my installed package
 
 **A:** You probably used `pip install .` after building. Either:
 - Use `pip install -e ".[api]"` for development
-- Or reinstall: `pip uninstall lightrag-hku && pip install ".[api]"`
+- Or reinstall: `pip uninstall forgemind-ai && pip install ".[api]"`
 
 ### Q: Where are the built frontend files?
 
-**A:** In `lightrag/api/webui/` after running `bun run build`
+**A:** In `forgemind/api/webui/` after running `bun run build`
 
 ### Q: Can I use npm or yarn instead of Bun?
 

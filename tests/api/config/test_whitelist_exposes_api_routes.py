@@ -21,7 +21,7 @@ pytestmark = pytest.mark.offline
 @pytest.fixture
 def whitelist_exposes_api_routes(monkeypatch):
     """Import utils_api with a stub global_args (consumed at import time)."""
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     monkeypatch.setattr(
         config,
         "global_args",
@@ -35,14 +35,14 @@ def whitelist_exposes_api_routes(monkeypatch):
             token_auto_renew=False,
         ),
     )
-    sys.modules.pop("lightrag.api.auth", None)
-    importlib.reload(importlib.import_module("lightrag.api.auth"))
-    sys.modules.pop("lightrag.api.utils_api", None)
-    utils_api = importlib.import_module("lightrag.api.utils_api")
+    sys.modules.pop("forgemind.api.auth", None)
+    importlib.reload(importlib.import_module("forgemind.api.auth"))
+    sys.modules.pop("forgemind.api.utils_api", None)
+    utils_api = importlib.import_module("forgemind.api.utils_api")
     try:
         yield utils_api.whitelist_exposes_api_routes
     finally:
-        sys.modules.pop("lightrag.api.utils_api", None)
+        sys.modules.pop("forgemind.api.utils_api", None)
 
 
 @pytest.mark.parametrize(

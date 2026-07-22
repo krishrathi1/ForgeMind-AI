@@ -24,7 +24,7 @@ declare -A EXISTING_MANAGED_ROOT_SERVICE_SET
 declare -a DOCKER_SERVICES
 SSL_CERT_SOURCE_PATH=""
 SSL_KEY_SOURCE_PATH=""
-LIGHTRAG_COMPOSE_SERVER_PORT_MAPPING=""
+FORGEMIND_COMPOSE_SERVER_PORT_MAPPING=""
 NORMALIZED_SERVER_HOST_FOR_COMPOSE=""
 FORCE_REWRITE_COMPOSE="no"
 DEBUG="${DEBUG:-false}"
@@ -41,7 +41,7 @@ PRESET_VLLM_EMBEDDING=(
 
 PRESET_VLLM_RERANKER=(
   "RERANK_BINDING=cohere"
-  "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm"
+  "FORGEMIND_SETUP_RERANK_PROVIDER=vllm"
   "RERANK_MODEL=BAAI/bge-reranker-v2-m3"
   "RERANK_BINDING_HOST=http://localhost:8000/rerank"
   "VLLM_RERANK_MODEL=BAAI/bge-reranker-v2-m3"
@@ -64,9 +64,9 @@ STORAGE_SERVICES=(
   "opensearch"
 )
 DEFAULT_RUNTIME_TARGET="host"
-COMPOSE_LIGHTRAG_WORKING_DIR="/app/data/rag_storage"
-COMPOSE_LIGHTRAG_INPUT_DIR="/app/data/inputs"
-COMPOSE_LIGHTRAG_PROMPT_DIR="/app/data/prompts"
+COMPOSE_FORGEMIND_WORKING_DIR="/app/data/rag_storage"
+COMPOSE_FORGEMIND_INPUT_DIR="/app/data/inputs"
+COMPOSE_FORGEMIND_PROMPT_DIR="/app/data/prompts"
 # shellcheck disable=SC2034
 COLOR_RESET=""
 COLOR_BOLD=""
@@ -111,7 +111,7 @@ reset_state() {
   DOCKER_SERVICES=()
   SSL_CERT_SOURCE_PATH=""
   SSL_KEY_SOURCE_PATH=""
-  LIGHTRAG_COMPOSE_SERVER_PORT_MAPPING=""
+  FORGEMIND_COMPOSE_SERVER_PORT_MAPPING=""
   NORMALIZED_SERVER_HOST_FOR_COMPOSE=""
 }
 
@@ -124,7 +124,7 @@ validate_runtime_target() {
       ;;
     *)
       format_error \
-        "Invalid LIGHTRAG_RUNTIME_TARGET: ${runtime_target}" \
+        "Invalid FORGEMIND_RUNTIME_TARGET: ${runtime_target}" \
         "Use 'host' or 'compose', or rerun the setup wizard to regenerate .env."
       return 1
       ;;
@@ -138,7 +138,7 @@ set_runtime_target() {
     return 1
   fi
 
-  ENV_VALUES["LIGHTRAG_RUNTIME_TARGET"]="$runtime_target"
+  ENV_VALUES["FORGEMIND_RUNTIME_TARGET"]="$runtime_target"
 }
 
 clear_deprecated_vllm_dtype_state() {
@@ -147,7 +147,7 @@ clear_deprecated_vllm_dtype_state() {
 }
 
 normalize_vllm_rerank_binding_state() {
-  if [[ "${ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]:-}" == "vllm" ]]; then
+  if [[ "${ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]:-}" == "vllm" ]]; then
     ENV_VALUES["RERANK_BINDING"]="cohere"
   fi
 }
@@ -258,12 +258,12 @@ warn_if_network_exposed_without_auth() {
   if host_is_loopback "$host"; then
     return 0
   fi
-  if [[ -n "${ENV_VALUES[AUTH_ACCOUNTS]:-}" || -n "${ENV_VALUES[LIGHTRAG_API_KEY]:-}" ]]; then
+  if [[ -n "${ENV_VALUES[AUTH_ACCOUNTS]:-}" || -n "${ENV_VALUES[FORGEMIND_API_KEY]:-}" ]]; then
     return 0
   fi
 
   log_warn "HOST=$host is reachable from the network but no authentication is configured."
-  echo "  Suggestion: set AUTH_ACCOUNTS (with TOKEN_SECRET) or LIGHTRAG_API_KEY before"
+  echo "  Suggestion: set AUTH_ACCOUNTS (with TOKEN_SECRET) or FORGEMIND_API_KEY before"
   echo "  exposing the server, or bind to a loopback address (HOST=127.0.0.1)."
 }
 
@@ -474,7 +474,7 @@ normalize_server_host_for_compose() {
   # Keep the published bind address/port configurable through compose-time
   # variable expansion, while forcing the container itself to listen on the
   # internal service defaults.
-  LIGHTRAG_COMPOSE_SERVER_PORT_MAPPING='${HOST:-0.0.0.0}:${PORT:-9621}:9621'
+  FORGEMIND_COMPOSE_SERVER_PORT_MAPPING='${HOST:-0.0.0.0}:${PORT:-9621}:9621'
   NORMALIZED_SERVER_HOST_FOR_COMPOSE="0.0.0.0"
 }
 
@@ -606,7 +606,7 @@ prepare_compose_runtime_overrides() {
   local key
   local root_service
 
-  # EMBEDDING_BINDING_HOST: when vllm-embed is part of this compose, the LightRAG
+  # EMBEDDING_BINDING_HOST: when vllm-embed is part of this compose, the ForgeMind
   # container must reach it by Docker service name, not by a loopback address.
   # This applies even when the wizard did not visit the embedding step (e.g.
   # env_server_flow), because vllm-embed is detected and added to DOCKER_SERVICE_SET
@@ -708,11 +708,11 @@ prepare_compose_ssl_overrides() {
 
 prepare_compose_data_path_overrides() {
   # Compose mounts always bind the data directories into these container paths.
-  # Force lightrag to use them so values from the mounted .env cannot redirect
+  # Force forgemind to use them so values from the mounted .env cannot redirect
   # storage into a different location.
-  set_compose_override "WORKING_DIR" "$COMPOSE_LIGHTRAG_WORKING_DIR"
-  set_compose_override "INPUT_DIR" "$COMPOSE_LIGHTRAG_INPUT_DIR"
-  set_compose_override "PROMPT_DIR" "$COMPOSE_LIGHTRAG_PROMPT_DIR"
+  set_compose_override "WORKING_DIR" "$COMPOSE_FORGEMIND_WORKING_DIR"
+  set_compose_override "INPUT_DIR" "$COMPOSE_FORGEMIND_INPUT_DIR"
+  set_compose_override "PROMPT_DIR" "$COMPOSE_FORGEMIND_PROMPT_DIR"
 }
 
 prepare_compose_env_overrides() {
@@ -748,11 +748,11 @@ restore_storage_docker_services_from_env() {
 }
 
 restore_vllm_docker_services_from_env() {
-  if [[ "${ENV_VALUES[LIGHTRAG_SETUP_EMBEDDING_PROVIDER]:-}" == "vllm" ]]; then
+  if [[ "${ENV_VALUES[FORGEMIND_SETUP_EMBEDDING_PROVIDER]:-}" == "vllm" ]]; then
     add_docker_service "vllm-embed"
   fi
 
-  if [[ "${ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]:-}" == "vllm" ]]; then
+  if [[ "${ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]:-}" == "vllm" ]]; then
     add_docker_service "vllm-rerank"
   fi
 }
@@ -779,7 +779,7 @@ resolve_compose_output_action() {
   local -n action_ref="$2"
   local -n runtime_target_ref="$3"
   local -n host_hint_ref="$4"
-  local current_target="${ENV_VALUES[LIGHTRAG_RUNTIME_TARGET]:-$DEFAULT_RUNTIME_TARGET}"
+  local current_target="${ENV_VALUES[FORGEMIND_RUNTIME_TARGET]:-$DEFAULT_RUNTIME_TARGET}"
 
   action_ref="write_env_only"
   runtime_target_ref="$DEFAULT_RUNTIME_TARGET"
@@ -798,7 +798,7 @@ resolve_compose_output_action() {
   fi
 
   if [[ -n "$existing_compose" ]]; then
-    if confirm_default_no "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?"; then
+    if confirm_default_no "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?"; then
       action_ref="delete_compose_and_switch_host"
       runtime_target_ref="host"
       host_hint_ref="yes"
@@ -810,14 +810,14 @@ resolve_compose_output_action() {
   fi
 
   if [[ "$current_target" == "compose" ]]; then
-    if confirm_default_yes "Run LightRAG Server via Docker?"; then
+    if confirm_default_yes "Run ForgeMind Server via Docker?"; then
       action_ref="rewrite_compose"
       runtime_target_ref="compose"
     else
       host_hint_ref="yes"
     fi
   else
-    if confirm_default_no "Run LightRAG Server via Docker?"; then
+    if confirm_default_no "Run ForgeMind Server via Docker?"; then
       action_ref="rewrite_compose"
       runtime_target_ref="compose"
     else
@@ -963,11 +963,11 @@ mongodb_service_requires_atlas_local_rewrite() {
     return 1
   fi
 
-  if [[ "${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}" != "MongoVectorDBStorage" ]]; then
+  if [[ "${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}" != "MongoVectorDBStorage" ]]; then
     return 1
   fi
 
-  if [[ "${ENV_VALUES[LIGHTRAG_SETUP_MONGODB_DEPLOYMENT]:-}" != "docker" ]]; then
+  if [[ "${ENV_VALUES[FORGEMIND_SETUP_MONGODB_DEPLOYMENT]:-}" != "docker" ]]; then
     return 1
   fi
 
@@ -1005,7 +1005,7 @@ configure_mongodb_compose_migration_rewrite() {
 
 env_value_changed_from_original() {
   local key="$1"
-  local missing_marker="__LIGHTRAG_MISSING__"
+  local missing_marker="__FORGEMIND_MISSING__"
   local current_value="${ENV_VALUES[$key]-$missing_marker}"
   local original_value="${ORIGINAL_ENV_VALUES[$key]-$missing_marker}"
 
@@ -1138,10 +1138,10 @@ select_storage_backends() {
     doc_default="PGDocStatusStorage"
   fi
 
-  kv_default="${ENV_VALUES[LIGHTRAG_KV_STORAGE]:-$kv_default}"
-  vector_default="${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-$vector_default}"
-  graph_default="${ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]:-$graph_default}"
-  doc_default="${ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]:-$doc_default}"
+  kv_default="${ENV_VALUES[FORGEMIND_KV_STORAGE]:-$kv_default}"
+  vector_default="${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-$vector_default}"
+  graph_default="${ENV_VALUES[FORGEMIND_GRAPH_STORAGE]:-$graph_default}"
+  doc_default="${ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]:-$doc_default}"
 
   while true; do
     kv_storage="$(prompt_choice "KV storage" "$kv_default" "${KV_STORAGE_OPTIONS[@]}")"
@@ -1158,10 +1158,10 @@ select_storage_backends() {
     fi
   done
 
-  ENV_VALUES["LIGHTRAG_KV_STORAGE"]="$kv_storage"
-  ENV_VALUES["LIGHTRAG_VECTOR_STORAGE"]="$vector_storage"
-  ENV_VALUES["LIGHTRAG_GRAPH_STORAGE"]="$graph_storage"
-  ENV_VALUES["LIGHTRAG_DOC_STATUS_STORAGE"]="$doc_storage"
+  ENV_VALUES["FORGEMIND_KV_STORAGE"]="$kv_storage"
+  ENV_VALUES["FORGEMIND_VECTOR_STORAGE"]="$vector_storage"
+  ENV_VALUES["FORGEMIND_GRAPH_STORAGE"]="$graph_storage"
+  ENV_VALUES["FORGEMIND_DOC_STATUS_STORAGE"]="$doc_storage"
 
   for storage in "$kv_storage" "$vector_storage" "$graph_storage" "$doc_storage"; do
     if [[ -n "${STORAGE_DB_TYPES[$storage]:-}" ]]; then
@@ -1173,10 +1173,10 @@ select_storage_backends() {
 initialize_default_storage_backends() {
   # env-base does not prompt for storage, but its generated .env must remain
   # self-consistent for first-run users who have not run env-storage yet.
-  ENV_VALUES["LIGHTRAG_KV_STORAGE"]="${ENV_VALUES[LIGHTRAG_KV_STORAGE]:-JsonKVStorage}"
-  ENV_VALUES["LIGHTRAG_VECTOR_STORAGE"]="${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-NanoVectorDBStorage}"
-  ENV_VALUES["LIGHTRAG_GRAPH_STORAGE"]="${ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]:-NetworkXStorage}"
-  ENV_VALUES["LIGHTRAG_DOC_STATUS_STORAGE"]="${ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]:-JsonDocStatusStorage}"
+  ENV_VALUES["FORGEMIND_KV_STORAGE"]="${ENV_VALUES[FORGEMIND_KV_STORAGE]:-JsonKVStorage}"
+  ENV_VALUES["FORGEMIND_VECTOR_STORAGE"]="${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-NanoVectorDBStorage}"
+  ENV_VALUES["FORGEMIND_GRAPH_STORAGE"]="${ENV_VALUES[FORGEMIND_GRAPH_STORAGE]:-NetworkXStorage}"
+  ENV_VALUES["FORGEMIND_DOC_STATUS_STORAGE"]="${ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]:-JsonDocStatusStorage}"
 }
 
 storage_service_name_for_db_type() {
@@ -1200,28 +1200,28 @@ storage_deployment_marker_key() {
 
   case "$db_type" in
     postgresql)
-      printf 'LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_POSTGRES_DEPLOYMENT'
       ;;
     neo4j)
-      printf 'LIGHTRAG_SETUP_NEO4J_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_NEO4J_DEPLOYMENT'
       ;;
     mongodb)
-      printf 'LIGHTRAG_SETUP_MONGODB_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_MONGODB_DEPLOYMENT'
       ;;
     redis)
-      printf 'LIGHTRAG_SETUP_REDIS_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_REDIS_DEPLOYMENT'
       ;;
     milvus)
-      printf 'LIGHTRAG_SETUP_MILVUS_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_MILVUS_DEPLOYMENT'
       ;;
     qdrant)
-      printf 'LIGHTRAG_SETUP_QDRANT_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_QDRANT_DEPLOYMENT'
       ;;
     memgraph)
-      printf 'LIGHTRAG_SETUP_MEMGRAPH_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_MEMGRAPH_DEPLOYMENT'
       ;;
     opensearch)
-      printf 'LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT'
+      printf 'FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT'
       ;;
     *)
       printf ''
@@ -1368,13 +1368,13 @@ collect_postgres_config() {
 
   # The bundled postgres image creates its user/password/database from the
   # POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB env vars on first start, so docker
-  # and host deployments share the same prompts and defaults (rag/rag/lightrag).
+  # and host deployments share the same prompts and defaults (rag/rag/forgemind).
   existing_user="${ORIGINAL_ENV_VALUES[POSTGRES_USER]-${ENV_VALUES[POSTGRES_USER]:-}}"
   existing_password="${ORIGINAL_ENV_VALUES[POSTGRES_PASSWORD]-${ENV_VALUES[POSTGRES_PASSWORD]:-}}"
   existing_database="${ORIGINAL_ENV_VALUES[POSTGRES_DATABASE]-${ENV_VALUES[POSTGRES_DATABASE]:-}}"
   user="$(prompt_with_default "PostgreSQL user" "${existing_user:-rag}")"
   password="$(prompt_secret_with_default "PostgreSQL password: " "${existing_password:-rag}")"
-  database="$(prompt_with_default "PostgreSQL database" "${existing_database:-lightrag}")"
+  database="$(prompt_with_default "PostgreSQL database" "${existing_database:-forgemind}")"
 
   ENV_VALUES["POSTGRES_HOST"]="$host"
   ENV_VALUES["POSTGRES_PORT"]="$port"
@@ -1445,7 +1445,7 @@ collect_mongodb_config() {
   local existing_database=""
   local vector_search_required="no"
 
-  if [[ "${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}" == "MongoVectorDBStorage" ]]; then
+  if [[ "${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}" == "MongoVectorDBStorage" ]]; then
     vector_search_required="yes"
   fi
 
@@ -1483,7 +1483,7 @@ collect_mongodb_config() {
     uri="$(normalize_mongodb_uri_for_local_service "$uri")"
   fi
   existing_database="${ORIGINAL_ENV_VALUES[MONGO_DATABASE]-${ENV_VALUES[MONGO_DATABASE]:-}}"
-  database="$(prompt_with_default "MongoDB database" "${existing_database:-LightRAG}")"
+  database="$(prompt_with_default "MongoDB database" "${existing_database:-ForgeMind}")"
 
   ENV_VALUES["MONGO_URI"]="$uri"
   ENV_VALUES["MONGO_DATABASE"]="$database"
@@ -1570,7 +1570,7 @@ collect_milvus_config() {
   else
     uri="$(prompt_until_valid "Milvus URI" "$uri" validate_uri milvus)"
   fi
-  db_name="$(prompt_with_default "Milvus database name" "${existing_db_name:-lightrag}")"
+  db_name="$(prompt_with_default "Milvus database name" "${existing_db_name:-forgemind}")"
 
   ENV_VALUES["MILVUS_URI"]="$uri"
   ENV_VALUES["MILVUS_DB_NAME"]="$db_name"
@@ -1702,7 +1702,7 @@ collect_opensearch_config() {
 
   hosts="$(prompt_until_valid "OpenSearch hosts (host:port, comma-separated)" "$hosts" validate_opensearch_hosts_format)"
   user="$(prompt_with_default "OpenSearch user" "${existing_user:-admin}")"
-  password="$(prompt_secret_until_valid_with_default "OpenSearch password: " "${existing_password:-LightRAG2026_!@}" validate_opensearch_password_strength)"
+  password="$(prompt_secret_until_valid_with_default "OpenSearch password: " "${existing_password:-ForgeMind2026_!@}" validate_opensearch_password_strength)"
 
   if [[ "$use_docker" == "yes" ]]; then
     if [[ -n "$existing_use_ssl" ]]; then
@@ -2028,7 +2028,7 @@ collect_embedding_config() {
   ENV_VALUES["EMBEDDING_BINDING_HOST"]="$host"
   store_optional_env_value "EMBEDDING_BINDING_API_KEY" "$api_key"
   # User chose a remote provider — clear the Docker deployment marker.
-  unset 'ENV_VALUES[LIGHTRAG_SETUP_EMBEDDING_PROVIDER]'
+  unset 'ENV_VALUES[FORGEMIND_SETUP_EMBEDDING_PROVIDER]'
 }
 
 collect_rerank_config() {
@@ -2040,7 +2040,7 @@ collect_rerank_config() {
   local current_binding="${ENV_VALUES[RERANK_BINDING]:-cohere}"
   local binding model host api_key
   local default_model="" default_host="" model_default="" host_default=""
-  local previous_provider="${ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]:-}"
+  local previous_provider="${ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]:-}"
 
   unset 'ENV_VALUES[VLLM_RERANK_DTYPE]'
 
@@ -2059,7 +2059,7 @@ collect_rerank_config() {
 
     if [[ "$rerank_enabled" != "yes" ]]; then
       ENV_VALUES["RERANK_BINDING"]="null"
-      unset 'ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]'
+      unset 'ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]'
       return
     fi
   fi
@@ -2103,7 +2103,7 @@ collect_rerank_config() {
 
   ENV_VALUES["RERANK_BINDING"]="$binding"
   # Only env_base_flow's Docker branch should keep the local vLLM setup marker.
-  unset 'ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]'
+  unset 'ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]'
   if [[ -n "$model" ]]; then
     ENV_VALUES["RERANK_MODEL"]="$model"
   fi
@@ -2210,7 +2210,7 @@ collect_security_config() {
   auth_accounts="$(prompt_clearable_with_default "Auth accounts (user:pass,comma-separated)" "${ENV_VALUES[AUTH_ACCOUNTS]:-}")"
   token_secret="$(prompt_clearable_secret_with_default "JWT token secret: " "${ENV_VALUES[TOKEN_SECRET]:-}")"
   token_expire="$(prompt_clearable_with_default "Token expire hours" "${ENV_VALUES[TOKEN_EXPIRE_HOURS]:-48}")"
-  api_key="$(prompt_clearable_secret_with_default "LightRAG API key: " "${ENV_VALUES[LIGHTRAG_API_KEY]:-}")"
+  api_key="$(prompt_clearable_secret_with_default "ForgeMind API key: " "${ENV_VALUES[FORGEMIND_API_KEY]:-}")"
   whitelist="$(prompt_clearable_with_default "Whitelist paths (comma-separated)" "$whitelist_default")"
   if [[ "$whitelist_is_set" == "yes" && -z "$whitelist_default" && -z "$whitelist" ]]; then
     whitelist="$CLEAR_INPUT_SENTINEL"
@@ -2224,7 +2224,7 @@ collect_security_config() {
   apply_clearable_env_value "AUTH_ACCOUNTS" "$auth_accounts"
   apply_clearable_env_value "TOKEN_SECRET" "$token_secret"
   apply_clearable_env_value "TOKEN_EXPIRE_HOURS" "$token_expire"
-  apply_clearable_env_value "LIGHTRAG_API_KEY" "$api_key"
+  apply_clearable_env_value "FORGEMIND_API_KEY" "$api_key"
   apply_clearable_env_value "WHITELIST_PATHS" "$whitelist" "empty"
 }
 
@@ -2316,7 +2316,7 @@ prepare_inherited_ssl_assets_for_compose() {
 
   if [[ -n "$SSL_CERT_SOURCE_PATH" ]] && ! validate_existing_file "$SSL_CERT_SOURCE_PATH"; then
     if [[ -n "$existing_compose" ]]; then
-      preserved_cert_path="$(read_service_environment_value "$existing_compose" "lightrag" "SSL_CERTFILE" || true)"
+      preserved_cert_path="$(read_service_environment_value "$existing_compose" "forgemind" "SSL_CERTFILE" || true)"
     fi
     if [[ "$preserved_cert_path" == /app/data/certs/* ]]; then
       log_warn "SSL_CERTFILE source is missing; preserving the existing compose SSL certificate mount."
@@ -2332,7 +2332,7 @@ prepare_inherited_ssl_assets_for_compose() {
 
   if [[ -n "$SSL_KEY_SOURCE_PATH" ]] && ! validate_existing_file "$SSL_KEY_SOURCE_PATH"; then
     if [[ -n "$existing_compose" ]]; then
-      preserved_key_path="$(read_service_environment_value "$existing_compose" "lightrag" "SSL_KEYFILE" || true)"
+      preserved_key_path="$(read_service_environment_value "$existing_compose" "forgemind" "SSL_KEYFILE" || true)"
     fi
     if [[ "$preserved_key_path" == /app/data/certs/* ]]; then
       log_warn "SSL_KEYFILE source is missing; preserving the existing compose SSL key mount."
@@ -2402,7 +2402,7 @@ env_base_flow() {
   # ── Embedding ────────────────────────────────────────────────────────────────
   log_step "Embedding configuration"
   local docker_embed_default="no"
-  previous_embedding_provider="${ENV_VALUES[LIGHTRAG_SETUP_EMBEDDING_PROVIDER]:-}"
+  previous_embedding_provider="${ENV_VALUES[FORGEMIND_SETUP_EMBEDDING_PROVIDER]:-}"
   if [[ "$previous_embedding_provider" == "vllm" ]]; then
     docker_embed_default="yes"
   fi
@@ -2443,7 +2443,7 @@ env_base_flow() {
     ENV_VALUES["VLLM_EMBED_MODEL"]="$embed_model"
     ENV_VALUES["EMBEDDING_MODEL"]="$embed_model"
     ENV_VALUES["VLLM_EMBED_DEVICE"]="$vllm_embed_device"
-    ENV_VALUES["LIGHTRAG_SETUP_EMBEDDING_PROVIDER"]="vllm"
+    ENV_VALUES["FORGEMIND_SETUP_EMBEDDING_PROVIDER"]="vllm"
 
     vllm_embed_api_key="${ENV_VALUES[VLLM_EMBED_API_KEY]:-${ENV_VALUES[EMBEDDING_BINDING_API_KEY]:-}}"
     if [[ -z "$vllm_embed_api_key" ]]; then
@@ -2465,7 +2465,7 @@ env_base_flow() {
   if [[ -n "${ENV_VALUES[RERANK_BINDING]:-}" && "${ENV_VALUES[RERANK_BINDING]}" != "null" ]]; then
     rerank_enabled_default="yes"
   fi
-  previous_rerank_provider="${ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]:-}"
+  previous_rerank_provider="${ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]:-}"
 
   local enable_reranking="no"
   if [[ "$rerank_enabled_default" == "yes" ]]; then
@@ -2514,7 +2514,7 @@ env_base_flow() {
       ENV_VALUES["RERANK_MODEL"]="$rerank_model"
       ENV_VALUES["VLLM_RERANK_PORT"]="$rerank_port"
       ENV_VALUES["VLLM_RERANK_DEVICE"]="$vllm_rerank_device"
-      ENV_VALUES["LIGHTRAG_SETUP_RERANK_PROVIDER"]="vllm"
+      ENV_VALUES["FORGEMIND_SETUP_RERANK_PROVIDER"]="vllm"
 
       vllm_rerank_api_key="${ENV_VALUES[VLLM_RERANK_API_KEY]:-${ENV_VALUES[RERANK_BINDING_API_KEY]:-}}"
       if [[ -z "$vllm_rerank_api_key" ]]; then
@@ -2531,7 +2531,7 @@ env_base_flow() {
     fi
   else
     ENV_VALUES["RERANK_BINDING"]="null"
-    unset 'ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]'
+    unset 'ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]'
   fi
   echo ""
 
@@ -2561,9 +2561,9 @@ finalize_base_setup() {
   fi
 
   if ! validate_mongo_vector_storage_config \
-    "${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}" \
+    "${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}" \
     "${ENV_VALUES[MONGO_URI]:-}" \
-    "${ENV_VALUES[LIGHTRAG_SETUP_MONGODB_DEPLOYMENT]:-}"; then
+    "${ENV_VALUES[FORGEMIND_SETUP_MONGODB_DEPLOYMENT]:-}"; then
     return 1
   fi
 
@@ -2583,10 +2583,10 @@ finalize_base_setup() {
   configure_base_compose_rewrites
 
   if ((${#DOCKER_SERVICES[@]} > 0)); then
-    # LightRAG depends on managed Docker services; it must run via Docker.
+    # ForgeMind depends on managed Docker services; it must run via Docker.
     svc_names="$(printf '%s ' "${DOCKER_SERVICES[@]}")"
     svc_names="${svc_names% }"
-    echo "LightRAG requires Docker services: ${svc_names}"
+    echo "ForgeMind requires Docker services: ${svc_names}"
     if ! confirm_default_yes "${COLOR_YELLOW}The compose file will be created/updated. Continue?${COLOR_RESET}"; then
       log_warn "Setup cancelled."
       return 1
@@ -2631,11 +2631,11 @@ finalize_base_setup() {
       ;;
     delete_compose_and_switch_host)
       remove_existing_compose_file "$existing_compose" || return 1
-      echo "  To start: lightrag-server"
+      echo "  To start: forgemind-server"
       ;;
     *)
       if [[ "$show_host_start_hint" == "yes" ]]; then
-        echo "  To start: lightrag-server"
+        echo "  To start: forgemind-server"
       fi
       ;;
   esac
@@ -2661,7 +2661,7 @@ env_storage_flow() {
 
   log_step "Storage backend selection"
   select_storage_backends "custom"
-  log_debug "Storage selections: kv=${ENV_VALUES[LIGHTRAG_KV_STORAGE]:-} vector=${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-} graph=${ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]:-} doc=${ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]:-}"
+  log_debug "Storage selections: kv=${ENV_VALUES[FORGEMIND_KV_STORAGE]:-} vector=${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-} graph=${ENV_VALUES[FORGEMIND_GRAPH_STORAGE]:-} doc=${ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]:-}"
   clear_unused_storage_deployment_markers
 
   log_step "Database configuration"
@@ -2692,20 +2692,20 @@ finalize_storage_setup() {
     return 1
   fi
 
-  if [[ -n "${ENV_VALUES[LIGHTRAG_KV_STORAGE]:-}" ]]; then
+  if [[ -n "${ENV_VALUES[FORGEMIND_KV_STORAGE]:-}" ]]; then
     if ! validate_required_variables \
-      "${ENV_VALUES[LIGHTRAG_KV_STORAGE]}" \
-      "${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]}" \
-      "${ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]}" \
-      "${ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]}"; then
+      "${ENV_VALUES[FORGEMIND_KV_STORAGE]}" \
+      "${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]}" \
+      "${ENV_VALUES[FORGEMIND_GRAPH_STORAGE]}" \
+      "${ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]}"; then
       return 1
     fi
   fi
 
   if ! validate_mongo_vector_storage_config \
-    "${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}" \
+    "${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}" \
     "${ENV_VALUES[MONGO_URI]:-}" \
-    "${ENV_VALUES[LIGHTRAG_SETUP_MONGODB_DEPLOYMENT]:-}"; then
+    "${ENV_VALUES[FORGEMIND_SETUP_MONGODB_DEPLOYMENT]:-}"; then
     return 1
   fi
 
@@ -2762,11 +2762,11 @@ finalize_storage_setup() {
       ;;
     delete_compose_and_switch_host)
       remove_existing_compose_file "$existing_compose" || return 1
-      echo "  To start: lightrag-server"
+      echo "  To start: forgemind-server"
       ;;
     *)
       if [[ "$show_host_start_hint" == "yes" ]]; then
-        echo "  To start: lightrag-server"
+        echo "  To start: forgemind-server"
       fi
       ;;
   esac
@@ -2829,9 +2829,9 @@ finalize_server_setup() {
   fi
 
   if ! validate_mongo_vector_storage_config \
-    "${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}" \
+    "${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}" \
     "${ENV_VALUES[MONGO_URI]:-}" \
-    "${ENV_VALUES[LIGHTRAG_SETUP_MONGODB_DEPLOYMENT]:-}"; then
+    "${ENV_VALUES[FORGEMIND_SETUP_MONGODB_DEPLOYMENT]:-}"; then
     return 1
   fi
 
@@ -2904,15 +2904,15 @@ finalize_server_setup() {
       generate_docker_compose "$compose_file"
       log_success "Wrote ${compose_file}"
       log_success "Server port and security settings updated in compose."
-      echo "  To restart: docker compose -f ${compose_file} up -d --force-recreate lightrag"
+      echo "  To restart: docker compose -f ${compose_file} up -d --force-recreate forgemind"
       ;;
     delete_compose_and_switch_host)
       remove_existing_compose_file "$existing_compose" || return 1
-      echo "  To start: lightrag-server"
+      echo "  To start: forgemind-server"
       ;;
     *)
       if [[ "$show_host_start_hint" == "yes" ]]; then
-        echo "  To start: lightrag-server"
+        echo "  To start: forgemind-server"
       fi
       ;;
   esac
@@ -2946,7 +2946,7 @@ load_env_file() {
 
 validate_ssl_runtime_path() {
   local path="$1"
-  local runtime_target="${ENV_VALUES[LIGHTRAG_RUNTIME_TARGET]:-$DEFAULT_RUNTIME_TARGET}"
+  local runtime_target="${ENV_VALUES[FORGEMIND_RUNTIME_TARGET]:-$DEFAULT_RUNTIME_TARGET}"
   local staged_path=""
 
   if validate_existing_file "$path"; then
@@ -2976,11 +2976,11 @@ validate_env_file() {
     return 1
   fi
 
-  kv="${ENV_VALUES[LIGHTRAG_KV_STORAGE]:-}"
-  vector="${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}"
-  graph="${ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]:-}"
-  doc_status="${ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]:-}"
-  runtime_target="${ENV_VALUES[LIGHTRAG_RUNTIME_TARGET]:-$DEFAULT_RUNTIME_TARGET}"
+  kv="${ENV_VALUES[FORGEMIND_KV_STORAGE]:-}"
+  vector="${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}"
+  graph="${ENV_VALUES[FORGEMIND_GRAPH_STORAGE]:-}"
+  doc_status="${ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]:-}"
+  runtime_target="${ENV_VALUES[FORGEMIND_RUNTIME_TARGET]:-$DEFAULT_RUNTIME_TARGET}"
 
   for storage in "$kv" "$vector" "$graph" "$doc_status"; do
     if [[ -z "$storage" ]]; then
@@ -2997,14 +2997,14 @@ validate_env_file() {
   fi
 
   if [[ -z "$kv" || -z "$vector" || -z "$graph" || -z "$doc_status" ]]; then
-    format_error "Storage selections are missing in .env" "Set LIGHTRAG_*_STORAGE variables."
+    format_error "Storage selections are missing in .env" "Set FORGEMIND_*_STORAGE variables."
     return 1
   fi
 
   if ! validate_mongo_vector_storage_config \
     "$vector" \
     "${ENV_VALUES[MONGO_URI]:-}" \
-    "${ENV_VALUES[LIGHTRAG_SETUP_MONGODB_DEPLOYMENT]:-}"; then
+    "${ENV_VALUES[FORGEMIND_SETUP_MONGODB_DEPLOYMENT]:-}"; then
     errors=1
   fi
 
@@ -3066,7 +3066,7 @@ validate_env_file() {
   fi
   if [[ -n "${referenced_db_types[opensearch]+set}" ]]; then
     if ! validate_opensearch_config \
-      "${ENV_VALUES[LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT]:-}" \
+      "${ENV_VALUES[FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT]:-}" \
       "${ENV_VALUES[OPENSEARCH_HOSTS]:-}" \
       "${ENV_VALUES[OPENSEARCH_USER]:-}" \
       "${ENV_VALUES[OPENSEARCH_PASSWORD]:-}" \
@@ -3120,11 +3120,11 @@ security_check_env_file() {
 
   auth_accounts="${ENV_VALUES[AUTH_ACCOUNTS]:-}"
   token_secret="${ENV_VALUES[TOKEN_SECRET]:-}"
-  api_key="${ENV_VALUES[LIGHTRAG_API_KEY]:-}"
-  kv="${ENV_VALUES[LIGHTRAG_KV_STORAGE]:-}"
-  vector="${ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]:-}"
-  graph="${ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]:-}"
-  doc_status="${ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]:-}"
+  api_key="${ENV_VALUES[FORGEMIND_API_KEY]:-}"
+  kv="${ENV_VALUES[FORGEMIND_KV_STORAGE]:-}"
+  vector="${ENV_VALUES[FORGEMIND_VECTOR_STORAGE]:-}"
+  graph="${ENV_VALUES[FORGEMIND_GRAPH_STORAGE]:-}"
+  doc_status="${ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]:-}"
   if [[ -n "${ENV_VALUES[WHITELIST_PATHS]+set}" ]]; then
     whitelist_paths="${ENV_VALUES[WHITELIST_PATHS]}"
     whitelist_is_set="yes"
@@ -3143,7 +3143,7 @@ security_check_env_file() {
     fi
   done
 
-  if [[ -n "${referenced_db_types[opensearch]+set}" || "${ENV_VALUES[LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT]:-}" == "docker" ]]; then
+  if [[ -n "${referenced_db_types[opensearch]+set}" || "${ENV_VALUES[FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT]:-}" == "docker" ]]; then
     opensearch_in_use="yes"
   fi
 
@@ -3171,7 +3171,7 @@ security_check_env_file() {
     fi
     report_security_issue \
       "$no_auth_message" \
-      "Set AUTH_ACCOUNTS and TOKEN_SECRET, add LIGHTRAG_API_KEY, or put the service behind a trusted reverse proxy."
+      "Set AUTH_ACCOUNTS and TOKEN_SECRET, add FORGEMIND_API_KEY, or put the service behind a trusted reverse proxy."
     findings=$((findings + 1))
   fi
 
@@ -3184,7 +3184,7 @@ security_check_env_file() {
     elif ! validate_auth_accounts_password_safety "$auth_accounts"; then
       report_security_issue \
         "AUTH_ACCOUNTS uses a predictable password prefix." \
-        "Passwords must not start with 'admin' or 'pass'. Choose a stronger password or use lightrag-hash-password."
+        "Passwords must not start with 'admin' or 'pass'. Choose a stronger password or use forgemind-hash-password."
       findings=$((findings + 1))
     fi
 
@@ -3193,7 +3193,7 @@ security_check_env_file() {
         "AUTH_ACCOUNTS is set but TOKEN_SECRET is missing." \
         "Set a non-empty JWT signing secret before enabling account-based authentication."
       findings=$((findings + 1))
-    elif [[ "$token_secret" == "lightrag-jwt-default-secret" ]]; then
+    elif [[ "$token_secret" == "forgemind-jwt-default-secret" ]]; then
       report_security_issue \
         "TOKEN_SECRET still uses the built-in default value." \
         "Generate a unique JWT signing secret and update TOKEN_SECRET."
@@ -3219,7 +3219,7 @@ security_check_env_file() {
     fi
     if whitelist_exposes_api_routes "$effective_whitelist"; then
       report_security_issue \
-        "WHITELIST_PATHS exposes /api routes while LIGHTRAG_API_KEY is the only active auth mechanism." \
+        "WHITELIST_PATHS exposes /api routes while FORGEMIND_API_KEY is the only active auth mechanism." \
         "Use a minimal whitelist such as /health,/docs and keep /api routes protected by the API key."
       findings=$((findings + 1))
     fi
@@ -3227,7 +3227,7 @@ security_check_env_file() {
 
   if [[ "$opensearch_in_use" == "yes" ]] && [[ -n "${ENV_VALUES[OPENSEARCH_PASSWORD]:-}" ]]; then
     local os_pass="${ENV_VALUES[OPENSEARCH_PASSWORD]}"
-    if [[ "$os_pass" == "admin" || "$os_pass" == "LightRAG2026_!@" ]]; then
+    if [[ "$os_pass" == "admin" || "$os_pass" == "ForgeMind2026_!@" ]]; then
       report_security_issue \
         "OPENSEARCH_PASSWORD uses a well-known default value." \
         "Set a unique, strong password for the OpenSearch admin account."

@@ -19,12 +19,12 @@ from typing import Any
 
 import pytest
 
-from lightrag.llm._vision_utils import (
+from forgemind.llm._vision_utils import (
     image_audit_metadata,
     image_cache_metadata,
     normalize_image_inputs,
 )
-from lightrag.utils import (
+from forgemind.utils import (
     _serialize_cache_variant,
     compute_args_hash,
     get_llm_cache_identity,

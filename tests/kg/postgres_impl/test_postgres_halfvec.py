@@ -1,14 +1,14 @@
 import pytest
 import numpy as np
 from unittest.mock import patch, AsyncMock
-from lightrag.utils import EmbeddingFunc
-from lightrag.kg.postgres_impl import (
+from forgemind.utils import EmbeddingFunc
+from forgemind.kg.postgres_impl import (
     PGVectorStorage,
     PostgreSQLDB,
     _safe_index_name,
 )
-from lightrag.exceptions import DataMigrationError
-from lightrag.namespace import NameSpace
+from forgemind.exceptions import DataMigrationError
+from forgemind.namespace import NameSpace
 
 
 # Mock PostgreSQLDB
@@ -38,7 +38,7 @@ def mock_pg_db():
 # Mock get_data_init_lock to avoid async lock issues in tests
 @pytest.fixture(autouse=True)
 def mock_data_init_lock():
-    with patch("lightrag.kg.postgres_impl.get_data_init_lock") as mock_lock:
+    with patch("forgemind.kg.postgres_impl.get_data_init_lock") as mock_lock:
         mock_lock_ctx = AsyncMock()
         mock_lock.return_value = mock_lock_ctx
         yield mock_lock
@@ -47,7 +47,7 @@ def mock_data_init_lock():
 # Mock ClientManager
 @pytest.fixture
 def mock_client_manager(mock_pg_db):
-    with patch("lightrag.kg.postgres_impl.ClientManager") as mock_manager:
+    with patch("forgemind.kg.postgres_impl.ClientManager") as mock_manager:
         mock_manager.get_client = AsyncMock(return_value=mock_pg_db)
         mock_manager.release_client = AsyncMock()
         yield mock_manager
@@ -59,7 +59,7 @@ def mock_embedding_func():
     async def embed_func(texts, **kwargs):
         return np.array([[0.1] * 768 for _ in texts])
 
-    # Note: EmbeddingFunc in this version of lightrag supports model_name
+    # Note: EmbeddingFunc in this version of forgemind supports model_name
     func = EmbeddingFunc(embedding_dim=768, func=embed_func, model_name="test_model")
     return func
 
@@ -226,7 +226,7 @@ async def test_create_vector_index_drops_old_indexes_when_switching(mock_pg_db):
     mock_pg_db.ivfflat_lists = 100
     mock_pg_db.vchordrq_build_options = ""
 
-    table_name = "lightrag_vdb_chunks_test"
+    table_name = "forgemind_vdb_chunks_test"
 
     async def mock_query(sql, params=None, multirows=False, **kwargs):
         if "pg_indexes" in sql:
@@ -270,7 +270,7 @@ async def test_create_vector_index_no_drop_when_index_exists(mock_pg_db):
     mock_pg_db.ivfflat_lists = 100
     mock_pg_db.vchordrq_build_options = ""
 
-    table_name = "lightrag_vdb_chunks_test"
+    table_name = "forgemind_vdb_chunks_test"
 
     async def mock_query(sql, params=None, multirows=False, **kwargs):
         if "pg_indexes" in sql:
@@ -308,8 +308,8 @@ class _MockHalfVector:
 @pytest.mark.asyncio
 async def test_setup_table_detects_halfvector_dimension_mismatch(mock_pg_db):
     """DataMigrationError is raised when a HalfVector column has a different dimension."""
-    table_name = "lightrag_vdb_chunks_new"
-    legacy_table = "lightrag_vdb_chunks"
+    table_name = "forgemind_vdb_chunks_new"
+    legacy_table = "forgemind_vdb_chunks"
 
     mock_pg_db.check_table_exists = AsyncMock(
         side_effect=lambda t: t.lower() == legacy_table.lower()
@@ -343,8 +343,8 @@ async def test_setup_table_detects_halfvector_dimension_mismatch(mock_pg_db):
 @pytest.mark.asyncio
 async def test_setup_table_accepts_matching_halfvector_dimension(mock_pg_db):
     """No error when HalfVector dimension matches the expected embedding_dim."""
-    table_name = "lightrag_vdb_chunks_new"
-    legacy_table = "lightrag_vdb_chunks"
+    table_name = "forgemind_vdb_chunks_new"
+    legacy_table = "forgemind_vdb_chunks"
 
     mock_pg_db.check_table_exists = AsyncMock(
         side_effect=lambda t: t.lower() == legacy_table.lower()

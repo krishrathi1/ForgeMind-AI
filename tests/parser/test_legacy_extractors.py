@@ -9,7 +9,7 @@ from xml.etree import ElementTree as ET
 import pytest
 from openpyxl import Workbook
 
-from lightrag.parser.legacy.extractors import extract_text
+from forgemind.parser.legacy.extractors import extract_text
 
 
 _NS_URI = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"

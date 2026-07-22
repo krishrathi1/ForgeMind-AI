@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.operate import _process_json_extraction_result
-from lightrag.utils import tolerant_load_json_dict
+from forgemind.operate import _process_json_extraction_result
+from forgemind.utils import tolerant_load_json_dict
 
 pytestmark = pytest.mark.offline
 

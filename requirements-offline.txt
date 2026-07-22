@@ -1,10 +1,10 @@
-# LightRAG Complete Offline Dependencies
+# ForgeMind Complete Offline Dependencies
 # Install with: pip install -r requirements-offline.txt
 # For offline installation:
 #   pip download -r requirements-offline.txt -d ./packages
 #   pip install --no-index --find-links=./packages -r requirements-offline.txt
 #
-# Recommended: Use pip install lightrag-hku[offline] for the same effect
+# Recommended: Use pip install forgemind-ai[offline] for the same effect
 # Or use constraints: pip install --constraint constraints-offline.txt -r requirements-offline.txt
 
 aioboto3>=12.0.0,<16.0.0

@@ -29,22 +29,22 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.constants import (
-    FULL_DOCS_FORMAT_LIGHTRAG,
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.constants import (
+    FULL_DOCS_FORMAT_FORGEMIND,
     FULL_DOCS_FORMAT_RAW,
     PARSER_ENGINE_DOCLING,
     PARSER_ENGINE_LEGACY,
     PARSER_ENGINE_MINERU,
     PARSER_ENGINE_NATIVE,
 )
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
-from lightrag.utils_pipeline import (
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind.utils_pipeline import (
     _DOC_STATUS_METADATA_CARRY_OVER_KEYS,
     doc_status_metadata_carry_over,
     doc_status_reset_metadata,
-    make_lightrag_doc_content,
+    make_forgemind_doc_content,
     resolve_doc_status_parse_engine,
 )
 
@@ -60,7 +60,7 @@ def test_resolve_engine_explicit_wins():
     # A parser that reported its engine (or an enqueue-time directive) is
     # honoured verbatim regardless of format.
     assert (
-        resolve_doc_status_parse_engine(FULL_DOCS_FORMAT_LIGHTRAG, PARSER_ENGINE_MINERU)
+        resolve_doc_status_parse_engine(FULL_DOCS_FORMAT_FORGEMIND, PARSER_ENGINE_MINERU)
         == PARSER_ENGINE_MINERU
     )
     assert (
@@ -70,11 +70,11 @@ def test_resolve_engine_explicit_wins():
 
 
 def test_resolve_engine_format_based_fallback():
-    # No explicit engine: structured lightrag → native, everything else
+    # No explicit engine: structured forgemind → native, everything else
     # (raw passthrough, unknown) → legacy. Mirrors how a pre-engine corpus
     # was processed.
     assert (
-        resolve_doc_status_parse_engine(FULL_DOCS_FORMAT_LIGHTRAG, None)
+        resolve_doc_status_parse_engine(FULL_DOCS_FORMAT_FORGEMIND, None)
         == PARSER_ENGINE_NATIVE
     )
     assert (
@@ -101,13 +101,13 @@ def test_carry_over_preserves_parse_engine_and_format():
     carried = doc_status_metadata_carry_over(
         {
             "metadata": {
-                "parse_format": FULL_DOCS_FORMAT_LIGHTRAG,
+                "parse_format": FULL_DOCS_FORMAT_FORGEMIND,
                 "parse_engine": PARSER_ENGINE_MINERU,
                 "process_options": "iF",
             }
         }
     )
-    assert carried["parse_format"] == FULL_DOCS_FORMAT_LIGHTRAG
+    assert carried["parse_format"] == FULL_DOCS_FORMAT_FORGEMIND
     assert carried["parse_engine"] == PARSER_ENGINE_MINERU
 
 
@@ -118,7 +118,7 @@ def test_reset_still_drops_parse_engine_and_format():
     reset = doc_status_reset_metadata(
         {
             "metadata": {
-                "parse_format": FULL_DOCS_FORMAT_LIGHTRAG,
+                "parse_format": FULL_DOCS_FORMAT_FORGEMIND,
                 "parse_engine": PARSER_ENGINE_MINERU,
                 "process_options": "iF",
                 "source_file": "report.pdf",
@@ -151,8 +151,8 @@ async def _mock_llm(prompt, **kwargs):
     return '{"name":"x","summary":"s","detail_description":"d"}'
 
 
-def _new_rag(tmp_path: Path) -> LightRAG:
-    return LightRAG(
+def _new_rag(tmp_path: Path) -> ForgeMind:
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"parse-engine-early-{tmp_path.name}",
         llm_model_func=_mock_llm,
@@ -166,14 +166,14 @@ def _new_rag(tmp_path: Path) -> LightRAG:
     )
 
 
-def _attach_transition_spy(rag: LightRAG) -> list[tuple[str, dict]]:
+def _attach_transition_spy(rag: ForgeMind) -> list[tuple[str, dict]]:
     """Record (status, written-metadata) at every state-transition upsert.
 
     The written metadata mirrors what ``_upsert_doc_status_transition``
     persists (carry-over allowlist + ``metadata_extra``), reconstructed via
     the same helper so the recording matches storage exactly.
     """
-    from lightrag.utils_pipeline import doc_status_transition_metadata
+    from forgemind.utils_pipeline import doc_status_transition_metadata
 
     records: list[tuple[str, dict]] = []
     orig = rag._upsert_doc_status_transition
@@ -254,15 +254,15 @@ def test_raw_doc_records_legacy_engine_at_parsing(tmp_path):
     asyncio.run(_run())
 
 
-def test_lightrag_doc_records_native_engine_at_parsing(tmp_path):
-    """A lightrag-format doc on resume (already-parsed full_docs row pulled
+def test_forgemind_doc_records_native_engine_at_parsing(tmp_path):
+    """A forgemind-format doc on resume (already-parsed full_docs row pulled
     back through the parse queue → ReuseParser cache-hit, parser does not
     re-persist): parse_engine resolves to ``native`` and is stamped at
     PARSING, identical through PROCESSED.
 
-    The row is seeded directly (full_docs ``parse_format=lightrag`` +
+    The row is seeded directly (full_docs ``parse_format=forgemind`` +
     PENDING doc_status), mirroring how such rows exist in production now
-    that the ``docs_format="lightrag"`` enqueue entrypoint is removed:
+    that the ``docs_format="forgemind"`` enqueue entrypoint is removed:
     they are written by the parsers and re-enter the queue only on
     resume/retry."""
 
@@ -272,17 +272,17 @@ def test_lightrag_doc_records_native_engine_at_parsing(tmp_path):
         records = _attach_transition_spy(rag)
         try:
             doc_id = "doc-early-lr"
-            body = "Body paragraph for lightrag doc."
+            body = "Body paragraph for forgemind doc."
             now = datetime.now(timezone.utc).isoformat()
             await rag.full_docs.upsert(
                 {
                     doc_id: {
                         # Stored WITH the marker, as the parsers persist
-                        # lightrag rows. No parse_engine → the format-based
+                        # forgemind rows. No parse_engine → the format-based
                         # fallback resolves to native.
-                        "content": make_lightrag_doc_content(body),
-                        "file_path": "early.lightrag",
-                        "parse_format": FULL_DOCS_FORMAT_LIGHTRAG,
+                        "content": make_forgemind_doc_content(body),
+                        "file_path": "early.forgemind",
+                        "parse_format": FULL_DOCS_FORMAT_FORGEMIND,
                     }
                 }
             )
@@ -292,7 +292,7 @@ def test_lightrag_doc_records_native_engine_at_parsing(tmp_path):
                         "status": DocStatus.PENDING.value,
                         "content_summary": body,
                         "content_length": len(body),
-                        "file_path": "early.lightrag",
+                        "file_path": "early.forgemind",
                         "created_at": now,
                         "updated_at": now,
                         "track_id": "track-lr",
@@ -303,7 +303,7 @@ def test_lightrag_doc_records_native_engine_at_parsing(tmp_path):
 
             _assert_early_and_stable(
                 records,
-                expected_format=FULL_DOCS_FORMAT_LIGHTRAG,
+                expected_format=FULL_DOCS_FORMAT_FORGEMIND,
                 expected_engine=PARSER_ENGINE_NATIVE,
             )
         finally:

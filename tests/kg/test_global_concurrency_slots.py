@@ -1,5 +1,5 @@
 """Offline tests for the cross-worker global concurrency gate and queue
-stats aggregation primitives in lightrag.kg.shared_storage.
+stats aggregation primitives in forgemind.kg.shared_storage.
 
 All tests run in single-process mode (workers=1): the lease namespace and
 keyed locks degrade to in-process primitives, exercising the same code paths
@@ -13,7 +13,7 @@ import time
 
 import pytest
 
-from lightrag.kg import shared_storage as ss
+from forgemind.kg import shared_storage as ss
 
 pytestmark = pytest.mark.offline
 
@@ -74,7 +74,7 @@ def test_first_init_sets_limits_and_later_calls_do_not_overwrite():
     assert ss.is_global_concurrency_limited(GROUP) is True
     assert ss.get_global_concurrency_limit(GROUP) == 3
 
-    # Subsequent no-arg call (e.g. LightRAG.__post_init__) hits the
+    # Subsequent no-arg call (e.g. ForgeMind.__post_init__) hits the
     # already-initialized guard and must not clear the configuration.
     ss.initialize_share_data()
     assert ss.is_global_concurrency_limited(GROUP) is True

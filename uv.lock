@@ -2230,7 +2230,7 @@ wheels = [
 ]
 
 [[package]]
-name = "lightrag-hku"
+name = "forgemind-ai"
 source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
@@ -2550,9 +2550,9 @@ requires-dist = [
     { name = "langchain-experimental", marker = "extra == 'api'", specifier = ">=0.3.2,<1" },
     { name = "langchain-text-splitters", marker = "extra == 'api'", specifier = ">=0.3,<2" },
     { name = "langfuse", marker = "extra == 'observability'", specifier = ">=3.8.1" },
-    { name = "lightrag-hku", extras = ["api"], marker = "extra == 'evaluation'" },
-    { name = "lightrag-hku", extras = ["api"], marker = "extra == 'test'" },
-    { name = "lightrag-hku", extras = ["api", "offline-llm", "offline-storage"], marker = "extra == 'offline'" },
+    { name = "forgemind-ai", extras = ["api"], marker = "extra == 'evaluation'" },
+    { name = "forgemind-ai", extras = ["api"], marker = "extra == 'test'" },
+    { name = "forgemind-ai", extras = ["api", "offline-llm", "offline-storage"], marker = "extra == 'offline'" },
     { name = "llama-index", marker = "extra == 'offline-llm'", specifier = ">=0.14.0,<1.0.0" },
     { name = "llama-index-llms-openai", marker = "extra == 'offline-llm'", specifier = ">=0.6.12" },
     { name = "nano-vectordb" },

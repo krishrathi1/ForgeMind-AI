@@ -11,12 +11,12 @@ built directly with post-anchor levels so the pass is exercised in isolation.
 
 from __future__ import annotations
 
-from lightrag.parser.docx.smart_heading.heading_flow import (
+from forgemind.parser.docx.smart_heading.heading_flow import (
     HeadingDecision,
     backfill_top_level,
     nest_numbered_under_parent,
 )
-from lightrag.parser.docx.smart_heading.style_key import classify_numbering
+from forgemind.parser.docx.smart_heading.style_key import classify_numbering
 
 
 def _d(idx, text, level, *, size=12.0, outline=None, plain=False, anchored=False):
@@ -170,7 +170,7 @@ def test_backfill_linked_chapter_beats_linked_ennum() -> None:
     # latent case the guard targets). The chapter must win as MLN level-1; EnNum
     # must NOT be rewritten. Layout keeps each series' scopes free of foreign
     # top ordinals so both reach linkage 2.
-    from lightrag.parser.docx.smart_heading.style_key import EN_NUM, MULTI_LEVEL_NUM
+    from forgemind.parser.docx.smart_heading.style_key import EN_NUM, MULTI_LEVEL_NUM
 
     ds = [
         _d(0, "第一章 X", 2, size=14.0),  # CnChapter ord1

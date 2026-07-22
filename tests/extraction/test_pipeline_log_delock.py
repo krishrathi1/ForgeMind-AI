@@ -22,9 +22,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-import lightrag.operate as operate
-from lightrag.operate import extract_entities
-from lightrag.utils import Tokenizer, TokenizerInterface
+import forgemind.operate as operate
+from forgemind.operate import extract_entities
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 pytestmark = pytest.mark.offline
 
@@ -125,7 +125,7 @@ async def test_per_chunk_log_routes_through_logger_not_the_lock(
     blocks.
 
     The class must be patched in ``operate``'s namespace (it is bound there by
-    ``from ... import``, so patching ``lightrag.kg.shared_storage`` would not
+    ``from ... import``, so patching ``forgemind.kg.shared_storage`` would not
     reach it) and BEFORE the call (the instance is constructed inside
     ``extract_entities``). Capture state lives in this test's closure so
     nothing leaks between tests."""

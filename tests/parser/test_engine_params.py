@@ -1,13 +1,13 @@
 """Tests for per-file ENGINE parameters (Phase 2).
 
-Engine params attach to the engine token of a hint / LIGHTRAG_PARSER rule
+Engine params attach to the engine token of a hint / FORGEMIND_PARSER rule
 (``mineru(page_range=1-3,language=en)`` / ``docling(force_ocr=true)``) and ride
 the existing ``parse_engine`` field encoded in hint syntax.
 
 The suite's conftest strips ``MINERU_API_MODE`` (tests default to local, which
 allows only a single page_range segment), so multi-segment cases explicitly set
 official mode via monkeypatch.  ``parser_rules=""`` keeps assertions independent
-of any ambient ``LIGHTRAG_PARSER``.
+of any ambient ``FORGEMIND_PARSER``.
 """
 
 from __future__ import annotations
@@ -17,12 +17,12 @@ import sys
 
 import pytest
 
-from lightrag.parser.param_schema import (
+from forgemind.parser.param_schema import (
     normalize_engine_params,
     parse_engine_params,
     render_engine_params,
 )
-from lightrag.parser.routing import (
+from forgemind.parser.routing import (
     FilenameParserHintError,
     ParserRoutingConfigError,
     decode_parse_engine,
@@ -37,7 +37,7 @@ from lightrag.parser.routing import (
 # neutralise pytest's argv during that first import.
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-importlib.import_module("lightrag.api.routers.document_routes")
+importlib.import_module("forgemind.api.routers.document_routes")
 sys.argv = _original_argv
 
 

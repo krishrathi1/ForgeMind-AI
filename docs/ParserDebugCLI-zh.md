@@ -1,6 +1,6 @@
 # Parser CLI Debuger使用指南
 
-本工具用于本地调试 LightRAG 注册表中的任意内容解析引擎（内置 `native` / `legacy` / `mineru` / `docling`，以及通过 `lightrag.parsers` entry point 注册的第三方引擎，见 `docs/ThirdPartyParser-zh.md`），针对**单个文件**触发与 pipeline worker 相同的注册表派发路径（`get_parser(engine).parse(...)`），并把解析产物（sidecar 与 raw 缓存）输出到一个**扁平目录布局**——与生产入库目录相比，区别仅在于：
+本工具用于本地调试 ForgeMind 注册表中的任意内容解析引擎（内置 `native` / `legacy` / `mineru` / `docling`，以及通过 `forgemind.parsers` entry point 注册的第三方引擎，见 `docs/ThirdPartyParser-zh.md`），针对**单个文件**触发与 pipeline worker 相同的注册表派发路径（`get_parser(engine).parse(...)`），并把解析产物（sidecar 与 raw 缓存）输出到一个**扁平目录布局**——与生产入库目录相比，区别仅在于：
 
 - **无 `__parsed__/` 中间层**：产物直接落在指定父目录下，便于查看；
 - **源文件不会被归档**：源文件保留在原位置（生产路径会把源文件移到 `<INPUT_DIR>/__parsed__/`）；
@@ -11,7 +11,7 @@
 ## 命令格式
 
 ```bash
-python -m lightrag.parser.cli <input_file> \
+python -m forgemind.parser.cli <input_file> \
     --engine <engine> \
     [-o <sidecar_parent_dir>] \
     [--doc-id <doc-id>] \
@@ -53,7 +53,7 @@ python -m lightrag.parser.cli <input_file> \
 ### A. 本地解析 `.docx`（零网络依赖）
 
 ```bash
-python -m lightrag.parser.cli ./inputs/workspace/sample.docx --engine native
+python -m forgemind.parser.cli ./inputs/workspace/sample.docx --engine native
 # 产出：./inputs/workspace/sample.docx.parsed/  （含 blocks.jsonl + assets）
 ```
 
@@ -61,9 +61,9 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.docx --engine native
 
 ```bash
 # 第一次：下载 raw bundle + 生成 sidecar
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine mineru
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf --engine mineru
 # 第二次（无任何修改）：raw 目录非空 → 直接复用 → 仅重建 sidecar，速度快
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine mineru
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf --engine mineru
 # 日志会显示： [mineru] raw cache hit doc_id=...
 ```
 
@@ -71,16 +71,16 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine mineru
 
 ```bash
 # 已有 ./inputs/workspace/sample.pdf.docling_raw/ （含 docling 产物的 JSON 等文件）
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf --engine docling
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf --engine docling
 # CLI 不查 manifest，只要 raw 目录非空就跳过 docling-serve 调用
 ```
 
-> 注：这是旧 `python -m lightrag.parser.external.docling` 调试入口「从已有 raw 重建 sidecar」场景的等价替代——只需把 raw 目录放到约定位置（`<sidecar_parent>/<source>.docling_raw/`）即可触发缓存命中分支。
+> 注：这是旧 `python -m forgemind.parser.external.docling` 调试入口「从已有 raw 重建 sidecar」场景的等价替代——只需把 raw 目录放到约定位置（`<sidecar_parent>/<source>.docling_raw/`）即可触发缓存命中分支。
 
 ### D. 输出到自定义目录
 
 ```bash
-python -m lightrag.parser.cli ./inputs/workspace/sample.docx \
+python -m forgemind.parser.cli ./inputs/workspace/sample.docx \
     --engine native -o /tmp/debug_sidecar
 # 产出：/tmp/debug_sidecar/sample.docx.parsed/
 # 原文件 ./inputs/workspace/sample.docx 不会被移动
@@ -89,7 +89,7 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.docx \
 ### E. 强制重新解析（清空 raw 后重新下载）
 
 ```bash
-python -m lightrag.parser.cli ./inputs/workspace/sample.pdf \
+python -m forgemind.parser.cli ./inputs/workspace/sample.pdf \
     --engine docling --force-reparse
 # raw 目录被清空 → 重新调 docling-serve 下载 → 重新生成 sidecar
 ```
@@ -117,7 +117,7 @@ python -m lightrag.parser.cli ./inputs/workspace/sample.pdf \
 
 ## 与生产解析路径的等价性
 
-本 CLI 与 pipeline parse worker 走同一条注册表派发路径——`get_parser(engine).parse(ParseContext(rag, ...))`（`rag` 是 `lightrag/parser/debug.py` 的轻量替身），因此：
+本 CLI 与 pipeline parse worker 走同一条注册表派发路径——`get_parser(engine).parse(ParseContext(rag, ...))`（`rag` 是 `forgemind/parser/debug.py` 的轻量替身），因此：
 
 - sidecar 字段、命名、内容格式与生产入库完全一致；
 - IR 构建器、`write_sidecar` 调用、`_persist_parsed_full_docs` 行为完全一致；

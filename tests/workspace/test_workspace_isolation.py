@@ -2,7 +2,7 @@
 """
 Test script for Workspace Isolation Feature
 
-Comprehensive test suite covering workspace isolation in LightRAG:
+Comprehensive test suite covering workspace isolation in ForgeMind:
 1. Pipeline Status Isolation - Data isolation between workspaces
 2. Lock Mechanism - Parallel execution for different workspaces, serial for same workspace
 3. Backward Compatibility - Legacy code without workspace parameters
@@ -13,7 +13,7 @@ Comprehensive test suite covering workspace isolation in LightRAG:
 8. Update Flags Workspace Isolation - Update flags properly isolated
 9. Empty Workspace Standardization - Empty workspace handling
 10. JsonKVStorage Workspace Isolation - Integration test for KV storage
-11. LightRAG End-to-End Workspace Isolation - Complete E2E test with two instances
+11. ForgeMind End-to-End Workspace Isolation - Complete E2E test with two instances
 
 Total: 11 test scenarios
 """
@@ -26,7 +26,7 @@ import numpy as np
 import pytest
 from pathlib import Path
 from typing import List, Tuple, Dict
-from lightrag.kg.shared_storage import (
+from forgemind.kg.shared_storage import (
     get_final_namespace,
     get_namespace_lock,
     get_default_workspace,
@@ -48,7 +48,7 @@ from lightrag.kg.shared_storage import (
 
 # Test configuration is handled via pytest fixtures in conftest.py
 # - Use CLI options: --keep-artifacts, --stress-test, --test-workers=N
-# - Or environment variables: LIGHTRAG_KEEP_ARTIFACTS, LIGHTRAG_STRESS_TEST, LIGHTRAG_TEST_WORKERS
+# - Or environment variables: FORGEMIND_KEEP_ARTIFACTS, FORGEMIND_STRESS_TEST, FORGEMIND_TEST_WORKERS
 # Priority: CLI options > Environment variables > Default values
 
 
@@ -813,7 +813,7 @@ async def test_json_kv_storage_workspace_isolation(keep_test_artifacts):
             "\nTest 10.1: Create two JsonKVStorage instances with different workspaces"
         )
 
-        from lightrag.kg.json_kv_impl import JsonKVStorage
+        from forgemind.kg.json_kv_impl import JsonKVStorage
 
         storage1 = JsonKVStorage(
             namespace="entities",
@@ -947,28 +947,28 @@ async def test_json_kv_storage_workspace_isolation(keep_test_artifacts):
 
 
 # =============================================================================
-# Test 11: LightRAG End-to-End Integration Test
+# Test 11: ForgeMind End-to-End Integration Test
 # =============================================================================
 
 
 @pytest.mark.offline
-async def test_lightrag_end_to_end_workspace_isolation(keep_test_artifacts):
+async def test_forgemind_end_to_end_workspace_isolation(keep_test_artifacts):
     """
-    End-to-end test: Create two LightRAG instances with different workspaces,
+    End-to-end test: Create two ForgeMind instances with different workspaces,
     insert different data, and verify file separation.
     Uses mock LLM and embedding functions to avoid external API calls.
     """
-    # Purpose: Validate that full LightRAG flows keep artifacts scoped per workspace.
-    # Scope: LightRAG.initialize_storages + ainsert side effects plus filesystem
+    # Purpose: Validate that full ForgeMind flows keep artifacts scoped per workspace.
+    # Scope: ForgeMind.initialize_storages + ainsert side effects plus filesystem
     # verification for generated storage files.
     print("\n" + "=" * 60)
-    print("TEST 11: LightRAG End-to-End Workspace Isolation")
+    print("TEST 11: ForgeMind End-to-End Workspace Isolation")
     print("=" * 60)
 
     # Create temporary test directory under project temp/
     test_dir = str(
         Path(__file__).parent.parent.parent
-        / "temp/test_lightrag_end_to_end_workspace_isolation"
+        / "temp/test_forgemind_end_to_end_workspace_isolation"
     )
     if os.path.exists(test_dir):
         shutil.rmtree(test_dir)
@@ -1008,11 +1008,11 @@ relation<|#|>Deep Learning<|#|>Neural Networks<|#|>uses, composed of<|#|>Deep Le
             await asyncio.sleep(0)
             return np.random.rand(len(texts), 384)  # 384-dimensional vectors
 
-        # Test 11.1: Create two LightRAG instances with different workspaces
-        print("\nTest 11.1: Create two LightRAG instances with different workspaces")
+        # Test 11.1: Create two ForgeMind instances with different workspaces
+        print("\nTest 11.1: Create two ForgeMind instances with different workspaces")
 
-        from lightrag import LightRAG
-        from lightrag.utils import EmbeddingFunc, Tokenizer
+        from forgemind import ForgeMind
+        from forgemind.utils import EmbeddingFunc, Tokenizer
 
         # Create different mock LLM functions for each workspace
         mock_llm_func_a = create_mock_llm_func("project_a")
@@ -1027,7 +1027,7 @@ relation<|#|>Deep Learning<|#|>Neural Networks<|#|>uses, composed of<|#|>Deep Le
 
         tokenizer = Tokenizer("mock-tokenizer", _SimpleTokenizerImpl())
 
-        rag1 = LightRAG(
+        rag1 = ForgeMind(
             working_dir=test_dir,
             workspace="project_a",
             llm_model_func=mock_llm_func_a,
@@ -1039,7 +1039,7 @@ relation<|#|>Deep Learning<|#|>Neural Networks<|#|>uses, composed of<|#|>Deep Le
             tokenizer=tokenizer,
         )
 
-        rag2 = LightRAG(
+        rag2 = ForgeMind(
             working_dir=test_dir,
             workspace="project_b",
             llm_model_func=mock_llm_func_b,
@@ -1106,7 +1106,7 @@ relation<|#|>Deep Learning<|#|>Neural Networks<|#|>uses, composed of<|#|>Deep Le
                 size = file.stat().st_size
                 print(f"     - {file.name} ({size} bytes)")
 
-        print("✅ PASSED: LightRAG E2E - File Structure")
+        print("✅ PASSED: ForgeMind E2E - File Structure")
         print("   Workspace directories correctly created and separated")
 
         # Test 11.4: Verify data isolation by checking file contents
@@ -1163,13 +1163,13 @@ relation<|#|>Deep Learning<|#|>Neural Networks<|#|>uses, composed of<|#|>Deep Le
             )
             # Note: "Machine Learning" might appear in project_b's text, so we skip that check
 
-            print("✅ PASSED: LightRAG E2E - Data Isolation")
+            print("✅ PASSED: ForgeMind E2E - Data Isolation")
             print("   Document storage correctly isolated between workspaces")
             print("   project_a contains only its own data")
             print("   project_b contains only its own data")
         else:
             print("   Document storage files not found (may not be created yet)")
-            print("✅ PASSED: LightRAG E2E - Data Isolation")
+            print("✅ PASSED: ForgeMind E2E - Data Isolation")
             print("   Skipped file content check (files not created)")
 
         print("\n   ✓ Test complete - workspace isolation verified at E2E level")

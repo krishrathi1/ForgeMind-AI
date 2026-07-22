@@ -21,8 +21,8 @@ from fastapi.testclient import TestClient
 # document_routes parses argv at import time; guard it like the sibling tests.
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-_document_routes = importlib.import_module("lightrag.api.routers.document_routes")
-_registry = importlib.import_module("lightrag.parser.registry")
+_document_routes = importlib.import_module("forgemind.api.routers.document_routes")
+_registry = importlib.import_module("forgemind.parser.registry")
 sys.argv = _original_argv
 
 create_document_routes = _document_routes.create_document_routes
@@ -37,7 +37,7 @@ _HEADERS = {"X-API-Key": "test-key"}
 def client(tmp_path, monkeypatch):
     """TestClient over a fresh app; parser env cleared for a default deployment."""
     for var in (
-        "LIGHTRAG_PARSER",
+        "FORGEMIND_PARSER",
         "MINERU_API_MODE",
         "MINERU_LOCAL_ENDPOINT",
         "MINERU_API_TOKEN",
@@ -84,14 +84,14 @@ def test_requires_auth(client):
 def test_cache_headers(client):
     resp = client.get("/documents/supported_file_types", headers=_HEADERS)
     assert resp.headers["Cache-Control"] == "no-store"
-    assert resp.headers["Vary"] == "LIGHTRAG-WORKSPACE"
+    assert resp.headers["Vary"] == "FORGEMIND-WORKSPACE"
 
 
 def test_mineru_routing_splits_allowlist_and_matrix(client, monkeypatch):
     """A hint-only suffix appears in the matrix but not the bare allowlist."""
     monkeypatch.setenv("MINERU_API_MODE", "local")
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://localhost:8888")
-    monkeypatch.setenv("LIGHTRAG_PARSER", "jpg:mineru;*:legacy-R")
+    monkeypatch.setenv("FORGEMIND_PARSER", "jpg:mineru;*:legacy-R")
 
     body = client.get("/documents/supported_file_types", headers=_HEADERS).json()
 

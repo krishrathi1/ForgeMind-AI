@@ -1,6 +1,6 @@
 import pytest
 
-from lightrag.kg.memgraph_impl import MemgraphStorage
+from forgemind.kg.memgraph_impl import MemgraphStorage
 
 
 pytestmark = pytest.mark.offline

@@ -1,6 +1,6 @@
 import pytest
 
-from lightrag.api.config import get_default_host
+from forgemind.api.config import get_default_host
 
 
 pytestmark = pytest.mark.offline

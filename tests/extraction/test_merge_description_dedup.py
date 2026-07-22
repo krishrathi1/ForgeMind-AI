@@ -15,14 +15,14 @@ These drive the real merge round-trip (``get_node``/``get_edge`` -> merge ->
 
 import pytest
 
-from lightrag.constants import GRAPH_FIELD_SEP
-from lightrag.operate import (
+from forgemind.constants import GRAPH_FIELD_SEP
+from forgemind.operate import (
     SOURCE_IDS_LIMIT_METHOD_KEEP,
     _combine_descriptions_dedup,
     _merge_edges_then_upsert,
     _merge_nodes_then_upsert,
 )
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _DummyTokenizer(TokenizerInterface):

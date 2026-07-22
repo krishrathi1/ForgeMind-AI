@@ -4,14 +4,14 @@ Some exceptions cannot be reconstructed from their ``args`` alone because
 their constructor signatures differ (json.JSONDecodeError needs
 ``(msg, doc, pos)``; openai SDK ``APIStatusError`` subclasses need keyword-only
 ``response``/``body``). The helper must never raise while prefixing and must
-surface the original type name + message. See HKUDS/LightRAG #2710 and #2794.
+surface the original type name + message. See krishrathi1/ForgeMind-AI #2710 and #2794.
 """
 
 import json
 
 import pytest
 
-from lightrag.utils import create_prefixed_exception
+from forgemind.utils import create_prefixed_exception
 
 
 @pytest.mark.offline

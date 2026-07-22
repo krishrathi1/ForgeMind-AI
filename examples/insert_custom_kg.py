@@ -1,6 +1,6 @@
 import os
-from lightrag import LightRAG
-from lightrag.llm.openai import gpt_4o_mini_complete
+from forgemind import ForgeMind
+from forgemind.llm.openai import gpt_4o_mini_complete
 #########
 # Uncomment the below two lines if running in a jupyter notebook to handle the async nature of rag.insert()
 # import nest_asyncio
@@ -12,7 +12,7 @@ WORKING_DIR = "./custom_kg"
 if not os.path.exists(WORKING_DIR):
     os.mkdir(WORKING_DIR)
 
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=gpt_4o_mini_complete,  # Use gpt_4o_mini_complete LLM model
     # llm_model_func=gpt_4o_complete  # Optionally, use a stronger model

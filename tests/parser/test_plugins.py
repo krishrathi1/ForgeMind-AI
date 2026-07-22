@@ -1,8 +1,8 @@
-"""Unit tests for third-party parser discovery (lightrag.parser.plugins)."""
+"""Unit tests for third-party parser discovery (forgemind.parser.plugins)."""
 
 import pytest
 
-from lightrag.parser import plugins, registry
+from forgemind.parser import plugins, registry
 
 
 class _FakeEntryPoint:
@@ -108,7 +108,7 @@ def test_broken_plugin_is_skipped_not_fatal(monkeypatch, third_party_cleanup):
 def test_cli_sees_entry_point_engine(monkeypatch, third_party_cleanup):
     """End-to-end: a plugin-registered engine becomes a valid --engine choice
     in the debug CLI (which calls load_third_party_parsers in main)."""
-    from lightrag.parser import cli
+    from forgemind.parser import cli
 
     def _register():
         registry.register_parser(

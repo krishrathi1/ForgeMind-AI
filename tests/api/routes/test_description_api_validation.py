@@ -1,15 +1,15 @@
 import pytest
 
-from lightrag.constants import SOURCE_IDS_LIMIT_METHOD_KEEP
-from lightrag.constants import GRAPH_FIELD_SEP
-from lightrag.operate import (
+from forgemind.constants import SOURCE_IDS_LIMIT_METHOD_KEEP
+from forgemind.constants import GRAPH_FIELD_SEP
+from forgemind.operate import (
     _handle_single_entity_extraction,
     _merge_nodes_then_upsert,
     _normalize_text_extraction_record_attributes,
     _handle_single_relationship_extraction,
 )
-from lightrag import utils_graph
-from lightrag.utils import VectorStorageConsistencyError
+from forgemind import utils_graph
+from forgemind.utils import VectorStorageConsistencyError
 
 
 class DummyGraphStorage:
@@ -398,6 +398,6 @@ async def test_aedit_entity_merge_propagates_consistency_error(monkeypatch):
             allow_merge=True,
         )
 
-    assert "lightrag-rebuild-vdb" in str(excinfo.value)
+    assert "forgemind-rebuild-vdb" in str(excinfo.value)
     # Fail-loud happened before source deletion: 'Alias' is still in the graph.
     assert "Alias" in graph.nodes

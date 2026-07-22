@@ -13,9 +13,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from lightrag.kg.networkx_impl import NetworkXStorage
-from lightrag.kg.shared_storage import finalize_share_data, initialize_share_data
-from lightrag.utils import EmbeddingFunc
+from forgemind.kg.networkx_impl import NetworkXStorage
+from forgemind.kg.shared_storage import finalize_share_data, initialize_share_data
+from forgemind.utils import EmbeddingFunc
 
 pytestmark = pytest.mark.offline
 

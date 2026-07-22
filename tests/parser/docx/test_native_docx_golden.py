@@ -1,6 +1,6 @@
 """Byte-equivalence golden tests for the native docx → SidecarWriter migration.
 
-These tests run the production code path (``LightRAG.parse_native``) on
+These tests run the production code path (``ForgeMind.parse_native``) on
 each scenario in ``_native_docx_fixtures.SCENARIOS`` and assert that
 every produced file matches the captured baseline bytes under
 ``tests/parser/docx/golden/native_docx/<scenario>/``.
@@ -26,12 +26,12 @@ if str(HERE) not in sys.path:
     sys.path.insert(0, str(HERE))
 
 from _native_docx_fixtures import SCENARIOS, Scenario  # noqa: E402
-from lightrag.parser.base import ParseContext  # noqa: E402
-from lightrag.parser.debug import (  # noqa: E402
+from forgemind.parser.base import ParseContext  # noqa: E402
+from forgemind.parser.debug import (  # noqa: E402
     FrozenDateTime,
     build_debug_rag,
 )
-from lightrag.parser.registry import get_parser  # noqa: E402
+from forgemind.parser.registry import get_parser  # noqa: E402
 
 GOLDEN_ROOT = HERE / "golden" / "native_docx"
 
@@ -39,7 +39,7 @@ GOLDEN_ROOT = HERE / "golden" / "native_docx"
 def _run_new_path(
     scenario: Scenario, input_dir: Path, monkeypatch: pytest.MonkeyPatch
 ) -> Path:
-    """Invoke ``LightRAG.parse_native`` on a single scenario.
+    """Invoke ``ForgeMind.parse_native`` on a single scenario.
 
     The upstream ``extract_docx_blocks`` is stubbed to feed the synthetic
     blocks and produce the matching asset files inside
@@ -48,7 +48,7 @@ def _run_new_path(
 
     Returns the parsed directory containing the produced artifacts.
     """
-    from lightrag.constants import (
+    from forgemind.constants import (
         FULL_DOCS_FORMAT_PENDING_PARSE,
         PARSED_DIR_NAME,
     )
@@ -60,7 +60,7 @@ def _run_new_path(
     async def _noop_archive(_p: str) -> None:
         return None
 
-    import lightrag.pipeline as pipeline_module
+    import forgemind.pipeline as pipeline_module
 
     monkeypatch.setattr(
         pipeline_module, "archive_docx_source_after_full_docs_sync", _noop_archive
@@ -90,10 +90,10 @@ def _run_new_path(
 
     with (
         mock.patch(
-            "lightrag.parser.docx.parse_document.extract_docx_blocks",
+            "forgemind.parser.docx.parse_document.extract_docx_blocks",
             _stub_extract,
         ),
-        mock.patch("lightrag.sidecar.writer.datetime", FrozenDateTime),
+        mock.patch("forgemind.sidecar.writer.datetime", FrozenDateTime),
     ):
 
         async def _go() -> None:

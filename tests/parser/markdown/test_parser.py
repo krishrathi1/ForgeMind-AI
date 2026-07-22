@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.parser.markdown import parser as md_parser
-from lightrag.parser.markdown.parser import (
+from forgemind.parser.markdown import parser as md_parser
+from forgemind.parser.markdown.parser import (
     NativeMarkdownParser,
     _host_is_public,
     _image_bytes_and_ext,

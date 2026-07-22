@@ -1,5 +1,5 @@
 """
-Pytest configuration for LightRAG tests.
+Pytest configuration for ForgeMind tests.
 
 This file provides command-line options and fixtures for test configuration.
 """
@@ -11,7 +11,7 @@ import pytest
 def _hermetic_mineru_env(monkeypatch):
     """Make every test start with parser-routing env vars in their unset state.
 
-    ``lightrag/api/{auth,config}.py`` call ``load_dotenv(override=False)``
+    ``forgemind/api/{auth,config}.py`` call ``load_dotenv(override=False)``
     at import time, leaking the developer's local ``.env`` into the test
     process. The MinerU test fixtures assume ``MINERU_API_MODE`` is unset
     (so it defaults to ``"local"`` per ``MinerURawClient.__init__`` /
@@ -24,7 +24,7 @@ def _hermetic_mineru_env(monkeypatch):
       ``"MINERU_API_TOKEN"`` instead of ``"MINERU_LOCAL_ENDPOINT"``,
       breaking the validation-error string match.
 
-    ``LIGHTRAG_PARSER`` is cleared for the same reason: a routing rule
+    ``FORGEMIND_PARSER`` is cleared for the same reason: a routing rule
     like ``docx:mineru-iet`` in the developer's ``.env`` forces
     ``parser_routing.validate_parser_routing_config`` to require the
     corresponding endpoint (``MINERU_LOCAL_ENDPOINT`` /
@@ -66,7 +66,7 @@ def _hermetic_mineru_env(monkeypatch):
     monkeypatch.delenv("MINERU_LOCAL_PARSE_METHOD", raising=False)
     monkeypatch.delenv("MINERU_LOCAL_IMAGE_ANALYSIS", raising=False)
     monkeypatch.delenv("MINERU_LOCAL_START_PAGE_ID", raising=False)
-    monkeypatch.delenv("LIGHTRAG_PARSER", raising=False)
+    monkeypatch.delenv("FORGEMIND_PARSER", raising=False)
     monkeypatch.delenv("DOCLING_ENDPOINT", raising=False)
     monkeypatch.setenv("DOCX_SMART_HEADING", "false")
 
@@ -78,7 +78,7 @@ def _hermetic_mineru_env(monkeypatch):
 #:   captured BEFORE the per-test ``_hermetic_mineru_env`` fixture pins the var
 #:   to "false" — so opt-in drives spaCy test selection while routing/API tests
 #:   still see a neutral value.
-_SPACY_DOWNLOAD_HINT = "lightrag-download-cache --spacy --spacy-install"
+_SPACY_DOWNLOAD_HINT = "forgemind-download-cache --spacy --spacy-install"
 
 
 def pytest_configure(config):
@@ -92,7 +92,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line("markers", "requires_db: marks tests requiring database")
     config.addinivalue_line(
-        "markers", "requires_api: marks tests requiring LightRAG API server"
+        "markers", "requires_api: marks tests requiring ForgeMind API server"
     )
     config.addinivalue_line(
         "markers",
@@ -106,12 +106,12 @@ def pytest_configure(config):
 
     load_dotenv(dotenv_path=".env", override=False)
 
-    from lightrag.parser.docx.smart_heading import nlp
+    from forgemind.parser.docx.smart_heading import nlp
 
     config._missing_spacy_models = tuple(nlp.missing_spacy_models())
 
     try:
-        from lightrag.parser.routing import smart_heading_default_enabled
+        from forgemind.parser.routing import smart_heading_default_enabled
 
         config._smart_heading_opted_in = smart_heading_default_enabled()
     except Exception:
@@ -167,7 +167,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 
 
 def pytest_addoption(parser):
-    """Add custom command-line options for LightRAG tests."""
+    """Add custom command-line options for ForgeMind tests."""
 
     parser.addoption(
         "--keep-artifacts",
@@ -232,7 +232,7 @@ def keep_test_artifacts(request):
         return True
 
     # Fall back to environment variable
-    return os.getenv("LIGHTRAG_KEEP_ARTIFACTS", "false").lower() == "true"
+    return os.getenv("FORGEMIND_KEEP_ARTIFACTS", "false").lower() == "true"
 
 
 @pytest.fixture(scope="session")
@@ -249,7 +249,7 @@ def stress_test_mode(request):
         return True
 
     # Fall back to environment variable
-    return os.getenv("LIGHTRAG_STRESS_TEST", "false").lower() == "true"
+    return os.getenv("FORGEMIND_STRESS_TEST", "false").lower() == "true"
 
 
 @pytest.fixture(scope="session")
@@ -267,7 +267,7 @@ def parallel_workers(request):
         return cli_workers
 
     # Fall back to environment variable
-    return int(os.getenv("LIGHTRAG_TEST_WORKERS", "3"))
+    return int(os.getenv("FORGEMIND_TEST_WORKERS", "3"))
 
 
 @pytest.fixture(scope="session")
@@ -284,4 +284,4 @@ def run_integration_tests(request):
         return True
 
     # Fall back to environment variable
-    return os.getenv("LIGHTRAG_RUN_INTEGRATION", "false").lower() == "true"
+    return os.getenv("FORGEMIND_RUN_INTEGRATION", "false").lower() == "true"

@@ -1,0 +1,10 @@
+apiVersion: v2
+name: forgemind
+description: A Helm chart for ForgeMind, an efficient and lightweight RAG system
+type: application
+version: 0.1.1
+appVersion: "1.0.0"
+maintainers:
+  - name: ForgeMind Team
+  - name: earayu
+    email: earayu@gmail.com

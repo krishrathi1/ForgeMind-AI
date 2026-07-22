@@ -21,7 +21,7 @@ import hashlib
 
 import pytest
 
-from lightrag.utils import compute_args_hash, compute_mdhash_id
+from forgemind.utils import compute_args_hash, compute_mdhash_id
 
 
 pytestmark = pytest.mark.offline

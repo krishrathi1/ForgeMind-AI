@@ -4,7 +4,7 @@ Covers the fix for issue #2895: responses truncated when retrieved chunks
 contain <think> tags.
 """
 
-from lightrag.utils import remove_think_tags
+from forgemind.utils import remove_think_tags
 
 
 class TestRemoveThinkTags:

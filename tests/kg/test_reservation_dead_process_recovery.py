@@ -22,8 +22,8 @@ import sys
 
 import pytest
 
-import lightrag.kg.shared_storage as shared_storage
-from lightrag.kg.shared_storage import (
+import forgemind.kg.shared_storage as shared_storage
+from forgemind.kg.shared_storage import (
     _INTERNAL_PIPELINE_STATUS_FIELDS,
     finalize_share_data,
     get_namespace_data,
@@ -41,7 +41,7 @@ from lightrag.kg.shared_storage import (
 # lower-level module that does not parse argv, so it imports normally above.
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-dr = importlib.import_module("lightrag.api.routers.document_routes")
+dr = importlib.import_module("forgemind.api.routers.document_routes")
 sys.argv = _original_argv
 
 pytestmark = pytest.mark.offline
@@ -240,12 +240,12 @@ async def test_apipeline_enqueue_documents_refuses_when_recovery_required():
     """The core write path — public ``ainsert`` / direct callers bypass the REST
     ``_reserve_enqueue_slot`` guard — must refuse on a fenced workspace, or it
     would write full_docs/doc_status onto a partially-committed store."""
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     finalize_share_data()
     initialize_share_data(1)
     try:
-        rag = LightRAG.__new__(LightRAG)
+        rag = ForgeMind.__new__(ForgeMind)
         rag.workspace = "recovery-enqueue-ws"
         await initialize_pipeline_status(workspace=rag.workspace)
         ps = await get_namespace_data("pipeline_status", workspace=rag.workspace)
@@ -265,12 +265,12 @@ async def test_apipeline_enqueue_documents_refuses_when_recovery_required():
 async def test_processing_loop_bails_when_recovery_required():
     """The processing loop must NOT acquire + process on a fenced workspace,
     even though reconcile cleared ``busy`` when it raised the fence."""
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     finalize_share_data()
     initialize_share_data(1)
     try:
-        rag = LightRAG.__new__(LightRAG)
+        rag = ForgeMind.__new__(ForgeMind)
         rag.workspace = "recovery-process-ws"
         await initialize_pipeline_status(workspace=rag.workspace)
         ps = await get_namespace_data("pipeline_status", workspace=rag.workspace)
@@ -293,12 +293,12 @@ async def test_graph_mutation_sdk_refuses_when_recovery_required():
     """Direct SDK graph edits (bypassing the REST check_pipeline_busy_or_raise
     fence) must refuse on a fenced workspace — the ``_raise_if_recovery_required``
     guard fires before any graph storage is touched."""
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     finalize_share_data()
     initialize_share_data(1)
     try:
-        rag = LightRAG.__new__(LightRAG)
+        rag = ForgeMind.__new__(ForgeMind)
         rag.workspace = "recovery-graph-ws"
         await initialize_pipeline_status(workspace=rag.workspace)
         ps = await get_namespace_data("pipeline_status", workspace=rag.workspace)

@@ -11,7 +11,7 @@ causing workspace A to receive workspace B's data, violating multi-tenant isolat
 import pytest
 from unittest.mock import AsyncMock
 
-from lightrag.kg.postgres_impl import PGVectorStorage
+from forgemind.kg.postgres_impl import PGVectorStorage
 
 
 class TestWorkspaceMigrationIsolation:
@@ -35,9 +35,9 @@ class TestWorkspaceMigrationIsolation:
 
         # Mock table existence checks
         async def table_exists_side_effect(db_instance, name):
-            if name.lower() == "lightrag_doc_chunks":  # legacy
+            if name.lower() == "forgemind_doc_chunks":  # legacy
                 return True
-            elif name.lower() == "lightrag_doc_chunks_model_1536d":  # new
+            elif name.lower() == "forgemind_doc_chunks_model_1536d":  # new
                 return False  # New table doesn't exist initially
             return False
 
@@ -81,7 +81,7 @@ class TestWorkspaceMigrationIsolation:
             # Count query for legacy table (total, no workspace filter)
             elif (
                 "COUNT(*)" in sql_upper
-                and "LIGHTRAG" in sql_upper
+                and "FORGEMIND" in sql_upper
                 and "WHERE WORKSPACE" not in sql_upper
             ):
                 return {"count": 5}  # Total records in legacy
@@ -115,9 +115,9 @@ class TestWorkspaceMigrationIsolation:
 
         # Mock check_table_exists on db
         async def check_table_exists_side_effect(name):
-            if name.lower() == "lightrag_doc_chunks":  # legacy
+            if name.lower() == "forgemind_doc_chunks":  # legacy
                 return True
-            elif name.lower() == "lightrag_doc_chunks_model_1536d":  # new
+            elif name.lower() == "forgemind_doc_chunks_model_1536d":  # new
                 return False  # New table doesn't exist initially
             return False
 
@@ -136,11 +136,11 @@ class TestWorkspaceMigrationIsolation:
         # Migrate for workspace_a only - correct parameter order
         await PGVectorStorage.setup_table(
             db,
-            "LIGHTRAG_DOC_CHUNKS_model_1536d",
+            "FORGEMIND_DOC_CHUNKS_model_1536d",
             workspace="workspace_a",  # CRITICAL: Only migrate workspace_a
             embedding_dim=1536,
-            legacy_table_name="LIGHTRAG_DOC_CHUNKS",
-            base_table="LIGHTRAG_DOC_CHUNKS",
+            legacy_table_name="FORGEMIND_DOC_CHUNKS",
+            base_table="FORGEMIND_DOC_CHUNKS",
         )
 
         # Verify the migration was triggered
@@ -161,11 +161,11 @@ class TestWorkspaceMigrationIsolation:
         with pytest.raises(ValueError, match="workspace must be provided"):
             await PGVectorStorage.setup_table(
                 db,
-                "lightrag_doc_chunks_model_1536d",
+                "forgemind_doc_chunks_model_1536d",
                 workspace=None,  # No workspace - should raise ValueError
                 embedding_dim=1536,
-                legacy_table_name="lightrag_doc_chunks",
-                base_table="lightrag_doc_chunks",
+                legacy_table_name="forgemind_doc_chunks",
+                base_table="forgemind_doc_chunks",
             )
 
     async def test_no_cross_workspace_contamination(self):
@@ -195,9 +195,9 @@ class TestWorkspaceMigrationIsolation:
         ]
 
         async def table_exists_side_effect(db_instance, name):
-            if name.lower() == "lightrag_doc_chunks":  # legacy
+            if name.lower() == "forgemind_doc_chunks":  # legacy
                 return True
-            elif name.lower() == "lightrag_doc_chunks_model_1536d":  # new
+            elif name.lower() == "forgemind_doc_chunks_model_1536d":  # new
                 return False
             return False
 
@@ -222,7 +222,7 @@ class TestWorkspaceMigrationIsolation:
             # Count query for legacy table total (no workspace filter)
             elif (
                 "COUNT(*)" in sql_upper
-                and "LIGHTRAG" in sql_upper
+                and "FORGEMIND" in sql_upper
                 and "WHERE WORKSPACE" not in sql_upper
             ):
                 return {"count": 3}  # 3 total records in legacy
@@ -256,9 +256,9 @@ class TestWorkspaceMigrationIsolation:
 
         # Mock check_table_exists on db
         async def check_table_exists_side_effect(name):
-            if name.lower() == "lightrag_doc_chunks":  # legacy
+            if name.lower() == "forgemind_doc_chunks":  # legacy
                 return True
-            elif name.lower() == "lightrag_doc_chunks_model_1536d":  # new
+            elif name.lower() == "forgemind_doc_chunks_model_1536d":  # new
                 return False
             return False
 
@@ -277,11 +277,11 @@ class TestWorkspaceMigrationIsolation:
         # Migrate workspace_b - correct parameter order
         await PGVectorStorage.setup_table(
             db,
-            "LIGHTRAG_DOC_CHUNKS_model_1536d",
+            "FORGEMIND_DOC_CHUNKS_model_1536d",
             workspace="workspace_b",  # Only migrate workspace_b
             embedding_dim=1536,
-            legacy_table_name="LIGHTRAG_DOC_CHUNKS",
-            base_table="LIGHTRAG_DOC_CHUNKS",
+            legacy_table_name="FORGEMIND_DOC_CHUNKS",
+            base_table="FORGEMIND_DOC_CHUNKS",
         )
 
         # Verify only workspace_b was queried

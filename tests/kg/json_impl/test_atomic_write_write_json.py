@@ -1,4 +1,4 @@
-"""Atomicity coverage for ``lightrag.utils.write_json``.
+"""Atomicity coverage for ``forgemind.utils.write_json``.
 
 The two storages that ride on this function (``JsonDocStatusStorage``,
 ``JsonKVStorage``) inherit crash safety from it, so the contract lives here:
@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 import pytest
 
-from lightrag.utils import write_json
+from forgemind.utils import write_json
 
 
 @pytest.mark.offline
@@ -32,7 +32,7 @@ def test_write_json_replace_crash_preserves_prior_snapshot(tmp_path):
     write_json({"v": 1}, target)
 
     with patch(
-        "lightrag.file_atomic.os.replace",
+        "forgemind.file_atomic.os.replace",
         side_effect=OSError("simulated crash"),
     ):
         with pytest.raises(OSError, match="simulated crash"):

@@ -1,10 +1,10 @@
-"""Regression tests for :func:`lightrag.utils.parse_optional_float`."""
+"""Regression tests for :func:`forgemind.utils.parse_optional_float`."""
 
 from __future__ import annotations
 
 import pytest
 
-from lightrag.utils import parse_optional_float
+from forgemind.utils import parse_optional_float
 
 pytestmark = pytest.mark.offline
 

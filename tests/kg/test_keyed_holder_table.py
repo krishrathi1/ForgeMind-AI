@@ -33,8 +33,8 @@ import uuid
 
 import pytest
 
-import lightrag.kg.shared_storage as shared_storage
-from lightrag.kg.shared_storage import (
+import forgemind.kg.shared_storage as shared_storage
+from forgemind.kg.shared_storage import (
     KeyedHolderTable,
     _holder_dead,
     _pid_alive,
@@ -558,7 +558,7 @@ def test_custom_manager_type_works_under_spawn():
     """The class and its registration are module-level, so a spawn-started
     Manager server can import them — pin that with a real spawn server."""
     ctx = multiprocessing.get_context("spawn")
-    manager = shared_storage._LightRAGManager(ctx=ctx)
+    manager = shared_storage._ForgeMindManager(ctx=ctx)
     manager.start()
     try:
         table = manager.KeyedHolderTable()

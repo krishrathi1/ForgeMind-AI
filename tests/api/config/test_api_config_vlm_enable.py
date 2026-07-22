@@ -6,7 +6,7 @@ import sys
 
 import pytest
 
-from lightrag.api.config import parse_args
+from forgemind.api.config import parse_args
 
 
 pytestmark = pytest.mark.offline
@@ -33,7 +33,7 @@ def _reset_vlm_env(monkeypatch):
 
 def test_vlm_process_enable_defaults_to_false(monkeypatch):
     _reset_vlm_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "openai")
 
     args = parse_args()
@@ -43,7 +43,7 @@ def test_vlm_process_enable_defaults_to_false(monkeypatch):
 
 def test_vlm_process_enable_true_with_openai_passes(monkeypatch):
     _reset_vlm_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "openai")
     monkeypatch.setenv("VLM_PROCESS_ENABLE", "true")
 
@@ -54,7 +54,7 @@ def test_vlm_process_enable_true_with_openai_passes(monkeypatch):
 
 def test_vlm_process_enable_rejects_lollms_base_binding(monkeypatch):
     _reset_vlm_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "lollms")
     monkeypatch.setenv("VLM_PROCESS_ENABLE", "true")
 
@@ -65,7 +65,7 @@ def test_vlm_process_enable_rejects_lollms_base_binding(monkeypatch):
 
 def test_vlm_process_enable_rejects_lollms_role_binding(monkeypatch):
     _reset_vlm_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "openai")
     monkeypatch.setenv("VLM_PROCESS_ENABLE", "true")
     monkeypatch.setenv("VLM_LLM_BINDING", "lollms")
@@ -82,7 +82,7 @@ def test_vlm_process_enable_rejects_lollms_role_binding(monkeypatch):
 
 def test_role_timeout_uses_new_variable_names(monkeypatch):
     _reset_vlm_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "openai")
     monkeypatch.setenv("EXTRACT_LLM_TIMEOUT", "240")
     monkeypatch.setenv("KEYWORD_LLM_TIMEOUT", "120")
@@ -100,7 +100,7 @@ def test_role_timeout_uses_new_variable_names(monkeypatch):
 def test_role_timeout_legacy_variables_no_longer_have_effect(monkeypatch):
     """The breaking-change migration: legacy LLM_TIMEOUT_{ROLE}_LLM is silently ignored."""
     _reset_vlm_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "openai")
     monkeypatch.setenv("LLM_TIMEOUT_EXTRACT_LLM", "999")
     monkeypatch.setenv("LLM_TIMEOUT_VLM_LLM", "888")

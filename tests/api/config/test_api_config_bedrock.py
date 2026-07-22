@@ -2,7 +2,7 @@ import sys
 
 import pytest
 
-from lightrag.api.config import get_default_host, parse_args
+from forgemind.api.config import get_default_host, parse_args
 
 
 pytestmark = pytest.mark.offline
@@ -38,7 +38,7 @@ def test_bedrock_custom_host_is_returned(monkeypatch):
 
 def test_bedrock_env_binding_alias_is_normalized(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "aws_bedrock")
     monkeypatch.setenv("EMBEDDING_BINDING", "aws_bedrock")
     monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "absk-test")
@@ -51,7 +51,7 @@ def test_bedrock_env_binding_alias_is_normalized(monkeypatch):
 
 def test_bedrock_cli_binding_alias_is_not_supported(monkeypatch):
     monkeypatch.setattr(
-        sys, "argv", ["lightrag-server", "--llm-binding", "aws_bedrock"]
+        sys, "argv", ["forgemind-server", "--llm-binding", "aws_bedrock"]
     )
 
     with pytest.raises(SystemExit):
@@ -60,7 +60,7 @@ def test_bedrock_cli_binding_alias_is_not_supported(monkeypatch):
 
 def test_bedrock_role_env_binding_alias_is_normalized(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("QUERY_LLM_BINDING", "aws_bedrock")
     monkeypatch.setenv("QUERY_LLM_MODEL", "us.amazon.nova-lite-v1:0")
     monkeypatch.setenv("QUERY_AWS_REGION", "us-west-2")
@@ -75,7 +75,7 @@ def test_bedrock_role_env_binding_alias_is_normalized(monkeypatch):
 
 def test_bedrock_role_api_key_is_rejected(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("QUERY_LLM_BINDING", "bedrock")
     monkeypatch.setenv("QUERY_LLM_MODEL", "us.amazon.nova-lite-v1:0")
     monkeypatch.setenv("QUERY_LLM_BINDING_API_KEY", "absk-role")
@@ -86,7 +86,7 @@ def test_bedrock_role_api_key_is_rejected(monkeypatch):
 
 def test_bedrock_binding_requires_sigv4_pair_or_bearer_token(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "bedrock")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
 
@@ -96,7 +96,7 @@ def test_bedrock_binding_requires_sigv4_pair_or_bearer_token(monkeypatch):
 
 def test_bedrock_binding_rejects_partial_sigv4_pair(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "bedrock")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "akid")
@@ -107,7 +107,7 @@ def test_bedrock_binding_rejects_partial_sigv4_pair(monkeypatch):
 
 def test_bedrock_binding_accepts_sigv4_pair(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "bedrock")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
     monkeypatch.setenv("AWS_ACCESS_KEY_ID", "akid")
@@ -120,7 +120,7 @@ def test_bedrock_binding_accepts_sigv4_pair(monkeypatch):
 
 def test_bedrock_binding_accepts_bearer_token(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("LLM_BINDING", "bedrock")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
     monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "absk-test")
@@ -132,7 +132,7 @@ def test_bedrock_binding_accepts_bearer_token(monkeypatch):
 
 def test_bedrock_role_requires_complete_role_sigv4_pair(monkeypatch):
     _clear_bedrock_auth_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("QUERY_LLM_BINDING", "bedrock")
     monkeypatch.setenv("QUERY_LLM_MODEL", "us.amazon.nova-lite-v1:0")
     monkeypatch.setenv("QUERY_AWS_ACCESS_KEY_ID", "akid")

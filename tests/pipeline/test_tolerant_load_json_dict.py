@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.utils import strip_markdown_code_fence, tolerant_load_json_dict
+from forgemind.utils import strip_markdown_code_fence, tolerant_load_json_dict
 
 pytestmark = pytest.mark.offline
 
@@ -133,7 +133,7 @@ def test_bare_apostrophe_slice_stops_at_object_end() -> None:
     level because the boundary is deterministic — the exact repaired dict is
     json_repair-version-dependent, but the slice boundary is what the fix
     controls."""
-    from lightrag.utils import _first_balanced_object_slice
+    from forgemind.utils import _first_balanced_object_slice
 
     assert (
         _first_balanced_object_slice("{name: O'Reilly, type: Chart} tail {x}")

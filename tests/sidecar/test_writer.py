@@ -1,7 +1,7 @@
-"""Spec-compliance tests for :func:`lightrag.sidecar.write_sidecar`.
+"""Spec-compliance tests for :func:`forgemind.sidecar.write_sidecar`.
 
 These assertions are deliberately structural: they encode the contract in
-``docs/LightRAGSidecarFormat-zh.md`` so accidental regressions in
+``docs/ForgeMindSidecarFormat-zh.md`` so accidental regressions in
 ``writer.py`` show up before downstream chunker / multimodal consumers see
 malformed sidecars.
 """
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.sidecar import (
+from forgemind.sidecar import (
     AssetSpec,
     IRBlock,
     IRDoc,
@@ -23,8 +23,8 @@ from lightrag.sidecar import (
     IRTable,
     write_sidecar,
 )
-from lightrag.sidecar import writer as _writer
-from lightrag.sidecar.writer import (
+from forgemind.sidecar import writer as _writer
+from forgemind.sidecar.writer import (
     _allocate_unique_name,
     _materialize_assets,
     _safe_asset_filename,

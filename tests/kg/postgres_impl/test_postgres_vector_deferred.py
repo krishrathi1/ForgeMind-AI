@@ -16,12 +16,12 @@ import numpy as np
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from lightrag.kg.postgres_impl import (
+from forgemind.kg.postgres_impl import (
     PGVectorStorage,
     _PendingPGVectorDoc,
 )
-from lightrag.namespace import NameSpace
-from lightrag.utils import EmbeddingFunc, compute_mdhash_id
+from forgemind.namespace import NameSpace
+from forgemind.utils import EmbeddingFunc, compute_mdhash_id
 
 
 # ---------------------------------------------------------------------------
@@ -191,7 +191,7 @@ async def test_many_upserts_flush_in_one_executemany():
     assert len(storage._captured_executemany) == 1
     sql, rows = storage._captured_executemany[0]
     assert len(rows) == 5
-    assert "LIGHTRAG_VDB_CHUNKS" in sql
+    assert "FORGEMIND_VDB_CHUNKS" in sql
 
 
 # ---------------------------------------------------------------------------
@@ -549,7 +549,7 @@ async def test_finalize_raises_when_flush_fails_and_releases_client():
     await storage.delete(["c2"])
 
     # Patch ClientManager.release_client to a no-op so we don't touch real state.
-    from lightrag.kg import postgres_impl
+    from forgemind.kg import postgres_impl
 
     release_mock = AsyncMock()
     original = postgres_impl.ClientManager.release_client
@@ -568,7 +568,7 @@ async def test_finalize_clean_path_flushes_then_releases_client():
     storage = _make_storage()
     await storage.upsert({"c1": _chunk_data()})
 
-    from lightrag.kg import postgres_impl
+    from forgemind.kg import postgres_impl
 
     release_mock = AsyncMock()
     original = postgres_impl.ClientManager.release_client

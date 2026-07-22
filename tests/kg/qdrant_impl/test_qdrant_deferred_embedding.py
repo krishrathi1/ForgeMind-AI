@@ -19,7 +19,7 @@ pytest.importorskip(
     reason="qdrant-client is required for Qdrant storage tests",
 )
 
-from lightrag.kg.qdrant_impl import (  # noqa: E402
+from forgemind.kg.qdrant_impl import (  # noqa: E402
     QdrantVectorDBStorage,
     compute_mdhash_id_for_qdrant,
 )
@@ -74,7 +74,7 @@ def patch_namespace_lock():
             cache[key] = lock
         return lock
 
-    with patch("lightrag.kg.qdrant_impl.get_namespace_lock", side_effect=factory):
+    with patch("forgemind.kg.qdrant_impl.get_namespace_lock", side_effect=factory):
         yield cache
 
 
@@ -95,7 +95,7 @@ def _make_storage(
     storage.namespace = namespace
     storage.effective_workspace = workspace
     storage.model_suffix = "mock"
-    storage.final_namespace = f"lightrag_vdb_{namespace}_mock"
+    storage.final_namespace = f"forgemind_vdb_{namespace}_mock"
     storage.meta_fields = meta_fields
     storage.embedding_func = embed_func
     storage._max_batch_size = 10
@@ -114,7 +114,7 @@ def _make_storage(
     storage._client.retrieve = MagicMock(return_value=[])
     storage._client.scroll = MagicMock(return_value=([], None))
 
-    from lightrag.kg.qdrant_impl import get_namespace_lock
+    from forgemind.kg.qdrant_impl import get_namespace_lock
 
     storage._flush_lock = get_namespace_lock(
         namespace=storage.final_namespace, workspace=storage.effective_workspace
@@ -478,7 +478,7 @@ async def test_drop_clears_workspace_points_from_workspace_tagged_legacy():
     collection, so the next startup does not re-migrate the cleared data back."""
     embed = CountingEmbeddingFunc()
     s = _make_storage(embed)
-    legacy_collection = f"lightrag_vdb_{s.namespace}"
+    legacy_collection = f"forgemind_vdb_{s.namespace}"
     s._client.collection_exists = MagicMock(
         side_effect=lambda name: name == legacy_collection
     )
@@ -507,7 +507,7 @@ async def test_drop_drops_untagged_legacy_collection():
     misses them. drop() must drop the whole legacy collection instead."""
     embed = CountingEmbeddingFunc()
     s = _make_storage(embed)
-    legacy_collection = f"lightrag_vdb_{s.namespace}"
+    legacy_collection = f"forgemind_vdb_{s.namespace}"
     s._client.collection_exists = MagicMock(
         side_effect=lambda name: name == legacy_collection
     )
@@ -539,7 +539,7 @@ async def test_drop_reports_error_when_legacy_tagging_undetermined():
     caller must be able to retry instead of seeing a misleading success."""
     embed = CountingEmbeddingFunc()
     s = _make_storage(embed)
-    legacy_collection = f"lightrag_vdb_{s.namespace}"
+    legacy_collection = f"forgemind_vdb_{s.namespace}"
     s._client.collection_exists = MagicMock(
         side_effect=lambda name: name == legacy_collection
     )

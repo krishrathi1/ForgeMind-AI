@@ -2,13 +2,13 @@
 
 import pytest
 
-from lightrag.chunker.paragraph_semantic import (
+from forgemind.chunker.paragraph_semantic import (
     _glue_heading_only_blocks,
     _is_heading_only,
     _merge_small_blocks,
     chunking_by_paragraph_semantic,
 )
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -296,7 +296,7 @@ def test_paragraph_semantic_fallback_passes_configured_recursive_overlap(monkeyp
             }
         ]
 
-    import lightrag.chunker.recursive_character as rc_mod
+    import forgemind.chunker.recursive_character as rc_mod
 
     monkeypatch.setattr(rc_mod, "chunking_by_recursive_character", fake_chunker)
 

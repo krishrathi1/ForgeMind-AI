@@ -1,6 +1,6 @@
 # Prompt helpers for interactive setup.
 
-CLEAR_INPUT_SENTINEL="__LIGHTRAG_CLEAR__"
+CLEAR_INPUT_SENTINEL="__FORGEMIND_CLEAR__"
 
 _truncate_for_display() {
   local value="$1"

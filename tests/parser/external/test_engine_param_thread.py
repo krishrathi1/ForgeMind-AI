@@ -15,8 +15,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from lightrag.parser.base import ParseContext
-from lightrag.parser.external._base import ExternalParserBase
+from forgemind.parser.base import ParseContext
+from forgemind.parser.external._base import ExternalParserBase
 
 
 class _Stop(Exception):
@@ -44,7 +44,7 @@ def _make_ctx(tmp_path: Path, parse_engine: str) -> ParseContext:
 class _RecordingParser(ExternalParserBase):
     engine_name = "mineru"  # registered engine that accepts page_range
     raw_dir_suffix = ".raw"
-    force_reparse_env = "LIGHTRAG_TEST_FORCE_REPARSE"
+    force_reparse_env = "FORGEMIND_TEST_FORCE_REPARSE"
 
     def __init__(self, *, hit: bool) -> None:
         self._hit = hit

@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from lightrag.llm._vision_utils import (
+from forgemind.llm._vision_utils import (
     image_audit_metadata,
     image_cache_metadata,
     normalize_image_inputs,

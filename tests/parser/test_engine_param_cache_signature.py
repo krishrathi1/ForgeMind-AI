@@ -15,7 +15,7 @@ from __future__ import annotations
 
 def test_mineru_signature_changes_with_page_range(monkeypatch):
     monkeypatch.setenv("MINERU_API_MODE", "official")
-    from lightrag.parser.external.mineru.cache import current_mineru_options_signature
+    from forgemind.parser.external.mineru.cache import current_mineru_options_signature
 
     base = current_mineru_options_signature()
     ov1 = current_mineru_options_signature({"page_range": "1-3"})
@@ -27,7 +27,7 @@ def test_mineru_signature_changes_with_page_range(monkeypatch):
 
 def test_mineru_signature_changes_with_language_and_parse_method(monkeypatch):
     monkeypatch.setenv("MINERU_API_MODE", "local")
-    from lightrag.parser.external.mineru.cache import current_mineru_options_signature
+    from forgemind.parser.external.mineru.cache import current_mineru_options_signature
 
     base = current_mineru_options_signature()
     assert current_mineru_options_signature({"language": "en"}) != base
@@ -36,7 +36,7 @@ def test_mineru_signature_changes_with_language_and_parse_method(monkeypatch):
 
 def test_mineru_options_reflect_override(monkeypatch):
     monkeypatch.setenv("MINERU_API_MODE", "official")
-    from lightrag.parser.external.mineru.cache import MinerUParserOptions
+    from forgemind.parser.external.mineru.cache import MinerUParserOptions
 
     opts = MinerUParserOptions.from_env(
         overrides={"language": "en", "page_range": "1-3,5"}
@@ -45,7 +45,7 @@ def test_mineru_options_reflect_override(monkeypatch):
 
 
 def test_mineru_local_bounds_from_page_range_override():
-    from lightrag.parser.external.mineru.cache import MinerUParserOptions
+    from forgemind.parser.external.mineru.cache import MinerUParserOptions
 
     opts = MinerUParserOptions.from_env(
         api_mode="local", overrides={"page_range": "2-4"}
@@ -58,7 +58,7 @@ def test_mineru_request_payload_reflects_override(monkeypatch):
     monkeypatch.setenv("MINERU_API_MODE", "official")
     monkeypatch.setenv("MINERU_OFFICIAL_ENDPOINT", "https://mineru.net")
     monkeypatch.setenv("MINERU_API_TOKEN", "test-token")
-    from lightrag.parser.external.mineru.client import MinerURawClient
+    from forgemind.parser.external.mineru.client import MinerURawClient
 
     client = MinerURawClient(overrides={"language": "en", "page_range": "1-3,5"})
     payload = client._official_payload("doc.pdf")
@@ -69,7 +69,7 @@ def test_mineru_request_payload_reflects_override(monkeypatch):
 def test_mineru_local_form_reflects_parse_method(monkeypatch):
     monkeypatch.setenv("MINERU_API_MODE", "local")
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://127.0.0.1:8000")
-    from lightrag.parser.external.mineru.client import MinerURawClient
+    from forgemind.parser.external.mineru.client import MinerURawClient
 
     client = MinerURawClient(overrides={"local_parse_method": "ocr"})
     assert client._local_form_data()["parse_method"] == "ocr"
@@ -81,11 +81,11 @@ def test_mineru_local_form_reflects_parse_method(monkeypatch):
 
 
 def test_docling_snapshot_and_signature_reflect_force_ocr():
-    from lightrag.parser.external.docling.cache import (
+    from forgemind.parser.external.docling.cache import (
         compute_options_signature,
         snapshot_tunable_env,
     )
-    from lightrag.parser.external.docling.client import FIXED_CONSTANTS
+    from forgemind.parser.external.docling.client import FIXED_CONSTANTS
 
     assert snapshot_tunable_env({"force_ocr": False})["DOCLING_FORCE_OCR"] == "false"
     base = compute_options_signature(
@@ -100,7 +100,7 @@ def test_docling_snapshot_and_signature_reflect_force_ocr():
 
 def test_docling_client_reflects_force_ocr_override(monkeypatch):
     monkeypatch.setenv("DOCLING_ENDPOINT", "http://localhost:5001")
-    from lightrag.parser.external.docling.client import DoclingRawClient
+    from forgemind.parser.external.docling.client import DoclingRawClient
 
     client = DoclingRawClient(overrides={"force_ocr": False})
     assert client.force_ocr is False

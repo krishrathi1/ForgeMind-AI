@@ -35,9 +35,9 @@ _ENV_VARS_TO_ISOLATE = (
     "EMBEDDING_BINDING",
     "AUTH_ACCOUNTS",
     "TOKEN_SECRET",
-    "LIGHTRAG_API_KEY",
+    "FORGEMIND_API_KEY",
     "WHITELIST_PATHS",
-    "LIGHTRAG_API_PREFIX",
+    "FORGEMIND_API_PREFIX",
 )
 
 
@@ -47,13 +47,13 @@ def _isolate_env(monkeypatch):
     for var in _ENV_VARS_TO_ISOLATE:
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("AUTH_ACCOUNTS", "")
-    monkeypatch.setenv("LIGHTRAG_API_KEY", "")
+    monkeypatch.setenv("FORGEMIND_API_KEY", "")
     monkeypatch.setenv("TOKEN_SECRET", "")
     monkeypatch.setenv("WHITELIST_PATHS", "/health,/api/*")
     monkeypatch.setenv("LLM_BINDING", "ollama")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
 
-    import lightrag.api.config as config
+    import forgemind.api.config as config
 
     config._global_args = None
     config._initialized = False
@@ -62,7 +62,7 @@ def _isolate_env(monkeypatch):
     config._initialized = False
 
 
-class _FakeLightRAG:
+class _FakeForgeMind:
     """Minimal stand-in implementing the async surface /health touches."""
 
     def __init__(self, *_args, **_kwargs):
@@ -94,11 +94,11 @@ class _FakeOllamaAPI:
 
 def _build_client(monkeypatch, *, api_key=None, pipeline_status=None):
     """Build a /health-capable TestClient with all backend I/O mocked out."""
-    from lightrag.api.config import parse_args, initialize_config
+    from forgemind.api.config import parse_args, initialize_config
 
     original_argv = sys.argv.copy()
     try:
-        sys.argv = ["lightrag-server"]
+        sys.argv = ["forgemind-server"]
         args = parse_args()
     finally:
         sys.argv = original_argv
@@ -106,22 +106,22 @@ def _build_client(monkeypatch, *, api_key=None, pipeline_status=None):
         args.key = api_key
     initialize_config(args, force=True)
 
-    import lightrag.api.lightrag_server as lightrag_server
+    import forgemind.api.forgemind_server as forgemind_server
 
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_a, **_k: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_a, **_k: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_a, **_k: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_a, **_k: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_a, **_k: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_a, **_k: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "get_namespace_data",
         AsyncMock(
             return_value=(
@@ -129,14 +129,14 @@ def _build_client(monkeypatch, *, api_key=None, pipeline_status=None):
             )
         ),
     )
-    monkeypatch.setattr(lightrag_server, "get_default_workspace", lambda: "default")
+    monkeypatch.setattr(forgemind_server, "get_default_workspace", lambda: "default")
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "cleanup_keyed_lock",
         lambda: {"cleanup_performed": {}, "current_status": {}},
     )
 
-    app = lightrag_server.create_app(args)
+    app = forgemind_server.create_app(args)
     return TestClient(app)
 
 
@@ -146,7 +146,7 @@ def _set_auth_mode(monkeypatch, *, auth_configured):
     Also pin a whitelist that exempts /health so combined_auth keeps returning
     200 for anonymous callers (the gate, not combined_auth, hides the config).
     """
-    import lightrag.api.utils_api as utils_api
+    import forgemind.api.utils_api as utils_api
 
     monkeypatch.setattr(utils_api, "auth_configured", auth_configured)
     monkeypatch.setattr(
@@ -222,7 +222,7 @@ def test_password_mode_anonymous_gets_liveness_only(monkeypatch):
 
 
 def test_password_mode_valid_token_unlocks_config(monkeypatch):
-    import lightrag.api.utils_api as utils_api
+    import forgemind.api.utils_api as utils_api
 
     client = _build_client(monkeypatch)
     _set_auth_mode(monkeypatch, auth_configured=True)
@@ -243,7 +243,7 @@ def test_password_mode_valid_token_unlocks_config(monkeypatch):
 
 
 def test_password_mode_guest_token_stays_liveness_only(monkeypatch):
-    import lightrag.api.utils_api as utils_api
+    import forgemind.api.utils_api as utils_api
 
     client = _build_client(monkeypatch)
     _set_auth_mode(monkeypatch, auth_configured=True)
@@ -283,7 +283,7 @@ def test_api_key_mode_valid_key_unlocks_config(monkeypatch):
 
 
 # --------------------------------------------------------------------------- #
-# Combined mode (AUTH_ACCOUNTS + LIGHTRAG_API_KEY): either a valid JWT or a
+# Combined mode (AUTH_ACCOUNTS + FORGEMIND_API_KEY): either a valid JWT or a
 # valid X-API-Key unlocks the configuration; an anonymous probe gets liveness.
 # --------------------------------------------------------------------------- #
 def test_combined_mode_anonymous_gets_liveness_only(monkeypatch):

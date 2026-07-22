@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock
 import asyncpg
 from tenacity import wait_none
 
-from lightrag.kg.postgres_impl import (
+from forgemind.kg.postgres_impl import (
     PGGraphQueryException,
     PGGraphStorage,
     _is_transient_graph_write_error,

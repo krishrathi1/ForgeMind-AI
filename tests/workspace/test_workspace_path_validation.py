@@ -1,4 +1,4 @@
-"""Unit tests for ``lightrag.utils.validate_workspace``.
+"""Unit tests for ``forgemind.utils.validate_workspace``.
 
 File-based storages build a per-workspace subdirectory under ``working_dir``
 via ``os.path.join(working_dir, workspace)``. ``validate_workspace`` guards that
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.utils import validate_workspace
+from forgemind.utils import validate_workspace
 
 pytestmark = pytest.mark.offline
 
@@ -62,7 +62,7 @@ class TestStorageRejectsTraversal:
     """The check is wired into storage construction, not just the helper."""
 
     def test_json_kv_storage_rejects_traversal(self, tmp_path):
-        from lightrag.kg.json_kv_impl import JsonKVStorage
+        from forgemind.kg.json_kv_impl import JsonKVStorage
 
         cfg = {"working_dir": str(tmp_path)}
         with pytest.raises(ValueError):
@@ -74,7 +74,7 @@ class TestStorageRejectsTraversal:
             )
 
     def test_json_kv_storage_accepts_dotted_name(self, tmp_path):
-        from lightrag.kg.json_kv_impl import JsonKVStorage
+        from forgemind.kg.json_kv_impl import JsonKVStorage
 
         cfg = {"working_dir": str(tmp_path)}
         storage = JsonKVStorage(
@@ -89,7 +89,7 @@ class TestStorageRejectsTraversal:
 def _import_document_manager():
     """Import DocumentManager with a clean argv.
 
-    Importing ``lightrag.api`` modules triggers the server's argparse against
+    Importing ``forgemind.api`` modules triggers the server's argparse against
     ``sys.argv`` at import time, which would otherwise see pytest's arguments
     (same workaround as tests/api/test_path_prefixes.py).
     """
@@ -97,8 +97,8 @@ def _import_document_manager():
 
     original_argv = sys.argv.copy()
     try:
-        sys.argv = ["lightrag-server"]
-        from lightrag.api.routers.document_routes import DocumentManager
+        sys.argv = ["forgemind-server"]
+        from forgemind.api.routers.document_routes import DocumentManager
 
         return DocumentManager
     finally:
@@ -151,7 +151,7 @@ class TestUploadPath:
         """Files uploaded to <input_dir>/<ws>/ must be resolvable against
         storage data in <working_dir>/<ws>/ — same subdirectory name."""
         DocumentManager = _import_document_manager()
-        from lightrag.kg.json_kv_impl import JsonKVStorage
+        from forgemind.kg.json_kv_impl import JsonKVStorage
 
         inputs = tmp_path / "inputs"
         working = tmp_path / "rag_storage"

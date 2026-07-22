@@ -33,9 +33,9 @@ def _load_zhipu_module(monkeypatch, client_factory):
     monkeypatch.setitem(sys.modules, "pipmaster", fake_pm)
     monkeypatch.setitem(sys.modules, "openai", fake_openai)
     monkeypatch.setitem(sys.modules, "zhipuai", fake_zhipuai)
-    sys.modules.pop("lightrag.llm.zhipu", None)
+    sys.modules.pop("forgemind.llm.zhipu", None)
 
-    return importlib.import_module("lightrag.llm.zhipu")
+    return importlib.import_module("forgemind.llm.zhipu")
 
 
 @pytest.mark.offline

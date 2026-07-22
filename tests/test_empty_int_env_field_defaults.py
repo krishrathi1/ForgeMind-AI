@@ -1,6 +1,6 @@
-"""Empty env-backed int defaults must not crash LightRAG class construction.
+"""Empty env-backed int defaults must not crash ForgeMind class construction.
 
-Follow-up to the COSINE_THRESHOLD fix: several ``LightRAG`` field defaults still
+Follow-up to the COSINE_THRESHOLD fix: several ``ForgeMind`` field defaults still
 used bare ``int(os.getenv(...))``, which raises when the variable is present but
 empty (common in ``.env`` / Compose). ``env.example`` ships live
 ``EMBEDDING_BATCH_NUM=32``; clearing that value previously made import fail.
@@ -28,8 +28,8 @@ def _import_field_default(env_key: str, env_value: str, field_name: str) -> str:
         [
             sys.executable,
             "-c",
-            "from lightrag.lightrag import LightRAG; "
-            f"print(LightRAG.__dataclass_fields__[{field_name!r}].default)",
+            "from forgemind.forgemind import ForgeMind; "
+            f"print(ForgeMind.__dataclass_fields__[{field_name!r}].default)",
         ],
         cwd=REPO_ROOT,
         env=env,

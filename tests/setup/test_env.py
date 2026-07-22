@@ -36,7 +36,7 @@ def test_env_base_flow_preserves_non_inference_env_values(tmp_path: Path) -> Non
                 "SSL_KEYFILE=/some/key.pem",
                 "AUTH_ACCOUNTS=admin:secret",
                 "TOKEN_SECRET=jwt-secret",
-                "LIGHTRAG_API_KEY=api-key",
+                "FORGEMIND_API_KEY=api-key",
                 "LANGFUSE_ENABLE_TRACE=true",
                 "LANGFUSE_SECRET_KEY=langfuse-secret",
                 "LLM_BINDING_API_KEY=sk-existing",
@@ -70,7 +70,7 @@ finalize_base_setup() {{
   printf 'SSL_SET=%s\\n' "${{ENV_VALUES[SSL]+set}}"
   printf 'AUTH_ACCOUNTS_SET=%s\\n' "${{ENV_VALUES[AUTH_ACCOUNTS]+set}}"
   printf 'TOKEN_SECRET_SET=%s\\n' "${{ENV_VALUES[TOKEN_SECRET]+set}}"
-  printf 'LIGHTRAG_API_KEY_SET=%s\\n' "${{ENV_VALUES[LIGHTRAG_API_KEY]+set}}"
+  printf 'FORGEMIND_API_KEY_SET=%s\\n' "${{ENV_VALUES[FORGEMIND_API_KEY]+set}}"
   printf 'LANGFUSE_ENABLE_TRACE_SET=%s\\n' "${{ENV_VALUES[LANGFUSE_ENABLE_TRACE]+set}}"
   printf 'LANGFUSE_SECRET_KEY_SET=%s\\n' "${{ENV_VALUES[LANGFUSE_SECRET_KEY]+set}}"
 }}
@@ -88,7 +88,7 @@ env_base_flow
     assert values["SSL_SET"] == "set"
     assert values["AUTH_ACCOUNTS_SET"] == "set"
     assert values["TOKEN_SECRET_SET"] == "set"
-    assert values["LIGHTRAG_API_KEY_SET"] == "set"
+    assert values["FORGEMIND_API_KEY_SET"] == "set"
     assert values["LANGFUSE_ENABLE_TRACE_SET"] == "set"
     assert values["LANGFUSE_SECRET_KEY_SET"] == "set"
 
@@ -164,7 +164,7 @@ def test_env_base_flow_preserves_existing_vllm_embedding_settings_on_rerun(
             "EMBEDDING_DIM=768",
             "EMBEDDING_BINDING_HOST=http://localhost:9101/v1",
             "EMBEDDING_BINDING_API_KEY=embed-key",
-            "LIGHTRAG_SETUP_EMBEDDING_PROVIDER=vllm",
+            "FORGEMIND_SETUP_EMBEDDING_PROVIDER=vllm",
             "VLLM_EMBED_MODEL=BAAI/custom-embed",
             "VLLM_EMBED_PORT=9101",
             "VLLM_EMBED_DEVICE=cpu",
@@ -245,13 +245,13 @@ confirm_default_yes() {{ return 1; }}
 
 finalize_base_setup() {{
   printf 'EMBEDDING_BINDING_HOST=%s\\n' "${{ENV_VALUES[EMBEDDING_BINDING_HOST]}}"
-  printf 'LIGHTRAG_SETUP_EMBEDDING_PROVIDER=%s\\n' "${{ENV_VALUES[LIGHTRAG_SETUP_EMBEDDING_PROVIDER]}}"
+  printf 'FORGEMIND_SETUP_EMBEDDING_PROVIDER=%s\\n' "${{ENV_VALUES[FORGEMIND_SETUP_EMBEDDING_PROVIDER]}}"
 }}
 
 env_base_flow
 """)
     assert values["EMBEDDING_BINDING_HOST"] == "http://localhost:9101/v1"
-    assert values["LIGHTRAG_SETUP_EMBEDDING_PROVIDER"] == "vllm"
+    assert values["FORGEMIND_SETUP_EMBEDDING_PROVIDER"] == "vllm"
 
 
 def test_env_base_flow_preserves_existing_vllm_embedding_device_on_gpu_host(
@@ -270,7 +270,7 @@ def test_env_base_flow_preserves_existing_vllm_embedding_device_on_gpu_host(
             "EMBEDDING_DIM=1024",
             "EMBEDDING_BINDING_HOST=http://localhost:9101/v1",
             "EMBEDDING_BINDING_API_KEY=embed-key",
-            "LIGHTRAG_SETUP_EMBEDDING_PROVIDER=vllm",
+            "FORGEMIND_SETUP_EMBEDDING_PROVIDER=vllm",
             "VLLM_EMBED_MODEL=BAAI/custom-embed",
             "VLLM_EMBED_PORT=9101",
             "VLLM_EMBED_DEVICE=cpu",
@@ -320,7 +320,7 @@ def test_env_base_flow_preserves_existing_vllm_embedding_cuda_device_on_rerun(
             "EMBEDDING_DIM=1024",
             "EMBEDDING_BINDING_HOST=http://localhost:9101/v1",
             "EMBEDDING_BINDING_API_KEY=embed-key",
-            "LIGHTRAG_SETUP_EMBEDDING_PROVIDER=vllm",
+            "FORGEMIND_SETUP_EMBEDDING_PROVIDER=vllm",
             "VLLM_EMBED_MODEL=BAAI/custom-embed",
             "VLLM_EMBED_PORT=9101",
             "VLLM_EMBED_DEVICE=cuda",
@@ -475,7 +475,7 @@ def test_env_base_flow_vllm_defaults_prefer_original_env_values_on_rerun(
             "EMBEDDING_DIM=1024",
             "EMBEDDING_BINDING_HOST=http://localhost:9101/v1",
             "EMBEDDING_BINDING_API_KEY=embed-key",
-            "LIGHTRAG_SETUP_EMBEDDING_PROVIDER=vllm",
+            "FORGEMIND_SETUP_EMBEDDING_PROVIDER=vllm",
             "VLLM_EMBED_MODEL=BAAI/original-embed",
             "VLLM_EMBED_PORT=9101",
             "VLLM_EMBED_DEVICE=cpu",
@@ -483,7 +483,7 @@ def test_env_base_flow_vllm_defaults_prefer_original_env_values_on_rerun(
             "RERANK_MODEL=BAAI/original-rerank",
             "RERANK_BINDING_HOST=http://localhost:9200/rerank",
             "RERANK_BINDING_API_KEY=rerank-key",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=vllm",
             "VLLM_RERANK_MODEL=BAAI/original-rerank",
             "VLLM_RERANK_PORT=9200",
             "VLLM_RERANK_DEVICE=cpu",
@@ -669,8 +669,8 @@ def test_env_base_flow_preserves_existing_compose_ssl_when_env_paths_are_stale(
         tmp_path / "docker-compose.final.yml",
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "    environment:",
             '      SSL_CERTFILE: "/app/data/certs/cert.pem"',
             '      SSL_KEYFILE: "/app/data/certs/key.pem"',
@@ -692,7 +692,7 @@ prompt_secret_until_valid_with_default() {{ printf '%s' "$2"; }}
 confirm_default_no() {{ return 1; }}
 confirm_default_yes() {{
   case "$1" in
-    "Run LightRAG Server via Docker?") return 0 ;;
+    "Run ForgeMind Server via Docker?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -718,13 +718,13 @@ def test_env_base_flow_preserves_existing_storage_images_on_rerun(
         [
             "LLM_BINDING=openai",
             "EMBEDDING_BINDING=openai",
-            "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker",
-            "LIGHTRAG_SETUP_NEO4J_DEPLOYMENT=docker",
+            "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker",
+            "FORGEMIND_SETUP_NEO4J_DEPLOYMENT=docker",
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  postgres:",
             "    image: registry.example.com/postgres-for-rag:patched",
             "  neo4j:",
@@ -762,7 +762,7 @@ def test_env_base_flow_backs_up_legacy_generated_compose_before_rewrite(
 ) -> None:
     """env-base should back up the active legacy compose file before regenerating final output."""
     legacy_compose = (
-        "\n".join(["services:", "  lightrag:", "    image: prod/lightrag"]) + "\n"
+        "\n".join(["services:", "  forgemind:", "    image: prod/forgemind"]) + "\n"
     )
     write_text_lines(
         tmp_path / "env.example",
@@ -803,7 +803,7 @@ prompt_secret_until_valid_with_default() {{
 confirm_default_no() {{ return 1; }}
 confirm_default_yes() {{
   case "$1" in
-    "Run LightRAG Server via Docker?") return 0 ;;
+    "Run ForgeMind Server via Docker?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -818,7 +818,7 @@ env_base_flow
     ) == legacy_compose
 
 
-def test_env_base_flow_deletes_compose_when_switching_lightrag_to_host(
+def test_env_base_flow_deletes_compose_when_switching_forgemind_to_host(
     tmp_path: Path,
 ) -> None:
     """env-base should back up and delete compose when no Docker services remain."""
@@ -826,8 +826,8 @@ def test_env_base_flow_deletes_compose_when_switching_lightrag_to_host(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "  redis:",
                 "    image: redis:latest",
             ]
@@ -841,7 +841,7 @@ def test_env_base_flow_deletes_compose_when_switching_lightrag_to_host(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_RUNTIME_TARGET=compose",
+            "FORGEMIND_RUNTIME_TARGET=compose",
             "LLM_BINDING=openai",
             "LLM_MODEL=gpt-4o-mini",
             "LLM_BINDING_HOST=https://api.openai.com/v1",
@@ -873,7 +873,7 @@ prompt_secret_until_valid_with_default() {{
 }}
 confirm_default_no() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 0 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -885,7 +885,7 @@ env_base_flow
     assert_single_compose_backup(tmp_path, existing_compose)
     assert not (tmp_path / "docker-compose.final.yml").exists()
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
-    assert "LIGHTRAG_RUNTIME_TARGET=host" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=host" in generated_env
 
 
 def test_env_base_flow_generates_env_and_compose_files(tmp_path: Path) -> None:
@@ -946,7 +946,7 @@ confirm_default_no() {{
   case "$1" in
     "Run embedding model locally via Docker (vLLM)?") return 1 ;;
     "Enable reranking?") return 1 ;;
-    "Run LightRAG Server via Docker?") return 0 ;;
+    "Run ForgeMind Server via Docker?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -963,15 +963,15 @@ env_base_flow
         generated_compose = (case_dir / "docker-compose.final.yml").read_text(
             encoding="utf-8"
         )
-        assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
-        assert "LIGHTRAG_KV_STORAGE=JsonKVStorage" in generated_env
-        assert "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage" in generated_env
-        assert "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage" in generated_env
-        assert "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage" in generated_env
+        assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
+        assert "FORGEMIND_KV_STORAGE=JsonKVStorage" in generated_env
+        assert "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage" in generated_env
+        assert "FORGEMIND_GRAPH_STORAGE=NetworkXStorage" in generated_env
+        assert "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage" in generated_env
         for expected_line in case["env_assertions"]:
             assert expected_line in generated_env
         assert "services:" in generated_compose
-        assert "  lightrag:" in generated_compose
+        assert "  forgemind:" in generated_compose
         assert "env_file:" not in generated_compose
 
 
@@ -1010,24 +1010,24 @@ env_base_flow
 validate_env_file
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
-    assert "LIGHTRAG_KV_STORAGE=JsonKVStorage" in generated_env
-    assert "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage" in generated_env
-    assert "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage" in generated_env
-    assert "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage" in generated_env
-    assert "LIGHTRAG_RUNTIME_TARGET=host" in generated_env
-    assert "LIGHTRAG_SETUP_PROFILE=" not in generated_env
+    assert "FORGEMIND_KV_STORAGE=JsonKVStorage" in generated_env
+    assert "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage" in generated_env
+    assert "FORGEMIND_GRAPH_STORAGE=NetworkXStorage" in generated_env
+    assert "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=host" in generated_env
+    assert "FORGEMIND_SETUP_PROFILE=" not in generated_env
 
 
 def test_env_storage_flow_drops_legacy_setup_profile_on_write(tmp_path: Path) -> None:
-    """Modular flows should not persist LIGHTRAG_SETUP_PROFILE into regenerated .env files."""
+    """Modular flows should not persist FORGEMIND_SETUP_PROFILE into regenerated .env files."""
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_SETUP_PROFILE=production",
-            "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+            "FORGEMIND_SETUP_PROFILE=production",
+            "FORGEMIND_KV_STORAGE=JsonKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
         ],
     )
     write_text_lines(
@@ -1040,10 +1040,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -1054,8 +1054,8 @@ confirm_required_yes_no() {{ return 0; }}
 env_storage_flow
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
-    assert "LIGHTRAG_RUNTIME_TARGET=host" in generated_env
-    assert "LIGHTRAG_SETUP_PROFILE=" not in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=host" in generated_env
+    assert "FORGEMIND_SETUP_PROFILE=" not in generated_env
 
 
 def test_env_base_flow_registers_vllm_rerank_service_for_docker_deployment(
@@ -1110,7 +1110,7 @@ def test_env_base_flow_preserves_existing_vllm_rerank_settings_on_rerun(
             "RERANK_MODEL=BAAI/custom-rerank",
             "RERANK_BINDING_HOST=http://localhost:9200/rerank",
             "RERANK_BINDING_API_KEY=rerank-key",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=vllm",
             "VLLM_RERANK_MODEL=BAAI/custom-rerank",
             "VLLM_RERANK_PORT=9200",
             "VLLM_RERANK_DEVICE=cpu",
@@ -1166,7 +1166,7 @@ def test_env_base_flow_does_not_repeat_rerank_docker_prompt_when_declined(
             "RERANK_MODEL=BAAI/custom-rerank",
             "RERANK_BINDING_HOST=http://localhost:9200/rerank",
             "RERANK_BINDING_API_KEY=rerank-key",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=vllm",
             "VLLM_RERANK_MODEL=BAAI/custom-rerank",
             "VLLM_RERANK_PORT=9200",
             "VLLM_RERANK_DEVICE=cpu",
@@ -1241,7 +1241,7 @@ finalize_base_setup() {{
   printf 'DOCKER_PROMPT_COUNT=%s\\n' "$DOCKER_PROMPT_COUNT"
   printf 'RERANK_MODEL_PROMPT_COUNT=%s\\n' "$rerank_model_prompt_count"
   printf 'RERANK_BINDING_HOST=%s\\n' "${{ENV_VALUES[RERANK_BINDING_HOST]}}"
-  printf 'LIGHTRAG_SETUP_RERANK_PROVIDER=%s\\n' "${{ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]:-}}"
+  printf 'FORGEMIND_SETUP_RERANK_PROVIDER=%s\\n' "${{ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]:-}}"
 }}
 
 env_base_flow
@@ -1250,7 +1250,7 @@ env_base_flow
     assert values["DOCKER_PROMPT_COUNT"] == "1"
     assert values["RERANK_MODEL_PROMPT_COUNT"] == "1"
     assert values["RERANK_BINDING_HOST"] == "https://rerank.example.internal/rerank"
-    assert values["LIGHTRAG_SETUP_RERANK_PROVIDER"] == ""
+    assert values["FORGEMIND_SETUP_RERANK_PROVIDER"] == ""
     assert "vLLM uses the Cohere-compatible rerank API." not in output
 
 
@@ -1273,7 +1273,7 @@ def test_env_base_flow_comments_rerank_setup_marker_when_switching_off_docker(
             "RERANK_MODEL=BAAI/custom-rerank",
             "RERANK_BINDING_HOST=http://localhost:9200/rerank",
             "RERANK_BINDING_API_KEY=rerank-key",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=vllm",
             "VLLM_RERANK_MODEL=BAAI/custom-rerank",
             "VLLM_RERANK_PORT=9200",
             "VLLM_RERANK_DEVICE=cpu",
@@ -1303,7 +1303,7 @@ confirm_default_no() {{
   case "$1" in
     "Run embedding model locally via Docker (vLLM)?") return 1 ;;
     "Run rerank service locally via Docker?") return 1 ;;
-    "Run LightRAG Server via Docker?") return 1 ;;
+    "Run ForgeMind Server via Docker?") return 1 ;;
     *) return 1 ;;
   esac
 }}
@@ -1321,7 +1321,7 @@ env_base_flow
     active_marker_lines = [
         line
         for line in generated_env.splitlines()
-        if line.startswith("LIGHTRAG_SETUP_RERANK_PROVIDER=")
+        if line.startswith("FORGEMIND_SETUP_RERANK_PROVIDER=")
     ]
     assert "RERANK_BINDING=cohere" in generated_env
     assert active_marker_lines == []
@@ -1372,14 +1372,14 @@ collect_embedding_config() {{ :; }}
 finalize_base_setup() {{
   printf 'RERANK_BINDING=%s\\n' "${{ENV_VALUES[RERANK_BINDING]}}"
   printf 'RERANK_BINDING_HOST=%s\\n' "${{ENV_VALUES[RERANK_BINDING_HOST]}}"
-  printf 'LIGHTRAG_SETUP_RERANK_PROVIDER=%s\\n' "${{ENV_VALUES[LIGHTRAG_SETUP_RERANK_PROVIDER]}}"
+  printf 'FORGEMIND_SETUP_RERANK_PROVIDER=%s\\n' "${{ENV_VALUES[FORGEMIND_SETUP_RERANK_PROVIDER]}}"
 }}
 
 env_base_flow
 """)
     assert values["RERANK_BINDING"] == "cohere"
     assert values["RERANK_BINDING_HOST"] == "http://localhost:9200/rerank"
-    assert values["LIGHTRAG_SETUP_RERANK_PROVIDER"] == "vllm"
+    assert values["FORGEMIND_SETUP_RERANK_PROVIDER"] == "vllm"
 
 
 def test_env_base_flow_preserves_existing_vllm_rerank_device_on_gpu_host(
@@ -1397,7 +1397,7 @@ def test_env_base_flow_preserves_existing_vllm_rerank_device_on_gpu_host(
             "RERANK_MODEL=BAAI/custom-rerank",
             "RERANK_BINDING_HOST=http://localhost:9200/rerank",
             "RERANK_BINDING_API_KEY=rerank-key",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=vllm",
             "VLLM_RERANK_MODEL=BAAI/custom-rerank",
             "VLLM_RERANK_PORT=9200",
             "VLLM_RERANK_DEVICE=cpu",
@@ -1452,7 +1452,7 @@ def test_env_base_flow_preserves_existing_vllm_rerank_cuda_device_on_rerun(
             "RERANK_MODEL=BAAI/custom-rerank",
             "RERANK_BINDING_HOST=http://localhost:9200/rerank",
             "RERANK_BINDING_API_KEY=rerank-key",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=vllm",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=vllm",
             "VLLM_RERANK_MODEL=BAAI/custom-rerank",
             "VLLM_RERANK_PORT=9200",
             "VLLM_RERANK_DEVICE=cuda",
@@ -1497,10 +1497,10 @@ def test_env_storage_flow_applies_selected_storage_backends(tmp_path: Path) -> N
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+            "FORGEMIND_KV_STORAGE=JsonKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
             "LLM_BINDING=ollama",
             "LLM_MODEL=llama3.2:latest",
             "LLM_BINDING_HOST=http://localhost:11434",
@@ -1516,28 +1516,28 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="RedisKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="MilvusVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="Neo4JStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="RedisDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="RedisKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="MilvusVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="Neo4JStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="RedisDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 collect_docker_image_tags() {{ :; }}
 finalize_storage_setup() {{
-  printf 'LIGHTRAG_KV_STORAGE=%s\\n' "${{ENV_VALUES[LIGHTRAG_KV_STORAGE]}}"
-  printf 'LIGHTRAG_VECTOR_STORAGE=%s\\n' "${{ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]}}"
-  printf 'LIGHTRAG_GRAPH_STORAGE=%s\\n' "${{ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]}}"
-  printf 'LIGHTRAG_DOC_STATUS_STORAGE=%s\\n' "${{ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]}}"
+  printf 'FORGEMIND_KV_STORAGE=%s\\n' "${{ENV_VALUES[FORGEMIND_KV_STORAGE]}}"
+  printf 'FORGEMIND_VECTOR_STORAGE=%s\\n' "${{ENV_VALUES[FORGEMIND_VECTOR_STORAGE]}}"
+  printf 'FORGEMIND_GRAPH_STORAGE=%s\\n' "${{ENV_VALUES[FORGEMIND_GRAPH_STORAGE]}}"
+  printf 'FORGEMIND_DOC_STATUS_STORAGE=%s\\n' "${{ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]}}"
   printf 'LLM_BINDING=%s\\n' "${{ENV_VALUES[LLM_BINDING]}}"
   printf 'EMBEDDING_BINDING=%s\\n' "${{ENV_VALUES[EMBEDDING_BINDING]}}"
 }}
 
 env_storage_flow
 """)
-    assert values["LIGHTRAG_KV_STORAGE"] == "RedisKVStorage"
-    assert values["LIGHTRAG_VECTOR_STORAGE"] == "MilvusVectorDBStorage"
-    assert values["LIGHTRAG_GRAPH_STORAGE"] == "Neo4JStorage"
-    assert values["LIGHTRAG_DOC_STATUS_STORAGE"] == "RedisDocStatusStorage"
+    assert values["FORGEMIND_KV_STORAGE"] == "RedisKVStorage"
+    assert values["FORGEMIND_VECTOR_STORAGE"] == "MilvusVectorDBStorage"
+    assert values["FORGEMIND_GRAPH_STORAGE"] == "Neo4JStorage"
+    assert values["FORGEMIND_DOC_STATUS_STORAGE"] == "RedisDocStatusStorage"
     assert values["LLM_BINDING"] == "ollama"
     assert values["EMBEDDING_BINDING"] == "ollama"
 
@@ -1547,11 +1547,11 @@ def test_env_storage_flow_reuses_saved_storage_docker_default(tmp_path: Path) ->
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker",
-            "LIGHTRAG_KV_STORAGE=PGKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=PGVectorStorage",
-            "LIGHTRAG_GRAPH_STORAGE=PGGraphStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=PGDocStatusStorage",
+            "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker",
+            "FORGEMIND_KV_STORAGE=PGKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=PGVectorStorage",
+            "FORGEMIND_GRAPH_STORAGE=PGGraphStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=PGDocStatusStorage",
         ],
     )
     values = run_bash_lines(f"""
@@ -1560,10 +1560,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="PGGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="PGGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
   REQUIRED_DB_TYPES[postgresql]=1
 }}
 collect_postgres_config() {{
@@ -1596,26 +1596,26 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="PGGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="PGGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
   REQUIRED_DB_TYPES[postgresql]=1
 }}
 collect_postgres_config() {{
   add_docker_service "postgres"
   ENV_VALUES[POSTGRES_HOST]="localhost"
   ENV_VALUES[POSTGRES_PORT]="5432"
-  ENV_VALUES[POSTGRES_USER]="lightrag"
+  ENV_VALUES[POSTGRES_USER]="forgemind"
   ENV_VALUES[POSTGRES_PASSWORD]="secret"
-  ENV_VALUES[POSTGRES_DATABASE]="lightrag"
+  ENV_VALUES[POSTGRES_DATABASE]="forgemind"
 }}
 validate_required_variables() {{ return 0; }}
 validate_mongo_vector_storage_config() {{ return 0; }}
 validate_sensitive_env_literals() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -1626,10 +1626,10 @@ env_storage_flow
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert any(
-        line == "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker"
+        line == "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker"
         for line in generated_env.splitlines()
     )
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
 
 
 def test_env_storage_flow_writes_opensearch_docker_marker_for_selected_service(
@@ -1652,10 +1652,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="OpenSearchKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="OpenSearchVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="OpenSearchGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="OpenSearchDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="OpenSearchKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="OpenSearchVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="OpenSearchGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="OpenSearchDocStatusStorage"
   REQUIRED_DB_TYPES[opensearch]=1
 }}
 collect_opensearch_config() {{
@@ -1671,7 +1671,7 @@ validate_mongo_vector_storage_config() {{ return 0; }}
 validate_sensitive_env_literals() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -1682,10 +1682,10 @@ env_storage_flow
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert any(
-        line == "LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT=docker"
+        line == "FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT=docker"
         for line in generated_env.splitlines()
     )
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
 
 
 def test_env_storage_flow_removes_storage_docker_marker_when_switching_to_host(
@@ -1695,11 +1695,11 @@ def test_env_storage_flow_removes_storage_docker_marker_when_switching_to_host(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker",
-            "LIGHTRAG_KV_STORAGE=PGKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=PGVectorStorage",
-            "LIGHTRAG_GRAPH_STORAGE=PGGraphStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=PGDocStatusStorage",
+            "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker",
+            "FORGEMIND_KV_STORAGE=PGKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=PGVectorStorage",
+            "FORGEMIND_GRAPH_STORAGE=PGGraphStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=PGDocStatusStorage",
         ],
     )
     write_text_lines(
@@ -1712,25 +1712,25 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="PGGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="PGGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
   REQUIRED_DB_TYPES[postgresql]=1
 }}
 collect_postgres_config() {{
   ENV_VALUES[POSTGRES_HOST]="localhost"
   ENV_VALUES[POSTGRES_PORT]="5432"
-  ENV_VALUES[POSTGRES_USER]="lightrag"
+  ENV_VALUES[POSTGRES_USER]="forgemind"
   ENV_VALUES[POSTGRES_PASSWORD]="secret"
-  ENV_VALUES[POSTGRES_DATABASE]="lightrag"
+  ENV_VALUES[POSTGRES_DATABASE]="forgemind"
 }}
 validate_required_variables() {{ return 0; }}
 validate_mongo_vector_storage_config() {{ return 0; }}
 validate_sensitive_env_literals() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -1741,10 +1741,10 @@ env_storage_flow
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert not any(
-        line.startswith("LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=")
+        line.startswith("FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=")
         for line in generated_env.splitlines()
     )
-    assert "LIGHTRAG_RUNTIME_TARGET=host" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=host" in generated_env
 
 
 def test_env_storage_flow_clears_unused_storage_docker_markers(tmp_path: Path) -> None:
@@ -1752,11 +1752,11 @@ def test_env_storage_flow_clears_unused_storage_docker_markers(tmp_path: Path) -
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker",
-            "LIGHTRAG_KV_STORAGE=PGKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=PGVectorStorage",
-            "LIGHTRAG_GRAPH_STORAGE=PGGraphStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=PGDocStatusStorage",
+            "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker",
+            "FORGEMIND_KV_STORAGE=PGKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=PGVectorStorage",
+            "FORGEMIND_GRAPH_STORAGE=PGGraphStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=PGDocStatusStorage",
         ],
     )
     write_text_lines(
@@ -1769,10 +1769,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -1780,7 +1780,7 @@ validate_mongo_vector_storage_config() {{ return 0; }}
 validate_sensitive_env_literals() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -1791,10 +1791,10 @@ env_storage_flow
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert not any(
-        line.startswith("LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=")
+        line.startswith("FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=")
         for line in generated_env.splitlines()
     )
-    assert "LIGHTRAG_KV_STORAGE=JsonKVStorage" in generated_env
+    assert "FORGEMIND_KV_STORAGE=JsonKVStorage" in generated_env
 
 
 def test_env_storage_flow_generates_env_and_compose_files(tmp_path: Path) -> None:
@@ -1825,10 +1825,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="MilvusVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="Neo4JStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="MilvusVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="Neo4JStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
   add_docker_service "postgres"
   add_docker_service "neo4j"
 }}
@@ -1851,11 +1851,11 @@ env_storage_flow
     generated_compose = (tmp_path / "docker-compose.final.yml").read_text(
         encoding="utf-8"
     )
-    assert "LIGHTRAG_KV_STORAGE=PGKVStorage" in generated_env
-    assert "LIGHTRAG_GRAPH_STORAGE=Neo4JStorage" in generated_env
+    assert "FORGEMIND_KV_STORAGE=PGKVStorage" in generated_env
+    assert "FORGEMIND_GRAPH_STORAGE=Neo4JStorage" in generated_env
     assert "LLM_BINDING=ollama" in generated_env
     assert "services:" in generated_compose
-    assert "  lightrag:" in generated_compose
+    assert "  forgemind:" in generated_compose
     assert "env_file:" not in generated_compose
 
 
@@ -1897,10 +1897,10 @@ PROMPT_LOG_FILE="$(mktemp)"
 
 select_storage_backends() {{
   REQUIRED_DB_TYPES[postgresql]=1
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="PGGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="PGGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
 }}
 confirm_default_no() {{
   if [[ "$1" == "Run PostgreSQL locally via Docker?" ]]; then
@@ -1934,10 +1934,10 @@ printf 'PROMPT_LOG=%s\\n' "$(paste -sd '|' "$PROMPT_LOG_FILE")\"
     )
     assert "POSTGRES_USER=rag" in generated_env
     assert "POSTGRES_PASSWORD=rag" in generated_env
-    assert "POSTGRES_DATABASE=lightrag" in generated_env
+    assert "POSTGRES_DATABASE=forgemind" in generated_env
     assert 'POSTGRES_USER: "rag"' in generated_compose
     assert 'POSTGRES_PASSWORD: "rag"' in generated_compose
-    assert 'POSTGRES_DB: "lightrag"' in generated_compose
+    assert 'POSTGRES_DB: "forgemind"' in generated_compose
 
 
 def test_env_storage_flow_preserves_existing_postgres_image_during_rewrite(
@@ -1955,8 +1955,8 @@ def test_env_storage_flow_preserves_existing_postgres_image_during_rewrite(
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  postgres:",
             "    image: registry.example.com/postgres-for-rag:patched",
         ],
@@ -1968,10 +1968,10 @@ REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
   REQUIRED_DB_TYPES[postgresql]=1
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="PGGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="PGGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
 }}
 collect_database_config() {{
   if [[ "$1" == "postgresql" ]]; then
@@ -2007,8 +2007,8 @@ def test_env_storage_flow_preserves_existing_neo4j_image_during_rewrite(
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  neo4j:",
             "    image: registry.example.com/neo4j:custom",
         ],
@@ -2020,10 +2020,10 @@ REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
   REQUIRED_DB_TYPES[neo4j]=1
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="Neo4JStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="Neo4JStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{
   if [[ "$1" == "neo4j" ]]; then
@@ -2061,8 +2061,8 @@ def test_env_storage_flow_preserves_existing_postgres_and_neo4j_images_on_rewrit
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  postgres:",
             "    image: registry.example.com/postgres-for-rag:patched",
             "  neo4j:",
@@ -2077,10 +2077,10 @@ REPO_ROOT="{tmp_path}"
 select_storage_backends() {{
   REQUIRED_DB_TYPES[postgresql]=1
   REQUIRED_DB_TYPES[neo4j]=1
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="Neo4JStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="Neo4JStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
 }}
 collect_database_config() {{
   case "$1" in
@@ -2123,8 +2123,8 @@ def test_env_storage_flow_uses_template_image_when_existing_service_has_no_image
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  postgres:",
             "    environment:",
             '      LEGACY_SETTING: "1"',
@@ -2137,10 +2137,10 @@ REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
   REQUIRED_DB_TYPES[postgresql]=1
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="PGGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="PGGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
 }}
 collect_database_config() {{
   if [[ "$1" == "postgresql" ]]; then
@@ -2178,8 +2178,8 @@ def test_env_storage_flow_force_rewrite_drops_preserved_storage_images(
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  postgres:",
             "    image: registry.example.com/postgres-for-rag:patched",
             "  neo4j:",
@@ -2195,10 +2195,10 @@ FORCE_REWRITE_COMPOSE="yes"
 select_storage_backends() {{
   REQUIRED_DB_TYPES[postgresql]=1
   REQUIRED_DB_TYPES[neo4j]=1
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="PGKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="PGVectorStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="Neo4JStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="PGDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="PGKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="PGVectorStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="Neo4JStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="PGDocStatusStorage"
 }}
 collect_database_config() {{
   case "$1" in
@@ -2234,8 +2234,8 @@ def test_env_storage_flow_backs_up_existing_compose_before_rewrite(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "    environment:",
                 '      LEGACY_SETTING: "1"',
                 "  postgres:",
@@ -2260,10 +2260,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -2271,7 +2271,7 @@ validate_mongo_vector_storage_config() {{ return 0; }}
 validate_sensitive_env_literals() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -2285,13 +2285,13 @@ env_storage_flow
 
 
 def test_env_storage_flow_keeps_compose_mode_for_user_sidecars(tmp_path: Path) -> None:
-    """env-storage should keep LightRAG in Docker when user sidecars are present."""
+    """env-storage should keep ForgeMind in Docker when user sidecars are present."""
     existing_compose = (
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "    environment:",
                 '      LEGACY_SETTING: "1"',
                 "  sidecar:",
@@ -2316,10 +2316,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -2334,9 +2334,9 @@ env_storage_flow
     result = (tmp_path / "docker-compose.final.yml").read_text(encoding="utf-8")
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert_single_compose_backup(tmp_path, existing_compose)
-    assert "  lightrag:" in result
+    assert "  forgemind:" in result
     assert "  sidecar:" in result
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
 
 
 def test_env_storage_flow_preserves_mongodb_docker_marker_for_atlas_local_vector_storage(
@@ -2346,11 +2346,11 @@ def test_env_storage_flow_preserves_mongodb_docker_marker_for_atlas_local_vector
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker",
-            "LIGHTRAG_KV_STORAGE=MongoKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=MongoGraphStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=MongoDocStatusStorage",
+            "FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker",
+            "FORGEMIND_KV_STORAGE=MongoKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=MongoGraphStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=MongoDocStatusStorage",
         ],
     )
     write_text_lines(
@@ -2363,10 +2363,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="MongoKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="MongoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="MongoGraphStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="MongoDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="MongoKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="MongoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="MongoGraphStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="MongoDocStatusStorage"
   REQUIRED_DB_TYPES[mongodb]=1
 }}
 prompt_until_valid() {{ printf '%s' "$2"; }}
@@ -2381,7 +2381,7 @@ confirm_required_yes_no() {{ return 0; }}
 env_storage_flow
 """)
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
-    assert "LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker" in generated_env
+    assert "FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker" in generated_env
     assert "MONGO_URI=mongodb://localhost:27017/?directConnection=true" in generated_env
 
 
@@ -2397,10 +2397,10 @@ def test_env_storage_flow_preserves_existing_compose_ssl_when_env_paths_are_stal
             "SSL_KEYFILE=/missing/key.pem",
             "LLM_BINDING=openai",
             "EMBEDDING_BINDING=openai",
-            "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+            "FORGEMIND_KV_STORAGE=JsonKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
         ],
     )
     write_text_lines(
@@ -2411,8 +2411,8 @@ def test_env_storage_flow_preserves_existing_compose_ssl_when_env_paths_are_stal
         tmp_path / "docker-compose.final.yml",
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "    environment:",
             '      SSL_CERTFILE: "/app/data/certs/cert.pem"',
             '      SSL_KEYFILE: "/app/data/certs/key.pem"',
@@ -2427,16 +2427,16 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -2476,8 +2476,8 @@ def test_env_server_flow_preserves_existing_compose_ssl_when_env_paths_are_stale
         tmp_path / "docker-compose.final.yml",
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "    environment:",
             '      SSL_CERTFILE: "/app/data/certs/cert.pem"',
             '      SSL_KEYFILE: "/app/data/certs/key.pem"',
@@ -2499,7 +2499,7 @@ collect_security_config() {{ :; }}
 collect_ssl_config() {{ :; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -2526,8 +2526,8 @@ def test_env_server_flow_backs_up_existing_compose_before_rewrite(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "    environment:",
                 '      PORT: "9621"',
             ]
@@ -2557,7 +2557,7 @@ validate_sensitive_env_literals() {{ return 0; }}
 validate_security_config() {{ return 0; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -2578,11 +2578,11 @@ def test_env_storage_flow_drops_stale_vllm_services_missing_from_env_markers(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_RUNTIME_TARGET=compose",
+            "FORGEMIND_RUNTIME_TARGET=compose",
             "LLM_BINDING=openai",
             "EMBEDDING_BINDING=openai",
             "RERANK_BINDING=cohere",
-            "LIGHTRAG_SETUP_RERANK_PROVIDER=cohere",
+            "FORGEMIND_SETUP_RERANK_PROVIDER=cohere",
         ],
     )
     write_text_lines(
@@ -2593,8 +2593,8 @@ def test_env_storage_flow_drops_stale_vllm_services_missing_from_env_markers(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "  vllm-embed:",
                 "    image: vllm/vllm-openai:latest",
                 "  vllm-rerank:",
@@ -2613,10 +2613,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -2634,7 +2634,7 @@ env_storage_flow
     assert "  vllm-rerank:" not in result
     assert "vllm_embed_cache:" not in result
     assert "vllm_rerank_cache:" not in result
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
 
 
 def test_env_storage_flow_preserves_vllm_services_marked_in_env(tmp_path: Path) -> None:
@@ -2642,11 +2642,11 @@ def test_env_storage_flow_preserves_vllm_services_marked_in_env(tmp_path: Path) 
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_RUNTIME_TARGET=compose",
+            "FORGEMIND_RUNTIME_TARGET=compose",
             "LLM_BINDING=openai",
             "EMBEDDING_BINDING=openai",
             "EMBEDDING_BINDING_HOST=http://localhost:8001/v1",
-            "LIGHTRAG_SETUP_EMBEDDING_PROVIDER=vllm",
+            "FORGEMIND_SETUP_EMBEDDING_PROVIDER=vllm",
             "VLLM_EMBED_MODEL=BAAI/bge-m3",
             "VLLM_EMBED_PORT=8001",
             "VLLM_EMBED_DEVICE=cpu",
@@ -2658,7 +2658,7 @@ def test_env_storage_flow_preserves_vllm_services_marked_in_env(tmp_path: Path) 
     )
     write_text_lines(
         tmp_path / "docker-compose.final.yml",
-        ["services:", "  lightrag:", "    image: example/lightrag:test"],
+        ["services:", "  forgemind:", "    image: example/forgemind:test"],
     )
     run_bash(f"""
 set -euo pipefail
@@ -2666,10 +2666,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -2684,10 +2684,10 @@ env_storage_flow
     result = (tmp_path / "docker-compose.final.yml").read_text(encoding="utf-8")
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert "  vllm-embed:" in result
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
 
 
-def test_env_storage_flow_deletes_compose_when_switching_lightrag_to_host(
+def test_env_storage_flow_deletes_compose_when_switching_forgemind_to_host(
     tmp_path: Path,
 ) -> None:
     """env-storage should back up and delete compose when no Docker services remain."""
@@ -2695,8 +2695,8 @@ def test_env_storage_flow_deletes_compose_when_switching_lightrag_to_host(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "  redis:",
                 "    image: redis:latest",
             ]
@@ -2706,7 +2706,7 @@ def test_env_storage_flow_deletes_compose_when_switching_lightrag_to_host(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_RUNTIME_TARGET=compose",
+            "FORGEMIND_RUNTIME_TARGET=compose",
             "LLM_BINDING=openai",
             "EMBEDDING_BINDING=openai",
         ],
@@ -2724,10 +2724,10 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 REPO_ROOT="{tmp_path}"
 
 select_storage_backends() {{
-  ENV_VALUES[LIGHTRAG_KV_STORAGE]="JsonKVStorage"
-  ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="NanoVectorDBStorage"
-  ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="NetworkXStorage"
-  ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
+  ENV_VALUES[FORGEMIND_KV_STORAGE]="JsonKVStorage"
+  ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="NanoVectorDBStorage"
+  ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="NetworkXStorage"
+  ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="JsonDocStatusStorage"
 }}
 collect_database_config() {{ :; }}
 validate_required_variables() {{ return 0; }}
@@ -2736,7 +2736,7 @@ validate_sensitive_env_literals() {{ return 0; }}
 confirm_default_yes() {{ return 1; }}
 confirm_default_no() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 0 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -2747,7 +2747,7 @@ env_storage_flow
     assert_single_compose_backup(tmp_path, existing_compose)
     assert not (tmp_path / "docker-compose.final.yml").exists()
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
-    assert "LIGHTRAG_RUNTIME_TARGET=host" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=host" in generated_env
 
 
 def test_env_server_flow_preserves_existing_storage_images_on_compose_rewrite(
@@ -2756,8 +2756,8 @@ def test_env_server_flow_preserves_existing_storage_images_on_compose_rewrite(
     """env-server should preserve postgres and neo4j images when a compose rewrite is triggered."""
     original_compose_lines = [
         "services:",
-        "  lightrag:",
-        "    image: example/lightrag:test",
+        "  forgemind:",
+        "    image: example/forgemind:test",
         "    environment:",
         '      PORT: "9621"',
         "  postgres:",
@@ -2773,8 +2773,8 @@ def test_env_server_flow_preserves_existing_storage_images_on_compose_rewrite(
             "EMBEDDING_BINDING=openai",
             "HOST=0.0.0.0",
             "PORT=9621",
-            "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker",
-            "LIGHTRAG_SETUP_NEO4J_DEPLOYMENT=docker",
+            "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker",
+            "FORGEMIND_SETUP_NEO4J_DEPLOYMENT=docker",
         ],
         original_compose_lines,
     )
@@ -2791,7 +2791,7 @@ collect_security_config() {{ :; }}
 collect_ssl_config() {{ :; }}
 confirm_default_yes() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 1 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 1 ;;
     *) return 0 ;;
   esac
 }}
@@ -2817,13 +2817,13 @@ def test_env_server_flow_preserves_existing_storage_images_on_env_only_rerun(
         [
             "LLM_BINDING=openai",
             "EMBEDDING_BINDING=openai",
-            "LIGHTRAG_SETUP_POSTGRES_DEPLOYMENT=docker",
-            "LIGHTRAG_SETUP_NEO4J_DEPLOYMENT=docker",
+            "FORGEMIND_SETUP_POSTGRES_DEPLOYMENT=docker",
+            "FORGEMIND_SETUP_NEO4J_DEPLOYMENT=docker",
         ],
         [
             "services:",
-            "  lightrag:",
-            "    image: example/lightrag:test",
+            "  forgemind:",
+            "    image: example/forgemind:test",
             "  postgres:",
             "    image: registry.example.com/postgres-for-rag:patched",
             "  neo4j:",
@@ -2850,7 +2850,7 @@ env_server_flow
     assert "image: registry.example.com/neo4j:custom" in result
 
 
-def test_env_server_flow_deletes_compose_when_switching_lightrag_to_host(
+def test_env_server_flow_deletes_compose_when_switching_forgemind_to_host(
     tmp_path: Path,
 ) -> None:
     """env-server should back up and delete compose when no managed or sidecar services remain."""
@@ -2858,8 +2858,8 @@ def test_env_server_flow_deletes_compose_when_switching_lightrag_to_host(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "  redis:",
                 "    image: redis:latest",
             ]
@@ -2868,7 +2868,7 @@ def test_env_server_flow_deletes_compose_when_switching_lightrag_to_host(
     )
     write_text_lines(
         tmp_path / ".env",
-        ["LIGHTRAG_RUNTIME_TARGET=compose", "HOST=0.0.0.0", "PORT=9621"],
+        ["FORGEMIND_RUNTIME_TARGET=compose", "HOST=0.0.0.0", "PORT=9621"],
     )
     write_text_lines(
         tmp_path / "env.example",
@@ -2893,7 +2893,7 @@ validate_security_config() {{ return 0; }}
 confirm_default_yes() {{ return 1; }}
 confirm_default_no() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 0 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -2904,17 +2904,17 @@ env_server_flow
     assert_single_compose_backup(tmp_path, existing_compose)
     assert not (tmp_path / "docker-compose.final.yml").exists()
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
-    assert "LIGHTRAG_RUNTIME_TARGET=host" in generated_env
+    assert "FORGEMIND_RUNTIME_TARGET=host" in generated_env
 
 
 def test_env_server_flow_keeps_compose_mode_for_user_sidecars(tmp_path: Path) -> None:
-    """env-server should keep LightRAG in Docker when compose still carries user sidecars."""
+    """env-server should keep ForgeMind in Docker when compose still carries user sidecars."""
     existing_compose = (
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "  sidecar:",
                 "    image: busybox",
             ]
@@ -2923,7 +2923,7 @@ def test_env_server_flow_keeps_compose_mode_for_user_sidecars(tmp_path: Path) ->
     )
     write_text_lines(
         tmp_path / ".env",
-        ["LIGHTRAG_RUNTIME_TARGET=compose", "HOST=0.0.0.0", "PORT=9621"],
+        ["FORGEMIND_RUNTIME_TARGET=compose", "HOST=0.0.0.0", "PORT=9621"],
     )
     write_text_lines(
         tmp_path / "env.example",
@@ -2953,8 +2953,8 @@ env_server_flow
     result = (tmp_path / "docker-compose.final.yml").read_text(encoding="utf-8")
     generated_env = (tmp_path / ".env").read_text(encoding="utf-8")
     assert "  sidecar:" in result
-    assert "  lightrag:" in result
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in generated_env
+    assert "  forgemind:" in result
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in generated_env
 
 
 def test_env_server_flow_rejects_invalid_ssl_cert_when_switching_to_host(
@@ -2965,8 +2965,8 @@ def test_env_server_flow_rejects_invalid_ssl_cert_when_switching_to_host(
         "\n".join(
             [
                 "services:",
-                "  lightrag:",
-                "    image: example/lightrag:test",
+                "  forgemind:",
+                "    image: example/forgemind:test",
                 "  redis:",
                 "    image: redis:latest",
             ]
@@ -2976,7 +2976,7 @@ def test_env_server_flow_rejects_invalid_ssl_cert_when_switching_to_host(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_RUNTIME_TARGET=compose",
+            "FORGEMIND_RUNTIME_TARGET=compose",
             "HOST=0.0.0.0",
             "PORT=9621",
             "SSL=true",
@@ -3008,7 +3008,7 @@ validate_security_config() {{ return 0; }}
 confirm_default_yes() {{ return 1; }}
 confirm_default_no() {{
   case "$1" in
-    "All wizard-managed services have been removed. Remove LightRAG from Docker and switch to host mode?") return 0 ;;
+    "All wizard-managed services have been removed. Remove ForgeMind from Docker and switch to host mode?") return 0 ;;
     *) return 1 ;;
   esac
 }}
@@ -3022,6 +3022,6 @@ env_server_flow
         or "Invalid SSL_CERTFILE" in result.stdout
     )
     assert (tmp_path / "docker-compose.final.yml").exists()
-    assert "LIGHTRAG_RUNTIME_TARGET=compose" in (tmp_path / ".env").read_text(
+    assert "FORGEMIND_RUNTIME_TARGET=compose" in (tmp_path / ".env").read_text(
         encoding="utf-8"
     )

@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch
 
-from lightrag.base import QueryParam
-from lightrag.operate import _parse_keywords_payload, extract_keywords_only
+from forgemind.base import QueryParam
+from forgemind.operate import _parse_keywords_payload, extract_keywords_only
 
 
 class _FakeKeywordModel:
@@ -61,7 +61,7 @@ def test_parse_keywords_payload_accepts_model_like_objects():
 def test_parse_keywords_payload_extracts_json_from_wrapped_text():
     result = """
     analysis first
-    {"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","LightRAG"]}
+    {"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","ForgeMind"]}
     trailing note
     """
 
@@ -69,15 +69,15 @@ def test_parse_keywords_payload_extracts_json_from_wrapped_text():
 
     assert is_valid is True
     assert hl_keywords == ["AI", "Agents"]
-    assert ll_keywords == ["RAG", "LightRAG"]
+    assert ll_keywords == ["RAG", "ForgeMind"]
 
 
 @pytest.mark.offline
 @pytest.mark.parametrize(
     "result",
     [
-        '```json\n{"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","LightRAG"]}\n```',
-        '```json {"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","LightRAG"]}```',
+        '```json\n{"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","ForgeMind"]}\n```',
+        '```json {"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","ForgeMind"]}```',
     ],
     ids=["multiline-fence", "single-line-fence"],
 )
@@ -88,21 +88,21 @@ def test_parse_keywords_payload_strips_markdown_fence(result):
 
     assert is_valid is True
     assert hl_keywords == ["AI", "Agents"]
-    assert ll_keywords == ["RAG", "LightRAG"]
+    assert ll_keywords == ["RAG", "ForgeMind"]
 
 
 @pytest.mark.offline
 def test_parse_keywords_payload_warns_when_json_repair_is_used():
     broken_result = (
-        '{"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","LightRAG"]'
+        '{"high_level_keywords":"AI, Agents","low_level_keywords":["RAG","ForgeMind"]'
     )
 
-    with patch("lightrag.operate.logger.warning") as mocked_warning:
+    with patch("forgemind.operate.logger.warning") as mocked_warning:
         is_valid, hl_keywords, ll_keywords = _parse_keywords_payload(broken_result)
 
     assert is_valid is True
     assert hl_keywords == ["AI", "Agents"]
-    assert ll_keywords == ["RAG", "LightRAG"]
+    assert ll_keywords == ["RAG", "ForgeMind"]
     mocked_warning.assert_called_once()
     assert (
         "Keyword extraction response required JSON repair"
@@ -122,7 +122,7 @@ async def test_extract_keywords_only_accepts_empty_keyword_cache_without_requery
     global_config = _keyword_global_config("model-a", keyword_func=should_not_run)
 
     with patch(
-        "lightrag.operate.handle_cache",
+        "forgemind.operate.handle_cache",
         return_value=('{"high_level_keywords":[],"low_level_keywords":[]}', None),
     ):
         hl_keywords, ll_keywords = await extract_keywords_only(

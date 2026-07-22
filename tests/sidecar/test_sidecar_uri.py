@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.utils_pipeline import (
+from forgemind.utils_pipeline import (
     SIDECAR_LOCATION_UNKNOWN,
     normalize_document_file_path,
     parsed_artifact_dir_for,

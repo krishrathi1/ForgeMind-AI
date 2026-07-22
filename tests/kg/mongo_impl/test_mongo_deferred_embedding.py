@@ -19,7 +19,7 @@ pytest.importorskip(
 
 from pymongo import UpdateOne  # type: ignore
 
-from lightrag.kg.mongo_impl import MongoVectorDBStorage
+from forgemind.kg.mongo_impl import MongoVectorDBStorage
 
 pytestmark = pytest.mark.offline
 
@@ -87,7 +87,7 @@ def patch_namespace_lock(monkeypatch):
             cache[key] = lock
         return lock
 
-    with patch("lightrag.kg.mongo_impl.get_namespace_lock", side_effect=factory):
+    with patch("forgemind.kg.mongo_impl.get_namespace_lock", side_effect=factory):
         yield cache
 
 
@@ -118,7 +118,7 @@ def _make_storage(
     storage._data.find = MagicMock(return_value=_AsyncCursor([]))
     storage.db = MagicMock()  # non-None so finalize releases it
 
-    from lightrag.kg.mongo_impl import get_namespace_lock
+    from forgemind.kg.mongo_impl import get_namespace_lock
 
     storage._flush_lock = get_namespace_lock(
         namespace=storage.final_namespace, workspace=""
@@ -252,7 +252,7 @@ async def test_server_write_failure_keeps_buffer():
 @pytest.mark.asyncio
 async def test_finalize_raises_when_buffer_unflushed_and_still_releases_client():
     """finalize() must release the Mongo client even when the flush fails."""
-    from lightrag.kg.mongo_impl import ClientManager
+    from forgemind.kg.mongo_impl import ClientManager
 
     embed = CountingEmbeddingFunc()
     s = _make_storage(embed)

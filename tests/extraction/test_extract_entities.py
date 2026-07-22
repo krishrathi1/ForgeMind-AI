@@ -5,15 +5,15 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 @pytest.fixture
-def _propagate_lightrag_logger(monkeypatch):
-    """``lightrag.utils.logger`` sets ``propagate = False`` to avoid noisy
+def _propagate_forgemind_logger(monkeypatch):
+    """``forgemind.utils.logger`` sets ``propagate = False`` to avoid noisy
     test output; restore propagation locally so ``caplog`` can capture
-    WARNING records emitted from inside ``lightrag.operate``."""
-    monkeypatch.setattr(logging.getLogger("lightrag"), "propagate", True)
+    WARNING records emitted from inside ``forgemind.operate``."""
+    monkeypatch.setattr(logging.getLogger("forgemind"), "propagate", True)
 
 
 class DummyTokenizer(TokenizerInterface):
@@ -69,7 +69,7 @@ def _make_chunks(content: str = "Test content.") -> dict[str, dict]:
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_gleaning_skipped_when_tokens_exceed_limit(
-    monkeypatch, caplog, _propagate_lightrag_logger
+    monkeypatch, caplog, _propagate_forgemind_logger
 ):
     """Gleaning must be skipped (with a WARNING) when the projected
     gleaning input — system + history(user+assistant) + continue prompt —
@@ -77,7 +77,7 @@ async def test_gleaning_skipped_when_tokens_exceed_limit(
     ``context_length_exceeded`` errors from the LLM provider on the second
     round when the initial response was long.
     """
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     # 10 tokens cannot fit any realistic prompt — guard must trip.
     monkeypatch.setenv("MAX_EXTRACT_INPUT_TOKENS", "10")
@@ -86,7 +86,7 @@ async def test_gleaning_skipped_when_tokens_exceed_limit(
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _EXTRACTION_RESULT
 
-    with caplog.at_level("WARNING", logger="lightrag"):
+    with caplog.at_level("WARNING", logger="forgemind"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -117,7 +117,7 @@ async def test_gleaning_skipped_when_tokens_exceed_limit(
 @pytest.mark.asyncio
 async def test_gleaning_proceeds_when_tokens_within_limit(monkeypatch):
     """Gleaning runs normally when the projected input fits the cap."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     monkeypatch.setenv("MAX_EXTRACT_INPUT_TOKENS", "999999")
 
@@ -139,7 +139,7 @@ async def test_gleaning_proceeds_when_tokens_within_limit(monkeypatch):
 async def test_no_gleaning_when_max_gleaning_zero(monkeypatch):
     """``entity_extract_max_gleaning=0`` disables gleaning regardless of
     token budget — the guard is downstream of the feature flag."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     monkeypatch.setenv("MAX_EXTRACT_INPUT_TOKENS", "999999")
 
@@ -161,7 +161,7 @@ async def test_gleaning_guard_disabled_when_max_tokens_zero(monkeypatch):
     """Setting ``MAX_EXTRACT_INPUT_TOKENS=0`` opts out of the guard so
     gleaning always runs regardless of input size — useful for callers
     whose provider has no hard input ceiling."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     monkeypatch.setenv("MAX_EXTRACT_INPUT_TOKENS", "0")
 

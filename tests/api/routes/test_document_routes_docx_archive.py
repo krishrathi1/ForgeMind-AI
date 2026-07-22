@@ -9,25 +9,25 @@ import pytest
 
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-_document_routes = importlib.import_module("lightrag.api.routers.document_routes")
-_lightrag = importlib.import_module("lightrag.lightrag")
-_pipeline = importlib.import_module("lightrag.pipeline")
-_base = importlib.import_module("lightrag.base")
-_constants = importlib.import_module("lightrag.constants")
-_utils = importlib.import_module("lightrag.utils")
-_parser_routing = importlib.import_module("lightrag.parser.routing")
-_parser_registry = importlib.import_module("lightrag.parser.registry")
-_parser_base = importlib.import_module("lightrag.parser.base")
+_document_routes = importlib.import_module("forgemind.api.routers.document_routes")
+_forgemind = importlib.import_module("forgemind.forgemind")
+_pipeline = importlib.import_module("forgemind.pipeline")
+_base = importlib.import_module("forgemind.base")
+_constants = importlib.import_module("forgemind.constants")
+_utils = importlib.import_module("forgemind.utils")
+_parser_routing = importlib.import_module("forgemind.parser.routing")
+_parser_registry = importlib.import_module("forgemind.parser.registry")
+_parser_base = importlib.import_module("forgemind.parser.base")
 sys.argv = _original_argv
 
 DocStatus = _base.DocStatus
 DeletionResult = _base.DeletionResult
-FULL_DOCS_FORMAT_LIGHTRAG = _constants.FULL_DOCS_FORMAT_LIGHTRAG
+FULL_DOCS_FORMAT_FORGEMIND = _constants.FULL_DOCS_FORMAT_FORGEMIND
 FULL_DOCS_FORMAT_PENDING_PARSE = _constants.FULL_DOCS_FORMAT_PENDING_PARSE
 PARSED_DIR_NAME = _constants.PARSED_DIR_NAME
 PROCESS_OPTION_CHUNK_FIXED = _constants.PROCESS_OPTION_CHUNK_FIXED
 compute_mdhash_id = _utils.compute_mdhash_id
-LightRAG = _lightrag.LightRAG
+ForgeMind = _forgemind.ForgeMind
 resolve_stored_document_parser_engine = (
     _parser_routing.resolve_stored_document_parser_engine
 )
@@ -77,13 +77,13 @@ def _ensure_shared_storage_initialized():
     The scan endpoint and the enqueue/scanning guards read
     ``pipeline_status`` via ``get_namespace_data``, which raises if
     shared dicts have never been initialized.  Tests using mocked
-    ``LightRAG`` instances don't run ``initialize_storages``, so we set
+    ``ForgeMind`` instances don't run ``initialize_storages``, so we set
     up the shared store here and reset pipeline_status state per-test
     to avoid leakage.
     """
     import importlib
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     shared_storage.initialize_share_data()
     yield
     # Reset pipeline_status to a clean state so subsequent tests don't
@@ -310,7 +310,7 @@ class _ParseTokenizer(_utils.TokenizerInterface):
 
 
 class _ParseRag:
-    _persist_parsed_full_docs = LightRAG._persist_parsed_full_docs
+    _persist_parsed_full_docs = ForgeMind._persist_parsed_full_docs
 
     def __init__(self, working_dir, source_path):
         self.working_dir = str(working_dir)
@@ -324,10 +324,10 @@ class _ParseRag:
         return file_path
 
 
-async def test_pipeline_index_file_leaves_lightrag_document_docx_for_parser_archive(
+async def test_pipeline_index_file_leaves_forgemind_document_docx_for_parser_archive(
     tmp_path, monkeypatch
 ):
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native")
     file_path = tmp_path / "sample.docx"
     file_path.write_bytes(b"docx bytes")
     rag = _FakeRag()
@@ -341,10 +341,10 @@ async def test_pipeline_index_file_leaves_lightrag_document_docx_for_parser_arch
     assert rag.enqueued[0]["parse_engine"] == "native"
 
 
-async def test_pipeline_enqueue_lightrag_document_docx_does_not_move_source(
+async def test_pipeline_enqueue_forgemind_document_docx_does_not_move_source(
     tmp_path, monkeypatch
 ):
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native")
     file_path = tmp_path / "pending.docx"
     file_path.write_bytes(b"docx bytes")
     rag = _FakeRag()
@@ -365,7 +365,7 @@ async def test_pipeline_enqueue_lightrag_document_docx_does_not_move_source(
 async def test_pipeline_enqueue_docx_defers_to_legacy_parser(tmp_path, monkeypatch):
     # Legacy now defers extraction to the worker stage; enqueue just records a
     # PENDING_PARSE row with parse_engine=legacy (no eager extraction here).
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:legacy")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:legacy")
     file_path = tmp_path / "plain.docx"
     file_path.write_bytes(b"docx bytes")
     rag = _FakeRag()
@@ -395,7 +395,7 @@ async def test_pipeline_enqueue_docx_defers_to_legacy_parser(tmp_path, monkeypat
 async def test_pipeline_enqueue_md_defers_to_legacy_parser(tmp_path, monkeypatch):
     # Unhinted .md defaults to the legacy engine and now defers extraction to
     # the worker stage (PENDING_PARSE), like every other engine.
-    monkeypatch.delenv("LIGHTRAG_PARSER", raising=False)
+    monkeypatch.delenv("FORGEMIND_PARSER", raising=False)
     file_path = tmp_path / "notes.md"
     file_path.write_text("# Notes\n\nmarkdown content", encoding="utf-8")
     rag = _FakeRag()
@@ -423,7 +423,7 @@ async def test_pipeline_enqueue_md_defers_to_legacy_parser(tmp_path, monkeypatch
 async def test_pipeline_enqueue_legacy_duplicate_archives_with_unique_name(
     tmp_path, monkeypatch
 ):
-    monkeypatch.delenv("LIGHTRAG_PARSER", raising=False)
+    monkeypatch.delenv("FORGEMIND_PARSER", raising=False)
     file_path = tmp_path / "duplicate.md"
     file_path.write_text("duplicate content", encoding="utf-8")
     parsed_dir = tmp_path / PARSED_DIR_NAME
@@ -447,7 +447,7 @@ async def test_pipeline_enqueue_legacy_duplicate_archives_with_unique_name(
 async def test_pipeline_enqueue_parser_routed_pdf_defers_without_extraction(
     tmp_path, monkeypatch
 ):
-    monkeypatch.setenv("LIGHTRAG_PARSER", "pdf:mineru,*:legacy")
+    monkeypatch.setenv("FORGEMIND_PARSER", "pdf:mineru,*:legacy")
     monkeypatch.setenv("MINERU_API_MODE", "local")
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://fake-mineru")
 
@@ -482,7 +482,7 @@ async def test_pipeline_enqueue_passes_process_options_from_filename_hint(
     tmp_path, monkeypatch
 ):
     """Filename hint ``[native-iet]`` flows into apipeline_enqueue_documents."""
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native")
     file_path = tmp_path / "report.[native-iet].docx"
     file_path.write_bytes(b"docx-bytes")
     rag = _FakeRag()
@@ -511,7 +511,7 @@ async def test_pipeline_enqueue_passes_process_options_from_filename_hint(
 
 async def test_pipeline_enqueue_rejects_invalid_filename_hint(tmp_path, monkeypatch):
     """Bad filename processing hints must become file-processing errors."""
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native")
     file_path = tmp_path / "report.[abc].docx"
     file_path.write_bytes(b"docx-bytes")
     rag = _FakeRag()
@@ -534,11 +534,11 @@ async def test_pipeline_enqueue_rejects_invalid_filename_hint(tmp_path, monkeypa
     assert file_path.exists()
 
 
-async def test_pipeline_enqueue_lightrag_parser_rule_provides_default_options(
+async def test_pipeline_enqueue_forgemind_parser_rule_provides_default_options(
     tmp_path, monkeypatch
 ):
-    """LIGHTRAG_PARSER ``docx:native-iet`` becomes the default ``process_options``."""
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native-iet,*:legacy")
+    """FORGEMIND_PARSER ``docx:native-iet`` becomes the default ``process_options``."""
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native-iet,*:legacy")
     file_path = tmp_path / "rule_default.docx"
     file_path.write_bytes(b"docx-bytes")
     rag = _FakeRag()
@@ -552,10 +552,10 @@ async def test_pipeline_enqueue_lightrag_parser_rule_provides_default_options(
     assert enqueued["process_options"] == "iet"
 
 
-async def test_pipeline_index_files_leaves_lightrag_document_docx_batch(
+async def test_pipeline_index_files_leaves_forgemind_document_docx_batch(
     tmp_path, monkeypatch
 ):
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native")
     first = tmp_path / "first.docx"
     second = tmp_path / "second.[mineru].docx"
     first.write_bytes(b"first docx bytes")
@@ -699,7 +699,7 @@ async def test_scan_archives_same_batch_canonical_duplicates(tmp_path, monkeypat
 
 
 async def test_scan_rejects_invalid_filename_hint(tmp_path, monkeypatch):
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native")
     file_path = tmp_path / "bad-scan.[native-FR].docx"
     file_path.write_bytes(b"docx bytes")
     doc_manager = DocumentManager(str(tmp_path))
@@ -1060,7 +1060,7 @@ async def test_upload_succeeds_concurrent_with_pipeline_busy(tmp_path, monkeypat
     doc_manager = DocumentManager(str(tmp_path))
     rag = _DuplicateUploadRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1124,7 +1124,7 @@ async def test_upload_returns_409_when_scanning_classification(tmp_path, monkeyp
     doc_manager = DocumentManager(str(tmp_path))
     rag = _DuplicateUploadRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1165,7 +1165,7 @@ async def test_upload_succeeds_during_scan_processing_phase(tmp_path, monkeypatc
     doc_manager = DocumentManager(str(tmp_path))
     rag = _DuplicateUploadRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1218,7 +1218,7 @@ async def test_scan_endpoint_returns_skipped_when_pipeline_busy(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1250,7 +1250,7 @@ async def test_scan_endpoint_returns_skipped_when_already_scanning(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1281,7 +1281,7 @@ async def test_scan_endpoint_acquires_and_releases_scanning_flag(tmp_path, monke
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1323,7 +1323,7 @@ async def test_scan_endpoint_returns_skipped_when_enqueue_pending(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1365,7 +1365,7 @@ async def test_reserve_enqueue_slot_blocks_concurrent_scan_until_release(tmp_pat
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1415,7 +1415,7 @@ async def test_release_enqueue_slot_decrements_per_call(tmp_path):
     import importlib
 
     rag = _ScanRag({})
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1461,7 +1461,7 @@ async def test_enqueue_endpoint_releases_token_on_acquire_cancellation(
 
     rag = _Rag()
     doc_manager = DocumentManager(str(tmp_path))
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1523,7 +1523,7 @@ async def test_scan_endpoint_releases_reservation_on_cancellation_before_handoff
     rag.workspace = workspace
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1579,7 +1579,7 @@ async def test_clear_endpoint_releases_destructive_busy_on_cancellation_during_s
     rag.workspace = workspace
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1632,7 +1632,7 @@ async def test_clear_releases_when_acquire_cancelled_at_lock_exit(
     rag.workspace = workspace
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1693,7 +1693,7 @@ async def test_scan_task_releases_when_cancelled_before_release_try(
     rag.workspace = workspace
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1748,7 +1748,7 @@ async def test_delete_task_releases_when_cancelled_before_release_try(
     rag.workspace = workspace
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1802,7 +1802,7 @@ async def test_release_destructive_helper_survives_fetch_cancellation(
     rag = _Rag()
     rag.workspace = workspace
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1855,7 +1855,7 @@ async def test_release_scanning_helper_survives_fetch_cancellation(
     rag = _Rag()
     rag.workspace = workspace
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1906,7 +1906,7 @@ async def test_release_enqueue_helper_survives_fetch_cancellation(
     rag = _Rag()
     rag.workspace = workspace
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -1956,7 +1956,7 @@ async def test_two_concurrent_uploads_both_succeed_when_pipeline_busy(
     doc_manager = DocumentManager(str(tmp_path))
     rag = _DuplicateUploadRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2016,7 +2016,7 @@ async def test_reserve_enqueue_slot_allows_busy_and_scan_processing_phase(tmp_pa
     import importlib
 
     rag = _ScanRag({})
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2059,7 +2059,7 @@ async def test_reserve_enqueue_slot_rejects_destructive_busy(tmp_path):
     import importlib
 
     rag = _ScanRag({})
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2106,7 +2106,7 @@ async def test_clear_documents_sets_and_clears_destructive_busy(tmp_path):
             self.workspace = ws
 
         async def drop(self):
-            shared_storage_inner = importlib.import_module("lightrag.kg.shared_storage")
+            shared_storage_inner = importlib.import_module("forgemind.kg.shared_storage")
             ns = await shared_storage_inner.get_namespace_data(
                 "pipeline_status", workspace=self.workspace
             )
@@ -2139,7 +2139,7 @@ async def test_clear_documents_sets_and_clears_destructive_busy(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ClearRag()
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2179,7 +2179,7 @@ async def test_clear_documents_refuses_when_scanning_or_pending_enqueues(tmp_pat
     rag = _StubRag()
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2236,7 +2236,7 @@ async def test_delete_document_reserves_destructive_busy_synchronously(tmp_path)
     rag = _DeleteRag(DeletionResult(status="success", message="ok", doc_id="doc-1"))
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2327,7 +2327,7 @@ async def test_scan_managed_task_released_on_shutdown_drain(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2380,7 +2380,7 @@ async def test_upload_managed_task_released_on_shutdown_drain(tmp_path, monkeypa
     doc_manager = DocumentManager(str(tmp_path))
     rag = _DuplicateUploadRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2427,7 +2427,7 @@ async def test_delete_managed_task_released_on_shutdown_drain(tmp_path):
     rag = _DeleteRag(DeletionResult(status="success", message="ok", doc_id="doc-1"))
     doc_manager = DocumentManager(str(tmp_path))
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
     pipeline_status = await shared_storage.get_namespace_data(
         "pipeline_status", workspace=rag.workspace
@@ -2477,7 +2477,7 @@ async def test_reprocess_starts_managed_task(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ScanRag({})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
 
     gate = asyncio.Event()
@@ -2558,7 +2558,7 @@ def test_delete_file_variants_removes_canonical_hint_variants(tmp_path):
 
 
 async def test_background_delete_removes_parser_hint_file_variants(tmp_path):
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     parsed_dir = tmp_path / PARSED_DIR_NAME
     parsed_dir.mkdir()
     source_file = tmp_path / "paper.[native].docx"
@@ -2600,10 +2600,10 @@ async def test_docx_archive_failure_is_best_effort(tmp_path, monkeypatch):
     async def _raise_archive_failure(*args, **kwargs):
         raise OSError("simulated archive failure")
 
-    from lightrag.utils_pipeline import (
+    from forgemind.utils_pipeline import (
         archive_docx_source_after_full_docs_sync,
     )
-    import lightrag.utils_pipeline as _utils_pipeline
+    import forgemind.utils_pipeline as _utils_pipeline
 
     monkeypatch.setattr(
         _utils_pipeline, "move_file_to_parsed_dir", _raise_archive_failure
@@ -2640,7 +2640,7 @@ async def test_parse_native_archives_docx_after_full_docs_sync(tmp_path, monkeyp
         ]
 
     monkeypatch.setattr(
-        "lightrag.parser.docx.parse_document.extract_docx_blocks",
+        "forgemind.parser.docx.parse_document.extract_docx_blocks",
         _fake_extract,
     )
 
@@ -2652,10 +2652,10 @@ async def test_parse_native_archives_docx_after_full_docs_sync(tmp_path, monkeyp
         {"parse_format": FULL_DOCS_FORMAT_PENDING_PARSE, "content": ""},
     )
 
-    # parse_native now returns LIGHTRAG-format parsed_data with merged_text
+    # parse_native now returns FORGEMIND-format parsed_data with merged_text
     # (not the {{LRdoc}} marker — that's only in the persisted full_docs row).
     assert result["content"]
-    assert result["parse_format"] == "lightrag"
+    assert result["parse_format"] == "forgemind"
     assert result["blocks_path"]
     assert rag.full_docs.events == ["upsert", "index_done"]
     assert not source_path.exists()
@@ -2664,7 +2664,7 @@ async def test_parse_native_archives_docx_after_full_docs_sync(tmp_path, monkeyp
     assert parsed_artifact_dir.is_dir()
     assert (parsed_artifact_dir / "parsed-after-sync.blocks.jsonl").is_file()
     assert rag.full_docs.data["doc-test"]["parse_engine"] == "native"
-    assert rag.full_docs.data["doc-test"]["parse_format"] == "lightrag"
+    assert rag.full_docs.data["doc-test"]["parse_format"] == "forgemind"
     # Per docs/FileProcessingConfiguration-zh.md, content uses the {{LRdoc}}
     # marker plus a leading-text summary derived from merged blocks.
     assert rag.full_docs.data["doc-test"]["content"].startswith("{{LRdoc}}")
@@ -2673,7 +2673,7 @@ async def test_parse_native_archives_docx_after_full_docs_sync(tmp_path, monkeyp
 def test_parsed_artifact_dir_uses_unique_suffix_when_path_is_file(
     tmp_path, monkeypatch
 ):
-    from lightrag.utils_pipeline import parsed_artifact_dir_for
+    from forgemind.utils_pipeline import parsed_artifact_dir_for
 
     monkeypatch.setenv("INPUT_DIR", str(tmp_path))
     parsed_dir = tmp_path / PARSED_DIR_NAME
@@ -2686,7 +2686,7 @@ def test_parsed_artifact_dir_uses_unique_suffix_when_path_is_file(
 
 
 def test_parsed_artifact_dir_reuses_existing_parsed_parent(tmp_path, monkeypatch):
-    from lightrag.utils_pipeline import parsed_artifact_dir_for
+    from forgemind.utils_pipeline import parsed_artifact_dir_for
 
     monkeypatch.setenv("INPUT_DIR", str(tmp_path))
     parsed_dir = tmp_path / PARSED_DIR_NAME
@@ -2708,7 +2708,7 @@ async def test_parse_native_docx_content_list_failure_raises_without_fallback(
         raise RuntimeError("content list boom")
 
     monkeypatch.setattr(
-        "lightrag.parser.docx.parse_document.extract_docx_blocks",
+        "forgemind.parser.docx.parse_document.extract_docx_blocks",
         _raise_parser,
     )
 
@@ -2733,7 +2733,7 @@ async def test_parse_native_docx_empty_content_list_result_raises_without_fallba
     rag = _ParseRag(tmp_path / "work", source_path)
 
     monkeypatch.setattr(
-        "lightrag.parser.docx.parse_document.extract_docx_blocks",
+        "forgemind.parser.docx.parse_document.extract_docx_blocks",
         lambda *args, **kwargs: [],
     )
 
@@ -2750,17 +2750,17 @@ async def test_parse_native_docx_empty_content_list_result_raises_without_fallba
     assert rag.full_docs.events == []
 
 
-def test_lightrag_document_reprocess_uses_full_docs_without_reparse():
+def test_forgemind_document_reprocess_uses_full_docs_without_reparse():
     engine = resolve_stored_document_parser_engine(
         "report.[mineru].docx",
         {
-            "parse_format": FULL_DOCS_FORMAT_LIGHTRAG,
+            "parse_format": FULL_DOCS_FORMAT_FORGEMIND,
             "sidecar_location": "file:///tmp/report.docx.parsed/",
             "parse_engine": "mineru",
         },
     )
 
-    # All lightrag rows route to the internal reuse handler (reuse the stored
+    # All forgemind rows route to the internal reuse handler (reuse the stored
     # sidecar without re-parsing) regardless of the originating engine.
     assert engine == "reuse"
 
@@ -2769,13 +2769,13 @@ def test_default_allowlist_equals_local_engine_suffixes(tmp_path, monkeypatch):
     """With no external endpoints and no routing rules, the registry-derived
     allowlist must equal the local engines' (legacy ∪ native) suffixes —
     i.e. exactly the historical hardcoded upload allowlist."""
-    from lightrag.parser import registry
+    from forgemind.parser import registry
 
     for var in (
         "MINERU_LOCAL_ENDPOINT",
         "MINERU_API_TOKEN",
         "DOCLING_ENDPOINT",
-        "LIGHTRAG_PARSER",
+        "FORGEMIND_PARSER",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -2791,11 +2791,11 @@ def test_default_allowlist_equals_local_engine_suffixes(tmp_path, monkeypatch):
 
 def test_unroutable_suffix_needs_rule_or_hint(tmp_path, monkeypatch):
     """An endpoint-configured engine's suffix is accepted only when routing
-    actually reaches that engine: a bare filename needs a LIGHTRAG_PARSER
+    actually reaches that engine: a bare filename needs a FORGEMIND_PARSER
     rule; a per-file hint works without one. Otherwise the file would pass
     upload only to fail the parse worker's legacy suffix gate."""
     monkeypatch.delenv("DOCLING_ENDPOINT", raising=False)
-    monkeypatch.delenv("LIGHTRAG_PARSER", raising=False)
+    monkeypatch.delenv("FORGEMIND_PARSER", raising=False)
     monkeypatch.setenv("MINERU_API_MODE", "local")
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://fake-mineru")
 
@@ -2806,7 +2806,7 @@ def test_unroutable_suffix_needs_rule_or_hint(tmp_path, monkeypatch):
     # A per-file hint routes this specific name to mineru.
     assert dm.is_supported_file("scan.[mineru].png")
     # A routing rule makes the bare suffix routable (and advertised).
-    monkeypatch.setenv("LIGHTRAG_PARSER", "png:mineru")
+    monkeypatch.setenv("FORGEMIND_PARSER", "png:mineru")
     assert ".png" in dm.supported_extensions
     assert dm.is_supported_file("scan.png")
     # docling-only suffixes stay out (endpoint unset), rule or not.
@@ -2817,9 +2817,9 @@ def test_third_party_engine_suffixes_join_allowlist_and_scan(tmp_path, monkeypat
     """A registered third-party engine's suffixes become uploadable and
     scannable once routable (rule for bare names, hint for individual
     files), and revert on unregister."""
-    from lightrag.parser import registry
+    from forgemind.parser import registry
 
-    monkeypatch.delenv("LIGHTRAG_PARSER", raising=False)
+    monkeypatch.delenv("FORGEMIND_PARSER", raising=False)
     dm = DocumentManager(str(tmp_path))
 
     # Before registration: .foo rejected by upload and invisible to scan.
@@ -2847,7 +2847,7 @@ def test_third_party_engine_suffixes_join_allowlist_and_scan(tmp_path, monkeypat
         assert "hinted.[fooengine].foo" in scanned
         assert "sample.foo" not in scanned
         # A routing rule makes the bare suffix routable.
-        monkeypatch.setenv("LIGHTRAG_PARSER", "foo:fooengine")
+        monkeypatch.setenv("FORGEMIND_PARSER", "foo:fooengine")
         assert ".foo" in dm.supported_extensions
         assert dm.is_supported_file("sample.foo")
         assert "sample.foo" in {p.name for p in dm.scan_directory_for_new_files()}
@@ -2869,7 +2869,7 @@ class _DropStorage:
 
 
 class _ClearRag:
-    """Mock LightRAG exposing the storages that clear_documents drops."""
+    """Mock ForgeMind exposing the storages that clear_documents drops."""
 
     def __init__(self, chunks_drop_result):
         self.workspace = "clear-test"
@@ -2911,7 +2911,7 @@ async def test_clear_documents_honors_drop_error_status(tmp_path):
         }
     )
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
 
     router = create_document_routes(rag, doc_manager)
@@ -2928,7 +2928,7 @@ async def test_clear_documents_succeeds_when_all_drops_succeed(tmp_path):
     doc_manager = DocumentManager(str(tmp_path))
     rag = _ClearRag(chunks_drop_result={"status": "success", "message": "data dropped"})
 
-    shared_storage = importlib.import_module("lightrag.kg.shared_storage")
+    shared_storage = importlib.import_module("forgemind.kg.shared_storage")
     await shared_storage.initialize_pipeline_status(workspace=rag.workspace)
 
     router = create_document_routes(rag, doc_manager)

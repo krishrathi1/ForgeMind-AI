@@ -17,7 +17,7 @@ keep_alive = true
 
 [mongodb]
 uri = mongodb+srv://name:password@your-cluster-address
-database = lightrag
+database = forgemind
 
 [redis]
 uri=redis://localhost:6379/1
@@ -46,7 +46,7 @@ uri = bolt://localhost:7687
 
 [milvus]
 uri = http://localhost:19530
-db_name = lightrag
+db_name = forgemind
 # user = root
 # password = your_password
 # token = your_token

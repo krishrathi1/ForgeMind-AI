@@ -19,7 +19,7 @@ import pytest
 
 nano_vectordb = pytest.importorskip("nano_vectordb")  # noqa: F841
 
-from lightrag.file_atomic import atomic_write  # noqa: E402
+from forgemind.file_atomic import atomic_write  # noqa: E402
 from nano_vectordb import NanoVectorDB  # noqa: E402
 
 
@@ -64,7 +64,7 @@ def test_nano_save_atomic_replace_crash_preserves_prior(tmp_path):
     original_payload = open(target).read()
 
     with patch(
-        "lightrag.file_atomic.os.replace",
+        "forgemind.file_atomic.os.replace",
         side_effect=OSError("simulated crash"),
     ):
         with pytest.raises(OSError, match="simulated crash"):

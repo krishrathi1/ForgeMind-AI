@@ -3,7 +3,7 @@
 Covers:
 - entity_types_guidance injected into prompts (text mode and JSON mode)
 - custom entity_types_guidance via addon_params overrides default
-- ENTITY_TYPES env var raises SystemExit at LightRAG init
+- ENTITY_TYPES env var raises SystemExit at ForgeMind init
 - EntityExtractionResult Pydantic schema used in JSON mode (entity_extraction kwarg)
 - Default entity type guidance constant is present and non-empty
 """
@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from lightrag.utils import EmbeddingFunc, Tokenizer, TokenizerInterface
+from forgemind.utils import EmbeddingFunc, Tokenizer, TokenizerInterface
 
 
 class DummyTokenizer(TokenizerInterface):
@@ -111,7 +111,7 @@ def _dummy_embedding_func() -> EmbeddingFunc:
 
 
 def _patch_prompt_dir(path: Path):
-    return patch("lightrag.prompt.get_entity_type_prompt_dir", return_value=path)
+    return patch("forgemind.prompt.get_entity_type_prompt_dir", return_value=path)
 
 
 def _text_profile_example(label: str) -> str:
@@ -212,7 +212,7 @@ class _DummyTextChunksStorage:
 @pytest.mark.offline
 def test_default_entity_types_guidance_exists():
     """PROMPTS['default_entity_types_guidance'] must be a non-empty string."""
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     guidance = PROMPTS["default_entity_types_guidance"]
     assert isinstance(guidance, str)
@@ -222,7 +222,7 @@ def test_default_entity_types_guidance_exists():
 @pytest.mark.offline
 def test_default_entity_types_guidance_covers_all_types():
     """Default guidance must mention all 11 canonical entity types."""
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     guidance = PROMPTS["default_entity_types_guidance"]
     expected_types = [
@@ -254,7 +254,7 @@ def test_builtin_entity_extraction_examples_are_format_only():
     reintroduce a sample ``---Input Text---`` / ``---Output---`` demo, and every
     data value is an angle-bracket placeholder rather than concrete prose.
     """
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     section_markers = ("---Input Text---", "---Output---", "---Entity Types---")
     placeholder = re.compile(r"<[^<>]+>")
@@ -294,7 +294,7 @@ def test_builtin_entity_extraction_examples_are_format_only():
 
 @pytest.mark.offline
 def test_entity_extraction_system_prompts_label_examples_as_format_templates():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     for prompt_key in (
         "entity_extraction_system_prompt",
@@ -310,7 +310,7 @@ def test_entity_extraction_system_prompts_label_examples_as_format_templates():
 
 @pytest.mark.offline
 def test_text_examples_render_tuple_and_completion_delimiters():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     rendered = "\n".join(PROMPTS["entity_extraction_examples"]).format(
         tuple_delimiter=PROMPTS["DEFAULT_TUPLE_DELIMITER"],
@@ -333,7 +333,7 @@ def test_text_examples_render_tuple_and_completion_delimiters():
 @pytest.mark.offline
 def test_json_examples_are_parseable_format_templates():
     """JSON examples must be raw JSON templates with valid endpoint references."""
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     for example in PROMPTS["entity_extraction_json_examples"]:
         parsed = json.loads(example)
@@ -359,8 +359,8 @@ def test_json_examples_are_parseable_format_templates():
 
 @pytest.mark.offline
 def test_default_entity_types_removed_from_constants():
-    """DEFAULT_ENTITY_TYPES must no longer exist in lightrag.constants."""
-    import lightrag.constants as constants
+    """DEFAULT_ENTITY_TYPES must no longer exist in forgemind.constants."""
+    import forgemind.constants as constants
 
     assert not hasattr(constants, "DEFAULT_ENTITY_TYPES"), (
         "DEFAULT_ENTITY_TYPES should have been removed from constants.py"
@@ -374,12 +374,12 @@ def test_default_entity_types_removed_from_constants():
 
 @pytest.mark.offline
 def test_entity_types_env_var_raises_system_exit(tmp_path):
-    """LightRAG.__post_init__ must raise SystemExit when ENTITY_TYPES env var is set."""
-    from lightrag import LightRAG
+    """ForgeMind.__post_init__ must raise SystemExit when ENTITY_TYPES env var is set."""
+    from forgemind import ForgeMind
 
     with patch.dict(os.environ, {"ENTITY_TYPES": '["Person"]'}):
         with pytest.raises(SystemExit) as exc_info:
-            LightRAG(
+            ForgeMind(
                 working_dir=str(tmp_path),
                 llm_model_func=AsyncMock(),
                 embedding_func=None,
@@ -396,14 +396,14 @@ def test_entity_types_env_var_raises_system_exit(tmp_path):
 @pytest.mark.asyncio
 async def test_text_mode_default_guidance_injected_into_prompt():
     """Default entity_types_guidance is passed to LLM system prompt in text mode."""
-    from lightrag.operate import extract_entities
-    from lightrag.prompt import PROMPTS
+    from forgemind.operate import extract_entities
+    from forgemind.prompt import PROMPTS
 
     global_config = _make_global_config(use_json=False)
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -424,7 +424,7 @@ async def test_text_mode_default_guidance_injected_into_prompt():
 @pytest.mark.asyncio
 async def test_text_mode_custom_guidance_overrides_default():
     """Custom entity_types_guidance in addon_params overrides default."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     custom_guidance = "- Widget: A test widget type"
     global_config = _make_global_config(
@@ -434,7 +434,7 @@ async def test_text_mode_custom_guidance_overrides_default():
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -447,7 +447,7 @@ async def test_text_mode_custom_guidance_overrides_default():
 
 @pytest.mark.offline
 def test_text_continue_prompt_requires_relation_prefix_for_corrections():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     prompt = PROMPTS["entity_continue_extraction_user_prompt"]
     assert (
@@ -470,7 +470,7 @@ def test_text_continue_prompt_requires_relation_prefix_for_corrections():
 
 @pytest.mark.offline
 def test_text_user_prompt_includes_quantity_limits():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     prompt = PROMPTS["entity_extraction_user_prompt"]
     assert (
@@ -492,12 +492,12 @@ def test_text_user_prompt_includes_quantity_limits():
 @pytest.mark.asyncio
 async def test_rebuild_from_cached_fenced_json_uses_json_parser():
     """Cached JSON wrapped in markdown fences must not fall back to text parsing."""
-    from lightrag import operate
+    from forgemind import operate
 
     fenced_json = f"```json\n{_JSON_MODE_RESPONSE}\n```"
 
     with patch(
-        "lightrag.operate._process_extraction_result",
+        "forgemind.operate._process_extraction_result",
         side_effect=AssertionError("text parser should not be used"),
     ):
         nodes, edges = await operate._rebuild_from_extraction_result(
@@ -516,14 +516,14 @@ async def test_rebuild_from_cached_fenced_json_uses_json_parser():
 @pytest.mark.asyncio
 async def test_json_mode_default_guidance_injected_into_prompt():
     """Default entity_types_guidance is passed to LLM system prompt in JSON mode."""
-    from lightrag.operate import extract_entities
-    from lightrag.prompt import PROMPTS
+    from forgemind.operate import extract_entities
+    from forgemind.prompt import PROMPTS
 
     global_config = _make_global_config(use_json=True)
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _JSON_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -541,13 +541,13 @@ async def test_json_mode_default_guidance_injected_into_prompt():
 @pytest.mark.asyncio
 async def test_json_mode_entity_extraction_kwarg_passed():
     """JSON mode must pass response_format={'type':'json_object'} to the LLM function."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=True)
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _JSON_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -563,7 +563,7 @@ async def test_json_mode_entity_extraction_kwarg_passed():
 @pytest.mark.asyncio
 async def test_json_mode_custom_guidance_overrides_default():
     """Custom entity_types_guidance in addon_params overrides default in JSON mode."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     custom_guidance = "- Gadget: A test gadget type"
     global_config = _make_global_config(
@@ -573,7 +573,7 @@ async def test_json_mode_custom_guidance_overrides_default():
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _JSON_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -586,7 +586,7 @@ async def test_json_mode_custom_guidance_overrides_default():
 
 @pytest.mark.offline
 def test_json_user_prompt_includes_quantity_limits():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     prompt = PROMPTS["entity_extraction_json_user_prompt"]
     assert (
@@ -601,7 +601,7 @@ def test_json_user_prompt_includes_quantity_limits():
 
 @pytest.mark.offline
 def test_json_continue_prompt_includes_quantity_limits():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     prompt = PROMPTS["entity_continue_extraction_json_user_prompt"]
     assert (
@@ -623,13 +623,13 @@ def test_json_continue_prompt_includes_quantity_limits():
 @pytest.mark.asyncio
 async def test_text_mode_no_entity_extraction_kwarg():
     """Text mode must NOT pass entity_extraction=True to the LLM function."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False)
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -642,13 +642,13 @@ async def test_text_mode_no_entity_extraction_kwarg():
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_text_mode_recovers_mis_prefixed_relationship_row():
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False)
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_MISPREFIXED_RELATION_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         chunk_results = await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -663,13 +663,13 @@ async def test_text_mode_recovers_mis_prefixed_relationship_row():
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_text_mode_gleaned_relation_merges_cleanly_after_recovery():
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False, max_gleaning=1)
     llm_func = global_config["llm_model_func"]
     llm_func.side_effect = _TEXT_MODE_GLEANED_RELATION_RESPONSES
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         chunk_results = await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -686,13 +686,13 @@ async def test_text_mode_gleaned_relation_merges_cleanly_after_recovery():
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_text_mode_gleaned_relation_can_reference_prior_entity():
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False, max_gleaning=1)
     llm_func = global_config["llm_model_func"]
     llm_func.side_effect = _TEXT_MODE_CROSS_PASS_RELATION_RESPONSES
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         chunk_results = await extract_entities(
             chunks=_make_chunks(),
             global_config=global_config,
@@ -710,7 +710,7 @@ async def test_text_mode_gleaned_relation_can_reference_prior_entity():
 def test_addon_params_default_includes_entity_type_prompt_file_env(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -727,7 +727,7 @@ def test_addon_params_default_includes_entity_type_prompt_file_env(tmp_path):
         },
     ):
         with _patch_prompt_dir(prompt_dir):
-            rag = LightRAG(
+            rag = ForgeMind(
                 working_dir=str(tmp_path / "rag-default-env"),
                 llm_model_func=AsyncMock(),
                 embedding_func=_dummy_embedding_func(),
@@ -744,7 +744,7 @@ def test_addon_params_default_includes_entity_type_prompt_file_env(tmp_path):
 async def test_text_mode_prompt_file_injects_examples_and_guidance():
     _require_yaml()
 
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     guidance = "- ExampleType: Injected guidance"
     example_label = "Custom Text Example"
@@ -761,7 +761,7 @@ async def test_text_mode_prompt_file_injects_examples_and_guidance():
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=_make_chunks(), global_config=global_config)
 
     call_kwargs = llm_func.call_args_list[0][1]
@@ -775,7 +775,7 @@ async def test_text_mode_prompt_file_injects_examples_and_guidance():
 async def test_json_mode_prompt_file_injects_examples_and_guidance():
     _require_yaml()
 
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     guidance = "- ExampleType: Injected JSON guidance"
     example_label = "Custom Json Example"
@@ -792,7 +792,7 @@ async def test_json_mode_prompt_file_injects_examples_and_guidance():
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _JSON_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=_make_chunks(), global_config=global_config)
 
     call_kwargs = llm_func.call_args_list[0][1]
@@ -806,8 +806,8 @@ async def test_json_mode_prompt_file_injects_examples_and_guidance():
 async def test_prompt_file_guidance_falls_back_to_default_when_missing():
     _require_yaml()
 
-    from lightrag.operate import extract_entities
-    from lightrag.prompt import PROMPTS
+    from forgemind.operate import extract_entities
+    from forgemind.prompt import PROMPTS
 
     global_config = _make_global_config(
         prompt_profile={
@@ -822,7 +822,7 @@ async def test_prompt_file_guidance_falls_back_to_default_when_missing():
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=_make_chunks(), global_config=global_config)
 
     call_kwargs = llm_func.call_args_list[0][1]
@@ -833,7 +833,7 @@ async def test_prompt_file_guidance_falls_back_to_default_when_missing():
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_cached_prompt_profile_supplies_merged_guidance():
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     merged_guidance = "- ExampleType: Addon override"
 
@@ -848,7 +848,7 @@ async def test_cached_prompt_profile_supplies_merged_guidance():
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=_make_chunks(), global_config=global_config)
 
     call_kwargs = llm_func.call_args_list[0][1]
@@ -860,7 +860,7 @@ async def test_cached_prompt_profile_supplies_merged_guidance():
 def test_text_mode_prompt_file_can_omit_json_examples(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -870,7 +870,7 @@ def test_text_mode_prompt_file_can_omit_json_examples(tmp_path):
     )
 
     with _patch_prompt_dir(prompt_dir):
-        rag = LightRAG(
+        rag = ForgeMind(
             working_dir=str(tmp_path / "rag-text"),
             llm_model_func=AsyncMock(),
             embedding_func=_dummy_embedding_func(),
@@ -885,7 +885,7 @@ def test_text_mode_prompt_file_can_omit_json_examples(tmp_path):
 def test_json_mode_prompt_file_can_omit_text_examples(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -895,7 +895,7 @@ def test_json_mode_prompt_file_can_omit_text_examples(tmp_path):
     )
 
     with _patch_prompt_dir(prompt_dir):
-        rag = LightRAG(
+        rag = ForgeMind(
             working_dir=str(tmp_path / "rag-json"),
             llm_model_func=AsyncMock(),
             embedding_func=_dummy_embedding_func(),
@@ -910,7 +910,7 @@ def test_json_mode_prompt_file_can_omit_text_examples(tmp_path):
 def test_text_mode_prompt_file_requires_text_examples(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -921,7 +921,7 @@ def test_text_mode_prompt_file_requires_text_examples(tmp_path):
 
     with _patch_prompt_dir(prompt_dir):
         with pytest.raises(ValueError) as exc_info:
-            LightRAG(
+            ForgeMind(
                 working_dir=str(tmp_path / "rag-missing-text"),
                 llm_model_func=AsyncMock(),
                 embedding_func=None,
@@ -936,7 +936,7 @@ def test_text_mode_prompt_file_requires_text_examples(tmp_path):
 def test_json_mode_prompt_file_requires_json_examples(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -947,7 +947,7 @@ def test_json_mode_prompt_file_requires_json_examples(tmp_path):
 
     with _patch_prompt_dir(prompt_dir):
         with pytest.raises(ValueError) as exc_info:
-            LightRAG(
+            ForgeMind(
                 working_dir=str(tmp_path / "rag-missing-json"),
                 llm_model_func=AsyncMock(),
                 embedding_func=None,
@@ -962,10 +962,10 @@ def test_json_mode_prompt_file_requires_json_examples(tmp_path):
 def test_prompt_file_rejects_directory_segments(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     with pytest.raises(ValueError) as exc_info:
-        LightRAG(
+        ForgeMind(
             working_dir=str(tmp_path / "rag-bad-path"),
             llm_model_func=AsyncMock(),
             embedding_func=None,
@@ -979,10 +979,10 @@ def test_prompt_file_rejects_directory_segments(tmp_path):
 def test_prompt_file_rejects_absolute_paths(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     with pytest.raises(ValueError) as exc_info:
-        LightRAG(
+        ForgeMind(
             working_dir=str(tmp_path / "rag-abs-path"),
             llm_model_func=AsyncMock(),
             embedding_func=None,
@@ -995,7 +995,7 @@ def test_prompt_file_rejects_absolute_paths(tmp_path):
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_extract_entities_uses_cached_prompt_profile_without_reloading():
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     cached_profile = {
         "entity_types_guidance": "- ExampleType: Cached guidance",
@@ -1007,10 +1007,10 @@ async def test_extract_entities_uses_cached_prompt_profile_without_reloading():
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
     with patch(
-        "lightrag.operate.resolve_entity_extraction_prompt_profile",
+        "forgemind.operate.resolve_entity_extraction_prompt_profile",
         side_effect=AssertionError("should not resolve profile when cache exists"),
     ):
-        with patch("lightrag.operate.logger"):
+        with patch("forgemind.operate.logger"):
             await extract_entities(chunks=_make_chunks(), global_config=global_config)
             await extract_entities(chunks=_make_chunks(), global_config=global_config)
 
@@ -1023,7 +1023,7 @@ async def test_extract_entities_uses_cached_prompt_profile_without_reloading():
 def test_sample_prompt_file_matches_builtin_prompt_data():
     _require_yaml()
 
-    from lightrag.prompt import (
+    from forgemind.prompt import (
         get_default_entity_extraction_prompt_profile,
         load_entity_extraction_prompt_profile,
     )
@@ -1043,7 +1043,7 @@ def test_sample_prompt_file_matches_builtin_prompt_data():
 def test_prompt_dir_env_var_overrides_default(tmp_path, monkeypatch):
     _require_yaml()
 
-    from lightrag.prompt import (
+    from forgemind.prompt import (
         get_entity_type_prompt_dir,
         resolve_entity_type_prompt_path,
     )
@@ -1059,7 +1059,7 @@ def test_prompt_dir_env_var_overrides_default(tmp_path, monkeypatch):
 def test_prompt_dir_defaults_to_cwd_relative(tmp_path, monkeypatch):
     _require_yaml()
 
-    from lightrag.prompt import get_entity_type_prompt_dir
+    from forgemind.prompt import get_entity_type_prompt_dir
 
     monkeypatch.delenv("PROMPT_DIR", raising=False)
     monkeypatch.chdir(tmp_path)
@@ -1072,10 +1072,10 @@ def test_prompt_dir_defaults_to_cwd_relative(tmp_path, monkeypatch):
 def test_prompt_file_rejects_unsupported_extension(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     with pytest.raises(ValueError, match="'.yml' or '.yaml'"):
-        LightRAG(
+        ForgeMind(
             working_dir=str(tmp_path / "rag-bad-ext"),
             llm_model_func=AsyncMock(),
             embedding_func=None,
@@ -1087,7 +1087,7 @@ def test_prompt_file_rejects_unsupported_extension(tmp_path):
 def test_prompt_file_malformed_yaml_raises_valueerror(tmp_path):
     _require_yaml()
 
-    from lightrag.prompt import load_entity_extraction_prompt_profile
+    from forgemind.prompt import load_entity_extraction_prompt_profile
 
     bad_file = tmp_path / "broken.yml"
     bad_file.write_text("entity_types_guidance: [unclosed", encoding="utf-8")
@@ -1100,7 +1100,7 @@ def test_prompt_file_malformed_yaml_raises_valueerror(tmp_path):
 def test_addon_guidance_overrides_file_profile(tmp_path):
     _require_yaml()
 
-    from lightrag.prompt import resolve_entity_extraction_prompt_profile
+    from forgemind.prompt import resolve_entity_extraction_prompt_profile
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -1131,7 +1131,7 @@ def test_explicit_addon_params_still_picks_up_env_defaults(tmp_path, monkeypatch
     """Passing addon_params explicitly must not drop env-based defaults."""
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -1143,7 +1143,7 @@ def test_explicit_addon_params_still_picks_up_env_defaults(tmp_path, monkeypatch
     monkeypatch.setenv("ENTITY_TYPE_PROMPT_FILE", "from_env.yml")
 
     with _patch_prompt_dir(prompt_dir):
-        rag = LightRAG(
+        rag = ForgeMind(
             working_dir=str(tmp_path / "rag-env-default"),
             llm_model_func=AsyncMock(),
             embedding_func=_dummy_embedding_func(),
@@ -1158,7 +1158,7 @@ def test_explicit_addon_params_still_picks_up_env_defaults(tmp_path, monkeypatch
 def test_runtime_addon_params_item_update_refreshes_cached_values(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -1173,7 +1173,7 @@ def test_runtime_addon_params_item_update_refreshes_cached_values(tmp_path):
     )
 
     with _patch_prompt_dir(prompt_dir):
-        rag = LightRAG(
+        rag = ForgeMind(
             working_dir=str(tmp_path / "rag-runtime-update"),
             llm_model_func=AsyncMock(),
             embedding_func=_dummy_embedding_func(),
@@ -1205,9 +1205,9 @@ def test_runtime_addon_params_item_update_refreshes_cached_values(tmp_path):
 def test_runtime_addon_params_replacement_refreshes_cached_values(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=str(tmp_path / "rag-runtime-replace"),
         llm_model_func=AsyncMock(),
         embedding_func=_dummy_embedding_func(),
@@ -1233,7 +1233,7 @@ def test_runtime_addon_params_replacement_refreshes_cached_values(tmp_path):
 def test_runtime_mode_flip_invalidates_cached_prompt_profile(tmp_path):
     _require_yaml()
 
-    from lightrag import LightRAG
+    from forgemind import ForgeMind
 
     prompt_dir = tmp_path / "entity_type"
     prompt_dir.mkdir()
@@ -1243,7 +1243,7 @@ def test_runtime_mode_flip_invalidates_cached_prompt_profile(tmp_path):
     )
 
     with _patch_prompt_dir(prompt_dir):
-        rag = LightRAG(
+        rag = ForgeMind(
             working_dir=str(tmp_path / "rag-mode-flip"),
             llm_model_func=AsyncMock(),
             embedding_func=_dummy_embedding_func(),
@@ -1268,7 +1268,7 @@ _SECTION_MARKER = "---Section Context---"
 
 
 def _render_text_user_prompt(heading_context_block: str) -> str:
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     return PROMPTS["entity_extraction_user_prompt"].format(
         max_total_records=100,
@@ -1281,7 +1281,7 @@ def _render_text_user_prompt(heading_context_block: str) -> str:
 
 
 def _render_json_user_prompt(heading_context_block: str) -> str:
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     return PROMPTS["entity_extraction_json_user_prompt"].format(
         max_total_records=100,
@@ -1294,7 +1294,7 @@ def _render_json_user_prompt(heading_context_block: str) -> str:
 
 
 def _section_block(heading_path: str) -> str:
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     return PROMPTS["entity_extraction_section_context"].format(
         heading_path=heading_path
@@ -1323,7 +1323,7 @@ def test_user_prompts_keep_single_real_input_text_section():
 @pytest.mark.offline
 def test_format_heading_context_full_path_includes_current_heading():
     """The breadcrumb appends the chunk's own heading after the parent chain."""
-    from lightrag.chunk_schema import format_heading_context
+    from forgemind.chunk_schema import format_heading_context
 
     chunk = {
         "content": "...",
@@ -1339,7 +1339,7 @@ def test_format_heading_context_full_path_includes_current_heading():
 @pytest.mark.offline
 def test_format_heading_context_empty_when_no_heading():
     """A chunk without heading info yields an empty breadcrumb (block omitted)."""
-    from lightrag.chunk_schema import format_heading_context
+    from forgemind.chunk_schema import format_heading_context
 
     chunk = {
         "content": "...",
@@ -1354,7 +1354,7 @@ def test_format_heading_context_empty_when_no_heading():
 def test_text_user_prompt_section_context_hidden_and_byte_identical_when_no_heading():
     """No heading -> the whole `---Section Context---` block disappears and the
     rendered text user prompt is byte-identical to the placeholder-free form."""
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     rendered = _render_text_user_prompt("")
     assert _SECTION_MARKER not in rendered
@@ -1377,7 +1377,7 @@ def test_text_user_prompt_section_context_hidden_and_byte_identical_when_no_head
 
 @pytest.mark.offline
 def test_json_user_prompt_section_context_hidden_and_byte_identical_when_no_heading():
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     rendered = _render_json_user_prompt("")
     assert _SECTION_MARKER not in rendered
@@ -1426,7 +1426,7 @@ def test_section_context_breadcrumb_is_not_at_line_start():
 @pytest.mark.offline
 def test_extraction_system_prompts_reference_section_context():
     """Both system prompts carry the static conditional instruction."""
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     for key in (
         "entity_extraction_system_prompt",
@@ -1441,7 +1441,7 @@ def test_extraction_system_prompts_reference_section_context():
 async def test_extract_entities_injects_section_context_for_chunk_with_heading():
     """End-to-end: a chunk carrying a heading produces a user prompt containing
     its full section breadcrumb; a heading-free chunk does not."""
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False)
     llm_func = global_config["llm_model_func"]
@@ -1461,7 +1461,7 @@ async def test_extract_entities_injects_section_context_for_chunk_with_heading()
         }
     }
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=chunks, global_config=global_config)
 
     assert llm_func.await_count >= 1
@@ -1473,13 +1473,13 @@ async def test_extract_entities_injects_section_context_for_chunk_with_heading()
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_extract_entities_omits_section_context_for_chunk_without_heading():
-    from lightrag.operate import extract_entities
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False)
     llm_func = global_config["llm_model_func"]
     llm_func.return_value = _TEXT_MODE_RESPONSE
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=_make_chunks(), global_config=global_config)
 
     assert llm_func.await_count >= 1
@@ -1495,7 +1495,7 @@ async def test_extract_entities_omits_section_context_for_chunk_without_heading(
 @pytest.mark.offline
 def test_format_heading_context_caps_long_level():
     """A single runaway heading level is truncated to the per-level char cap."""
-    from lightrag.chunk_schema import (
+    from forgemind.chunk_schema import (
         DEFAULT_HEADING_LEVEL_MAX_CHARS,
         format_heading_context,
     )
@@ -1510,7 +1510,7 @@ def test_format_heading_context_caps_long_level():
 
 @pytest.mark.offline
 def test_format_heading_context_per_level_cap_can_be_disabled():
-    from lightrag.chunk_schema import format_heading_context
+    from forgemind.chunk_schema import format_heading_context
 
     long_title = "B" * 300
     chunk = {"heading": {"level": 1, "heading": long_title, "parent_headings": []}}
@@ -1527,7 +1527,7 @@ def test_format_heading_context_per_level_cap_can_be_disabled():
 def test_format_parent_headings_caps_long_level():
     """A runaway parent heading is truncated to the per-level char cap, matching
     the extraction-stage format_heading_context."""
-    from lightrag.chunk_schema import (
+    from forgemind.chunk_schema import (
         DEFAULT_HEADING_LEVEL_MAX_CHARS,
         format_parent_headings,
     )
@@ -1544,7 +1544,7 @@ def test_format_parent_headings_caps_long_level():
 
 @pytest.mark.offline
 def test_format_parent_headings_per_level_cap_can_be_disabled():
-    from lightrag.chunk_schema import format_parent_headings
+    from forgemind.chunk_schema import format_parent_headings
 
     long_title = "B" * 300
     chunk = {
@@ -1558,7 +1558,7 @@ def test_format_parent_headings_per_level_cap_can_be_disabled():
 def test_format_parent_headings_cleaning_matches_extraction():
     """Parent headings get the same cleaning as extraction: → folded to a space,
     Cc/Cf control chars stripped (shared _clean_heading_text)."""
-    from lightrag.chunk_schema import format_parent_headings
+    from forgemind.chunk_schema import format_parent_headings
 
     # chr(0) is a Cc control; chr(0x200B) is ZWSP (Cf) — both stripped. Built
     # via chr() so the source carries no literal invisible characters.
@@ -1578,7 +1578,7 @@ def test_format_parent_headings_cleaning_matches_extraction():
 def test_format_parent_headings_basic_behavior_preserved():
     """Existing behavior is unchanged: empty when no heading, normal multi-level
     path joined with the breadcrumb separator."""
-    from lightrag.chunk_schema import format_parent_headings
+    from forgemind.chunk_schema import format_parent_headings
 
     assert format_parent_headings({"content": "...", "chunk_order_index": 0}) == ""
 
@@ -1604,9 +1604,9 @@ class _FakeChunksDB:
 async def test_attach_content_headings_token_budgets_deep_path():
     """A deep heading chain (per-level cap bounds length, not count) is collapsed
     to fit DEFAULT_MAX_SECTION_CONTEXT_TOKENS, mirroring the extraction stage."""
-    from lightrag.chunk_schema import HEADING_BREADCRUMB_SEP
-    from lightrag.constants import DEFAULT_MAX_SECTION_CONTEXT_TOKENS
-    from lightrag.operate import _attach_content_headings
+    from forgemind.chunk_schema import HEADING_BREADCRUMB_SEP
+    from forgemind.constants import DEFAULT_MAX_SECTION_CONTEXT_TOKENS
+    from forgemind.operate import _attach_content_headings
 
     tok = Tokenizer("dummy", DummyTokenizer())  # 1 char == 1 token
     deep = [f"Level{i:02d}" for i in range(100)]  # well over the token budget
@@ -1629,7 +1629,7 @@ async def test_attach_content_headings_token_budgets_deep_path():
 @pytest.mark.asyncio
 async def test_attach_content_headings_keeps_short_path_intact():
     """A within-budget path is attached unchanged (no token collapsing)."""
-    from lightrag.operate import _attach_content_headings
+    from forgemind.operate import _attach_content_headings
 
     tok = Tokenizer("dummy", DummyTokenizer())
     db = _FakeChunksDB(
@@ -1653,7 +1653,7 @@ async def test_attach_content_headings_keeps_short_path_intact():
 
 @pytest.mark.offline
 def test_truncate_section_context_noop_within_budget():
-    from lightrag.operate import _truncate_section_context
+    from forgemind.operate import _truncate_section_context
 
     tok = Tokenizer("dummy", DummyTokenizer())
     path = "Methods → Data Collection"
@@ -1663,8 +1663,8 @@ def test_truncate_section_context_noop_within_budget():
 @pytest.mark.offline
 def test_truncate_section_context_keeps_first_and_last_when_over_budget():
     """Over budget -> keep first (top-level) + last (leaf) section, elide middle."""
-    from lightrag.chunk_schema import HEADING_BREADCRUMB_SEP
-    from lightrag.operate import _truncate_section_context
+    from forgemind.chunk_schema import HEADING_BREADCRUMB_SEP
+    from forgemind.operate import _truncate_section_context
 
     tok = Tokenizer("dummy", DummyTokenizer())  # 1 char == 1 token
     levels = [f"Level{i:02d}" for i in range(100)]
@@ -1686,8 +1686,8 @@ def test_truncate_section_context_keeps_first_and_last_when_over_budget():
 def test_truncate_section_context_hard_caps_dense_short_path():
     """A 1-/2-level path that is itself over budget must still be capped
     (not bypassed) — guards token-dense / byte-level tokenizers."""
-    from lightrag.chunk_schema import HEADING_BREADCRUMB_SEP
-    from lightrag.operate import _truncate_section_context
+    from forgemind.chunk_schema import HEADING_BREADCRUMB_SEP
+    from forgemind.operate import _truncate_section_context
 
     tok = Tokenizer("dummy", DummyTokenizer())
     path = HEADING_BREADCRUMB_SEP.join(["A" * 50, "B" * 50])  # 103 chars/tokens
@@ -1702,7 +1702,7 @@ def test_truncate_section_context_hard_caps_dense_short_path():
 @pytest.mark.offline
 def test_truncate_section_context_accounts_for_multitoken_ellipsis():
     """The hard cap must reserve the tokenizer's actual ellipsis cost."""
-    from lightrag.operate import _truncate_section_context
+    from forgemind.operate import _truncate_section_context
 
     class TwoTokenEllipsisTokenizer(TokenizerInterface):
         def encode(self, content: str):
@@ -1728,8 +1728,8 @@ def test_truncate_section_context_accounts_for_multitoken_ellipsis():
 @pytest.mark.offline
 def test_truncate_section_context_hard_caps_collapsed_form_when_still_over():
     """Even the collapsed first→…→leaf form is capped if it still exceeds."""
-    from lightrag.chunk_schema import HEADING_BREADCRUMB_SEP
-    from lightrag.operate import _truncate_section_context
+    from forgemind.chunk_schema import HEADING_BREADCRUMB_SEP
+    from forgemind.operate import _truncate_section_context
 
     tok = Tokenizer("dummy", DummyTokenizer())
     levels = [f"Level{i:02d}" for i in range(100)]
@@ -1744,7 +1744,7 @@ def test_truncate_section_context_hard_caps_collapsed_form_when_still_over():
 @pytest.mark.offline
 def test_heading_level_cap_below_one_third_of_token_budget():
     """Invariant guard: collapsed first+leaf must fit the token budget."""
-    from lightrag.constants import (
+    from forgemind.constants import (
         DEFAULT_HEADING_LEVEL_MAX_CHARS,
         DEFAULT_MAX_SECTION_CONTEXT_TOKENS,
     )
@@ -1754,7 +1754,7 @@ def test_heading_level_cap_below_one_third_of_token_budget():
 
 @pytest.mark.offline
 def test_truncate_section_context_disabled_or_no_tokenizer():
-    from lightrag.operate import _truncate_section_context
+    from forgemind.operate import _truncate_section_context
 
     tok = Tokenizer("dummy", DummyTokenizer())
     path = "X" * 1000
@@ -1766,8 +1766,8 @@ def test_truncate_section_context_disabled_or_no_tokenizer():
 @pytest.mark.asyncio
 async def test_extract_entities_bounds_pathological_heading_in_prompt():
     """A chunk with an absurdly long heading must not inject it verbatim."""
-    from lightrag.chunk_schema import DEFAULT_HEADING_LEVEL_MAX_CHARS
-    from lightrag.operate import extract_entities
+    from forgemind.chunk_schema import DEFAULT_HEADING_LEVEL_MAX_CHARS
+    from forgemind.operate import extract_entities
 
     global_config = _make_global_config(use_json=False)
     llm_func = global_config["llm_model_func"]
@@ -1788,7 +1788,7 @@ async def test_extract_entities_bounds_pathological_heading_in_prompt():
         }
     }
 
-    with patch("lightrag.operate.logger"):
+    with patch("forgemind.operate.logger"):
         await extract_entities(chunks=chunks, global_config=global_config)
 
     user_prompt = llm_func.call_args_list[0][0][0]
@@ -1805,7 +1805,7 @@ async def test_extract_entities_bounds_pathological_heading_in_prompt():
 @pytest.mark.offline
 def test_clean_heading_text_converts_arrow_to_space():
     """The breadcrumb separator char must never survive inside one heading."""
-    from lightrag.chunk_schema import _clean_heading_text
+    from forgemind.chunk_schema import _clean_heading_text
 
     assert _clean_heading_text("A→B") == "A B"
     assert _clean_heading_text("A  →  B") == "A B"
@@ -1814,7 +1814,7 @@ def test_clean_heading_text_converts_arrow_to_space():
 @pytest.mark.offline
 def test_clean_heading_text_strips_control_and_format_chars():
     """Cc (NUL, BEL, file/unit separators) and Cf (zero-width marks) are removed."""
-    from lightrag.chunk_schema import _clean_heading_text
+    from forgemind.chunk_schema import _clean_heading_text
 
     # \x00 (Cc), ​ ZWSP (Cf), ﻿ BOM (Cf) all vanish.
     assert _clean_heading_text("a\x00b​c﻿") == "abc"
@@ -1826,7 +1826,7 @@ def test_clean_heading_text_strips_control_and_format_chars():
 @pytest.mark.offline
 def test_clean_heading_text_preserves_normal_characters():
     """CJK / Latin / digits / punctuation are left untouched; only → is folded."""
-    from lightrag.chunk_schema import _clean_heading_text
+    from forgemind.chunk_schema import _clean_heading_text
 
     assert _clean_heading_text("方法 → 数据采集 (2024)!") == "方法 数据采集 (2024)!"
     # Adjacent CJK never gets a space inserted between characters.
@@ -1836,7 +1836,7 @@ def test_clean_heading_text_preserves_normal_characters():
 @pytest.mark.offline
 def test_clean_heading_text_whitespace_collapse_is_last():
     """Newline/tab still fold to a single space (kept through the strip pass)."""
-    from lightrag.chunk_schema import _clean_heading_text
+    from forgemind.chunk_schema import _clean_heading_text
 
     assert _clean_heading_text("a\nb\tc") == "a b c"
     # A control char removed between two words must not leave a double space.
@@ -1846,7 +1846,7 @@ def test_clean_heading_text_whitespace_collapse_is_last():
 @pytest.mark.offline
 def test_format_heading_context_arrow_in_heading_does_not_forge_level():
     """A heading containing → is cleaned, so the breadcrumb split stays accurate."""
-    from lightrag.chunk_schema import (
+    from forgemind.chunk_schema import (
         HEADING_BREADCRUMB_SEP,
         format_heading_context,
     )

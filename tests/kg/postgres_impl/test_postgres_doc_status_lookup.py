@@ -11,8 +11,8 @@ from datetime import datetime
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from lightrag.kg.postgres_impl import PGDocStatusStorage
-from lightrag.namespace import NameSpace
+from forgemind.kg.postgres_impl import PGDocStatusStorage
+from forgemind.namespace import NameSpace
 
 
 def _make_storage():
@@ -81,7 +81,7 @@ async def test_get_doc_by_file_basename_exact_match():
     call = storage.db.query.call_args
     sql = call.args[0]
     params = call.args[1]
-    assert "LIGHTRAG_DOC_STATUS" in sql
+    assert "FORGEMIND_DOC_STATUS" in sql
     assert "workspace=$1" in sql
     assert params[0] == "test_ws"
     assert params[1] == "report.pdf"

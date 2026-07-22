@@ -15,8 +15,8 @@ import pytest
 
 faiss = pytest.importorskip("faiss")  # noqa: F841 — needed before the import below
 
-from lightrag.kg.faiss_impl import FaissVectorDBStorage  # noqa: E402
-from lightrag.utils import EmbeddingFunc  # noqa: E402
+from forgemind.kg.faiss_impl import FaissVectorDBStorage  # noqa: E402
+from forgemind.utils import EmbeddingFunc  # noqa: E402
 
 
 def _make_storage(tmp_path, namespace: str = "vectors") -> FaissVectorDBStorage:
@@ -78,7 +78,7 @@ def test_save_faiss_index_replace_crash_preserves_prior_index(tmp_path):
     storage._index.reset()
     _seed(storage, "v2")
     with patch(
-        "lightrag.file_atomic.os.replace",
+        "forgemind.file_atomic.os.replace",
         side_effect=OSError("simulated crash"),
     ):
         with pytest.raises(OSError, match="simulated crash"):
@@ -112,7 +112,7 @@ def test_save_faiss_meta_write_failure_preserves_prior_meta(tmp_path):
 
     storage._index.reset()
     _seed(storage, "v2")
-    with patch("lightrag.kg.faiss_impl.json.dump", side_effect=explode_on_second_dump):
+    with patch("forgemind.kg.faiss_impl.json.dump", side_effect=explode_on_second_dump):
         with pytest.raises(RuntimeError, match="simulated meta failure"):
             storage._save_faiss_index()
     assert seen, "patched json.dump must have been invoked"

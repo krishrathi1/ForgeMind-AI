@@ -12,13 +12,13 @@ import json
 
 import pytest
 
-from lightrag.multimodal_context import (
+from forgemind.multimodal_context import (
     build_surrounding,
     enrich_sidecars_with_surrounding,
     find_target_span,
     load_chunk_separators,
 )
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -409,7 +409,7 @@ def test_drawing_surrounding_char_trims_oversized_single_html_row():
 
 def _write_blocks(tmp_path, base, blocks):
     blocks_path = tmp_path / f"{base}.blocks.jsonl"
-    lines = [json.dumps({"type": "meta", "format": "lightrag"})]
+    lines = [json.dumps({"type": "meta", "format": "forgemind"})]
     for b in blocks:
         lines.append(json.dumps(b, ensure_ascii=False))
     blocks_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -883,7 +883,7 @@ def test_env_var_invalid_value_falls_back_to_default(monkeypatch):
     # An unparseable env value must not crash; it falls back to 2000.
     monkeypatch.setenv("SURROUNDING_LEADING_MAX_TOKENS", "not-a-number")
     monkeypatch.setenv("SURROUNDING_TRAILING_MAX_TOKENS", "not-a-number")
-    from lightrag.multimodal_context import (
+    from forgemind.multimodal_context import (
         DEFAULT_SURROUNDING_MAX_TOKENS,
         _resolve_surrounding_budget,
     )

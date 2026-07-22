@@ -215,7 +215,7 @@ validate_required_variables() {
   if ((${#unknown[@]} > 0)); then
     format_error \
       "Unsupported storage selections: ${unknown[*]}" \
-      "Use a supported LightRAG storage class name or rerun setup to pick a valid backend."
+      "Use a supported ForgeMind storage class name or rerun setup to pick a valid backend."
     return 1
   fi
 
@@ -278,7 +278,7 @@ validate_opensearch_password_strength() {
 }
 
 validate_opensearch_config() {
-  local deployment_mode="${1:-${ENV_VALUES[LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT]:-}}"
+  local deployment_mode="${1:-${ENV_VALUES[FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT]:-}}"
   local hosts="${2:-${ENV_VALUES[OPENSEARCH_HOSTS]:-}}"
   local user="${3:-${ENV_VALUES[OPENSEARCH_USER]:-}}"
   local password="${4:-${ENV_VALUES[OPENSEARCH_PASSWORD]:-}}"
@@ -329,7 +329,7 @@ validate_opensearch_config() {
 validate_mongo_vector_storage_config() {
   local vector_storage="$1"
   local mongo_uri="${2:-${ENV_VALUES[MONGO_URI]:-}}"
-  local mongo_deployment="${3:-${ENV_VALUES[LIGHTRAG_SETUP_MONGODB_DEPLOYMENT]:-}}"
+  local mongo_deployment="${3:-${ENV_VALUES[FORGEMIND_SETUP_MONGODB_DEPLOYMENT]:-}}"
 
   if [[ "$vector_storage" != "MongoVectorDBStorage" ]]; then
     return 0
@@ -345,7 +345,7 @@ validate_mongo_vector_storage_config() {
   if [[ "$mongo_deployment" == "docker" ]]; then
     if [[ ! "$mongo_uri" =~ ^mongodb://([^/?#]+@)?(mongodb|localhost|127\.0\.0\.1|0\.0\.0\.0):27017([/?#].*)?$ ]] || ! _mongo_uri_has_direct_connection_true "$mongo_uri"; then
       format_error \
-        "MongoVectorDBStorage requires the bundled Atlas Local endpoint when LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker." \
+        "MongoVectorDBStorage requires the bundled Atlas Local endpoint when FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker." \
         "Set MONGO_URI to the wizard-managed local MongoDB URI, or remove the docker deployment marker and use a mongodb+srv:// Atlas cluster URI."
       return 1
     fi
@@ -473,7 +473,7 @@ whitelist_exposes_api_routes() {
 validate_security_config() {
   local auth_accounts="${1:-${ENV_VALUES[AUTH_ACCOUNTS]:-}}"
   local token_secret="${2:-${ENV_VALUES[TOKEN_SECRET]:-}}"
-  local _api_key="${3:-${ENV_VALUES[LIGHTRAG_API_KEY]:-}}"
+  local _api_key="${3:-${ENV_VALUES[FORGEMIND_API_KEY]:-}}"
   local _unused_flag="${4:-no}"
   local _unused_whitelist="${5:-${ENV_VALUES[WHITELIST_PATHS]:-}}"
   local _unused_whitelist_is_set="${6:-}"
@@ -492,7 +492,7 @@ validate_security_config() {
   if ! validate_auth_accounts_password_safety "$auth_accounts"; then
     format_error \
       "AUTH_ACCOUNTS passwords must not start with 'admin' or 'pass'." \
-      "Choose a less predictable password or use lightrag-hash-password to generate a {bcrypt} value."
+      "Choose a less predictable password or use forgemind-hash-password to generate a {bcrypt} value."
     return 1
   fi
 
@@ -503,7 +503,7 @@ validate_security_config() {
     return 1
   fi
 
-  if [[ "$token_secret" == "lightrag-jwt-default-secret-key!" ]]; then
+  if [[ "$token_secret" == "forgemind-jwt-default-secret-key!" ]]; then
     format_error \
       "TOKEN_SECRET must not use the built-in default value when AUTH_ACCOUNTS is enabled." \
       "Generate a unique JWT signing secret and update TOKEN_SECRET."

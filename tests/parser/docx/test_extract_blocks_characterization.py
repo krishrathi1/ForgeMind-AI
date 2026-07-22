@@ -28,7 +28,7 @@ from docx.enum.text import WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 
-from lightrag.parser.docx.parse_document import extract_docx_blocks
+from forgemind.parser.docx.parse_document import extract_docx_blocks
 
 pytestmark = pytest.mark.offline
 

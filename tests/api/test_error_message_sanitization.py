@@ -20,7 +20,7 @@ escapes a route entirely. These tests pin both chokepoints:
 - A control route that still uses the old ``detail=str(e)`` pattern *does* leak,
   proving the assertions above would fail without the fix.
 
-Importing ``lightrag.api.*`` eagerly instantiates ``AuthHandler`` (auth.py),
+Importing ``forgemind.api.*`` eagerly instantiates ``AuthHandler`` (auth.py),
 which reads ``global_args`` and would call ``parse_args(sys.argv)`` against
 pytest's argv. The autouse fixture initializes config with a clean argv first,
 and the modules under test are imported lazily inside the tests — mirroring the
@@ -36,24 +36,24 @@ from fastapi.testclient import TestClient
 # A stand-in exception message stuffed with the kind of internal detail that
 # must never reach a client (mirrors a real asyncpg connection failure).
 _SECRET = (
-    "connect failed host=db.corp port=5432 user=lightrag key=/etc/lightrag/tls.key"
+    "connect failed host=db.corp port=5432 user=forgemind key=/etc/forgemind/tls.key"
 )
-_SECRET_NEEDLES = ("db.corp", "5432", "lightrag", "/etc/lightrag/tls.key", _SECRET)
+_SECRET_NEEDLES = ("db.corp", "5432", "forgemind", "/etc/forgemind/tls.key", _SECRET)
 
 _ENV_VARS_TO_ISOLATE = (
     "LLM_BINDING",
     "EMBEDDING_BINDING",
     "AUTH_ACCOUNTS",
     "TOKEN_SECRET",
-    "LIGHTRAG_API_KEY",
+    "FORGEMIND_API_KEY",
     "WHITELIST_PATHS",
-    "LIGHTRAG_API_PREFIX",
+    "FORGEMIND_API_PREFIX",
 )
 
 
 @pytest.fixture(autouse=True)
 def _init_config(monkeypatch):
-    """Initialize config with a clean argv so importing lightrag.api.* is safe.
+    """Initialize config with a clean argv so importing forgemind.api.* is safe.
 
     Without this, the first import of auth.py under pytest calls
     ``parse_args(sys.argv)`` against pytest's argv and aborts the session.
@@ -61,20 +61,20 @@ def _init_config(monkeypatch):
     for var in _ENV_VARS_TO_ISOLATE:
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("AUTH_ACCOUNTS", "")
-    monkeypatch.setenv("LIGHTRAG_API_KEY", "")
+    monkeypatch.setenv("FORGEMIND_API_KEY", "")
     monkeypatch.setenv("TOKEN_SECRET", "")
     monkeypatch.setenv("WHITELIST_PATHS", "/_sanitization_probe/*")
     monkeypatch.setenv("LLM_BINDING", "ollama")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
 
-    import lightrag.api.config as config
+    import forgemind.api.config as config
 
     config._global_args = None
     config._initialized = False
     original_argv = sys.argv.copy()
-    sys.argv = ["lightrag-server"]
+    sys.argv = ["forgemind-server"]
     try:
-        from lightrag.api.config import parse_args, initialize_config
+        from forgemind.api.config import parse_args, initialize_config
 
         initialize_config(parse_args(), force=True)
     finally:
@@ -90,7 +90,7 @@ def _init_config(monkeypatch):
 
 
 def test_internal_server_error_strips_exception_text():
-    from lightrag.api.utils_api import internal_server_error
+    from forgemind.api.utils_api import internal_server_error
 
     http_exc = internal_server_error(RuntimeError(_SECRET))
     assert isinstance(http_exc, HTTPException)
@@ -103,7 +103,7 @@ def test_internal_server_error_strips_exception_text():
 
 
 def test_internal_server_error_uses_fresh_correlation_id_per_call():
-    from lightrag.api.utils_api import internal_server_error
+    from forgemind.api.utils_api import internal_server_error
 
     first = internal_server_error(ValueError("x")).detail
     second = internal_server_error(ValueError("x")).detail
@@ -115,8 +115,8 @@ def test_internal_server_error_uses_fresh_correlation_id_per_call():
 # --------------------------------------------------------------------------- #
 
 
-class _FakeLightRAG:
-    """Minimal stand-in for LightRAG so create_app touches no backend I/O."""
+class _FakeForgeMind:
+    """Minimal stand-in for ForgeMind so create_app touches no backend I/O."""
 
     def __init__(self, *_args, **_kwargs):
         pass
@@ -142,24 +142,24 @@ def _build_client(monkeypatch):
     Extra probe routes are mounted onto the app *after* construction so they sit
     behind the same exception handlers create_app registered.
     """
-    from lightrag.api.config import global_args
-    from lightrag.api.utils_api import internal_server_error
-    import lightrag.api.lightrag_server as lightrag_server
+    from forgemind.api.config import global_args
+    from forgemind.api.utils_api import internal_server_error
+    import forgemind.api.forgemind_server as forgemind_server
 
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_a, **_k: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_a, **_k: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_a, **_k: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_a, **_k: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_a, **_k: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_a, **_k: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
 
-    app = lightrag_server.create_app(global_args)
+    app = forgemind_server.create_app(global_args)
 
     @app.get("/_sanitization_probe/via_helper")
     async def _via_helper():

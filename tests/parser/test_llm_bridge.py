@@ -11,7 +11,7 @@ from unittest import mock
 import numpy as np
 import pytest
 
-from lightrag.parser.llm_bridge import (
+from forgemind.parser.llm_bridge import (
     LLMBridgeCancelled,
     LLMBridgeShutdown,
     SyncLLMBridge,
@@ -123,9 +123,9 @@ async def test_bridge_loop_thread_call_raises() -> None:
 
 
 def test_parse_result_to_dict_emits_cache_ids_only_when_present() -> None:
-    from lightrag.parser.base import ParseResult
+    from forgemind.parser.base import ParseResult
 
-    base = dict(doc_id="d", file_path="f", parse_format="lightrag", content="c")
+    base = dict(doc_id="d", file_path="f", parse_format="forgemind", content="c")
     without = ParseResult(**base)
     assert "smartheading_llm_cache_ids" not in without.to_dict()
 
@@ -138,7 +138,7 @@ def test_parse_result_to_dict_emits_cache_ids_only_when_present() -> None:
 
 
 def test_carry_over_whitelist_preserves_smartheading_ids() -> None:
-    from lightrag.utils_pipeline import (
+    from forgemind.utils_pipeline import (
         _DOC_STATUS_METADATA_CARRY_OVER_KEYS,
         doc_status_transition_metadata,
     )
@@ -162,11 +162,11 @@ def test_carry_over_whitelist_preserves_smartheading_ids() -> None:
 
 
 def test_injected_llm_reaches_extract_and_is_callable(tmp_path, monkeypatch) -> None:
-    from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE
-    from lightrag.parser.base import ParseContext
-    from lightrag.parser.debug import build_debug_rag
-    from lightrag.parser.docx.parser import NativeDocxParser
-    from lightrag.parser.registry import get_parser
+    from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE
+    from forgemind.parser.base import ParseContext
+    from forgemind.parser.debug import build_debug_rag
+    from forgemind.parser.docx.parser import NativeDocxParser
+    from forgemind.parser.registry import get_parser
 
     input_dir = tmp_path / "inputs"
     input_dir.mkdir()
@@ -203,7 +203,7 @@ def test_injected_llm_reaches_extract_and_is_callable(tmp_path, monkeypatch) -> 
     with (
         mock.patch.object(NativeDocxParser, "extract", _spy_extract),
         mock.patch(
-            "lightrag.parser.docx.parse_document.extract_docx_blocks", _stub_blocks
+            "forgemind.parser.docx.parse_document.extract_docx_blocks", _stub_blocks
         ),
     ):
         result = asyncio.run(
@@ -228,11 +228,11 @@ def test_injected_llm_reaches_extract_and_is_callable(tmp_path, monkeypatch) -> 
 
 
 def test_without_injection_bridge_stays_none(tmp_path, monkeypatch) -> None:
-    from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE
-    from lightrag.parser.base import ParseContext
-    from lightrag.parser.debug import build_debug_rag
-    from lightrag.parser.docx.parser import NativeDocxParser
-    from lightrag.parser.registry import get_parser
+    from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE
+    from forgemind.parser.base import ParseContext
+    from forgemind.parser.debug import build_debug_rag
+    from forgemind.parser.docx.parser import NativeDocxParser
+    from forgemind.parser.registry import get_parser
 
     input_dir = tmp_path / "inputs"
     input_dir.mkdir()
@@ -263,7 +263,7 @@ def test_without_injection_bridge_stays_none(tmp_path, monkeypatch) -> None:
     with (
         mock.patch.object(NativeDocxParser, "extract", _spy_extract),
         mock.patch(
-            "lightrag.parser.docx.parse_document.extract_docx_blocks", _stub_blocks
+            "forgemind.parser.docx.parse_document.extract_docx_blocks", _stub_blocks
         ),
     ):
         asyncio.run(
@@ -290,8 +290,8 @@ def test_without_injection_bridge_stays_none(tmp_path, monkeypatch) -> None:
 
 
 def _new_rag(tmp_path, name: str, max_parallel: int):
-    from lightrag import LightRAG
-    from lightrag.utils import EmbeddingFunc, Tokenizer, TokenizerInterface
+    from forgemind import ForgeMind
+    from forgemind.utils import EmbeddingFunc, Tokenizer, TokenizerInterface
 
     class _Tok(TokenizerInterface):
         def encode(self, content: str):
@@ -308,7 +308,7 @@ def _new_rag(tmp_path, name: str, max_parallel: int):
 
     work_dir = tmp_path / name
     work_dir.mkdir()
-    return LightRAG(
+    return ForgeMind(
         working_dir=str(work_dir),
         llm_model_func=_mock_llm,
         embedding_func=EmbeddingFunc(

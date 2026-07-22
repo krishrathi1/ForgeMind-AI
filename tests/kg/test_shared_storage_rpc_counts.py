@@ -20,9 +20,9 @@ import sys
 
 import pytest
 
-import lightrag.kg.shared_storage as ss
-from lightrag.exceptions import PipelineNotInitializedError
-from lightrag.kg.shared_storage import (
+import forgemind.kg.shared_storage as ss
+from forgemind.exceptions import PipelineNotInitializedError
+from forgemind.kg.shared_storage import (
     clear_all_update_flags,
     finalize_share_data,
     get_final_namespace,

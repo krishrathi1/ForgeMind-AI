@@ -12,7 +12,7 @@ with HTTP 409 while the document pipeline is busy:
 - DELETE /graph/relation/delete    (graph_routes)
 
 The guard logic itself lives in
-``lightrag.api.routers.document_routes.check_pipeline_busy_or_raise`` and is
+``forgemind.api.routers.document_routes.check_pipeline_busy_or_raise`` and is
 exercised both at the endpoint integration layer (via monkeypatch, no
 shared-storage dependency) and at the unit layer (against a real
 ``pipeline_status`` namespace).
@@ -27,12 +27,12 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-# Importing routers loads ``lightrag.api.config`` which parses ``sys.argv`` via
+# Importing routers loads ``forgemind.api.config`` which parses ``sys.argv`` via
 # argparse. Stash argv so pytest's CLI flags don't trip the parser.
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-_graph_routes = importlib.import_module("lightrag.api.routers.graph_routes")
-_document_routes = importlib.import_module("lightrag.api.routers.document_routes")
+_graph_routes = importlib.import_module("forgemind.api.routers.graph_routes")
+_document_routes = importlib.import_module("forgemind.api.routers.document_routes")
 sys.argv = _original_argv
 
 create_graph_routes = _graph_routes.create_graph_routes
@@ -51,7 +51,7 @@ _HEADERS = {"X-API-Key": _API_KEY}
 
 
 def _make_mock_rag() -> SimpleNamespace:
-    """Build a minimal LightRAG stand-in with the 7 mutation methods stubbed.
+    """Build a minimal ForgeMind stand-in with the 7 mutation methods stubbed.
 
     Each ``AsyncMock`` returns a payload shaped enough to satisfy the
     endpoint's response model so the idle pass-through test can verify the
@@ -236,7 +236,7 @@ async def _with_pipeline_status(action):
     ``finalize_share_data`` is required to release the Manager/lock state so
     repeated calls in subsequent tests start clean.
     """
-    from lightrag.kg.shared_storage import (
+    from forgemind.kg.shared_storage import (
         finalize_share_data,
         get_namespace_data,
         initialize_pipeline_status,
@@ -304,7 +304,7 @@ async def test_helper_is_noop_when_pipeline_status_uninitialized():
     rigs without an end-to-end RAG bootstrap stay green. Mirrors the existing
     contract of ``_acquire_destructive_busy``.
     """
-    from lightrag.kg.shared_storage import (
+    from forgemind.kg.shared_storage import (
         finalize_share_data,
         initialize_share_data,
     )

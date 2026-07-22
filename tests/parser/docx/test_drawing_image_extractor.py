@@ -13,7 +13,7 @@ from xml.etree import ElementTree as ET
 
 import pytest
 
-from lightrag.parser.docx.drawing_image_extractor import (
+from forgemind.parser.docx.drawing_image_extractor import (
     IMAGE_REL_TYPE,
     DrawingExtractionContext,
     DrawingRelationship,

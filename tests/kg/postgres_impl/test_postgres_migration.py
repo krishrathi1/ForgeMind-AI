@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch, AsyncMock
 import numpy as np
-from lightrag.utils import EmbeddingFunc
-from lightrag.kg.postgres_impl import (
+from forgemind.utils import EmbeddingFunc
+from forgemind.kg.postgres_impl import (
     PGVectorStorage,
 )
-from lightrag.namespace import NameSpace
+from forgemind.namespace import NameSpace
 
 
 # Mock PostgreSQLDB
@@ -45,7 +45,7 @@ def mock_pg_db():
 # Mock get_data_init_lock to avoid async lock issues in tests
 @pytest.fixture(autouse=True)
 def mock_data_init_lock():
-    with patch("lightrag.kg.postgres_impl.get_data_init_lock") as mock_lock:
+    with patch("forgemind.kg.postgres_impl.get_data_init_lock") as mock_lock:
         mock_lock_ctx = AsyncMock()
         mock_lock.return_value = mock_lock_ctx
         yield mock_lock
@@ -54,7 +54,7 @@ def mock_data_init_lock():
 # Mock ClientManager
 @pytest.fixture
 def mock_client_manager(mock_pg_db):
-    with patch("lightrag.kg.postgres_impl.ClientManager") as mock_manager:
+    with patch("forgemind.kg.postgres_impl.ClientManager") as mock_manager:
         mock_manager.get_client = AsyncMock(return_value=mock_pg_db)
         mock_manager.release_client = AsyncMock()
         yield mock_manager
@@ -89,10 +89,10 @@ async def test_postgres_table_naming(
     # Verify table name contains model suffix
     expected_suffix = "test_model_768d"
     assert expected_suffix in storage.table_name
-    assert storage.table_name == f"LIGHTRAG_VDB_CHUNKS_{expected_suffix}"
+    assert storage.table_name == f"FORGEMIND_VDB_CHUNKS_{expected_suffix}"
 
     # Verify legacy table name
-    assert storage.legacy_table_name == "LIGHTRAG_VDB_CHUNKS"
+    assert storage.legacy_table_name == "FORGEMIND_VDB_CHUNKS"
 
 
 async def test_postgres_migration_trigger(
@@ -188,7 +188,7 @@ async def test_postgres_migration_trigger(
     mock_pg_db._run_with_retry = AsyncMock(side_effect=mock_run_with_retry)
 
     with patch(
-        "lightrag.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
+        "forgemind.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
     ):
         # Initialize storage (should trigger migration)
         await storage.initialize()
@@ -221,7 +221,7 @@ async def test_postgres_no_migration_needed(
     mock_pg_db.check_table_exists = AsyncMock(side_effect=mock_check_table_exists)
 
     with patch(
-        "lightrag.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
+        "forgemind.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
     ) as mock_create:
         await storage.initialize()
 
@@ -265,7 +265,7 @@ async def test_scenario_1_new_workspace_creation(
     mock_pg_db.check_table_exists = AsyncMock(side_effect=mock_check_table_exists)
 
     with patch(
-        "lightrag.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
+        "forgemind.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
     ) as mock_create:
         await storage.initialize()
 
@@ -404,7 +404,7 @@ async def test_scenario_2_legacy_upgrade_migration(
     mock_pg_db._run_with_retry = AsyncMock(side_effect=mock_run_with_retry)
 
     with patch(
-        "lightrag.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
+        "forgemind.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
     ) as mock_create:
         await storage.initialize()
 
@@ -471,7 +471,7 @@ async def test_scenario_3_multi_model_coexistence(
     mock_pg_db.check_table_exists = AsyncMock(side_effect=mock_check_table_exists)
 
     with patch(
-        "lightrag.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
+        "forgemind.kg.postgres_impl.PGVectorStorage._pg_create_table", AsyncMock()
     ) as mock_create:
         # Initialize both storages
         await storage_a.initialize()
@@ -530,7 +530,7 @@ async def test_case1_empty_legacy_auto_cleanup(
 
     mock_pg_db.query = AsyncMock(side_effect=mock_query)
 
-    with patch("lightrag.kg.postgres_impl.logger"):
+    with patch("forgemind.kg.postgres_impl.logger"):
         await storage.initialize()
 
         # Verify: Empty legacy table should be automatically cleaned up
@@ -594,7 +594,7 @@ async def test_case1_nonempty_legacy_warning(
 
     mock_pg_db.query = AsyncMock(side_effect=mock_query)
 
-    with patch("lightrag.kg.postgres_impl.logger"):
+    with patch("forgemind.kg.postgres_impl.logger"):
         await storage.initialize()
 
         # Verify: Legacy table with data should be preserved
@@ -745,7 +745,7 @@ async def test_case1_sequential_workspace_migration(
     mock_pg_db._run_with_retry = AsyncMock(side_effect=mock_run_with_retry_a)
 
     # Initialize workspace_a (Case 3)
-    with patch("lightrag.kg.postgres_impl.logger"):
+    with patch("forgemind.kg.postgres_impl.logger"):
         await storage_a.initialize()
         migration_state["new_table_exists"] = True
         migration_state["workspace_a_migrated"] = True
@@ -839,7 +839,7 @@ async def test_case1_sequential_workspace_migration(
     mock_pg_db._run_with_retry = AsyncMock(side_effect=mock_run_with_retry_b)
 
     # Initialize workspace_b (Case 3 - both tables exist)
-    with patch("lightrag.kg.postgres_impl.logger"):
+    with patch("forgemind.kg.postgres_impl.logger"):
         await storage_b.initialize()
 
     print("✅ Step 2: Workspace B initialized")

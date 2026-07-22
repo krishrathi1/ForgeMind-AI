@@ -22,7 +22,7 @@ pytest.importorskip(
     reason="opensearchpy is required for OpenSearch storage tests",
 )
 
-from lightrag.kg.opensearch_impl import (
+from forgemind.kg.opensearch_impl import (
     OpenSearchGraphStorage,
     ClientManager,
 )
@@ -42,7 +42,7 @@ def _mock_lock_factory():
 @pytest.fixture(autouse=True)
 def patch_data_init_lock():
     with patch(
-        "lightrag.kg.opensearch_impl.get_data_init_lock", side_effect=_mock_lock_factory
+        "forgemind.kg.opensearch_impl.get_data_init_lock", side_effect=_mock_lock_factory
     ):
         yield
 

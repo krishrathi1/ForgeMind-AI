@@ -7,7 +7,7 @@ contacted; the focus is on:
   expected files at the spec-compliant locations
 - cache hit: a pre-existing valid ``*.docling_raw/`` + manifest causes
   ``DoclingRawClient.download_into`` NOT to be called
-- ``LIGHTRAG_FORCE_REPARSE_DOCLING=true`` forces a re-download even when
+- ``FORGEMIND_FORCE_REPARSE_DOCLING=true`` forces a re-download even when
   the manifest is valid
 - source content swap → cache miss
 - options_signature change (``DOCLING_OCR_LANG`` toggle) → cache miss
@@ -25,22 +25,22 @@ from typing import Any
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.constants import FULL_DOCS_FORMAT_LIGHTRAG
-from lightrag.parser.external import (
+from forgemind import ForgeMind
+from forgemind.constants import FULL_DOCS_FORMAT_FORGEMIND
+from forgemind.parser.external import (
     Manifest,
     ManifestFile,
     compute_size_and_hash,
     write_manifest,
 )
-from lightrag.parser.external.docling.cache import (
+from forgemind.parser.external.docling.cache import (
     compute_options_signature,
     snapshot_tunable_env,
 )
-from lightrag.parser.external.docling.client import FIXED_CONSTANTS
-from lightrag.parser.base import ParseContext
-from lightrag.parser.registry import get_parser
-from lightrag.utils import EmbeddingFunc, Tokenizer
+from forgemind.parser.external.docling.client import FIXED_CONSTANTS
+from forgemind.parser.base import ParseContext
+from forgemind.parser.registry import get_parser
+from forgemind.utils import EmbeddingFunc, Tokenizer
 
 
 async def _parse_via_registry(rag, engine, doc_id, file_path, content_data):
@@ -67,8 +67,8 @@ async def _mock_llm(prompt: Any, **kwargs: Any) -> str:
     return '{"name":"x","summary":"s","detail_description":"d"}'
 
 
-def _new_rag(tmp_path: Path) -> LightRAG:
-    return LightRAG(
+def _new_rag(tmp_path: Path) -> ForgeMind:
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"test-docling-sidecar-{tmp_path.name}",
         llm_model_func=_mock_llm,
@@ -186,7 +186,7 @@ _FAKE_DOCLING_JSON = {
 def _install_fake_download(monkeypatch: pytest.MonkeyPatch) -> dict[str, int]:
     """Replace ``DoclingRawClient.download_into`` with a recorder that
     writes a synthetic raw bundle and a valid manifest."""
-    import lightrag.parser.external.docling.client as client_mod
+    import forgemind.parser.external.docling.client as client_mod
 
     counters = {"calls": 0}
 
@@ -236,14 +236,14 @@ def _install_fake_download(monkeypatch: pytest.MonkeyPatch) -> dict[str, int]:
     return counters
 
 
-def _stub_pipeline(monkeypatch: pytest.MonkeyPatch, rag: LightRAG, src: Path) -> None:
+def _stub_pipeline(monkeypatch: pytest.MonkeyPatch, rag: ForgeMind, src: Path) -> None:
     """Common pipeline-level stubs: avoid moving the source file and pin
     the file resolver to the synthetic path."""
 
     async def _noop_archive(_p: str) -> None:
         return None
 
-    import lightrag.pipeline as pipeline_module
+    import forgemind.pipeline as pipeline_module
 
     monkeypatch.setattr(
         pipeline_module,
@@ -253,7 +253,7 @@ def _stub_pipeline(monkeypatch: pytest.MonkeyPatch, rag: LightRAG, src: Path) ->
     monkeypatch.setattr(rag, "_resolve_source_file_for_parser", lambda _p: str(src))
 
 
-def _seed_doc_status(rag: LightRAG, doc_id: str) -> Any:
+def _seed_doc_status(rag: ForgeMind, doc_id: str) -> Any:
     return rag.doc_status.upsert(
         {
             doc_id: {
@@ -308,7 +308,7 @@ def test_parse_docling_emits_compliant_sidecar(
             assert counters["calls"] == 1
 
             parsed_dir = Path(parsed["blocks_path"]).parent
-            assert parsed["parse_format"] == FULL_DOCS_FORMAT_LIGHTRAG
+            assert parsed["parse_format"] == FULL_DOCS_FORMAT_FORGEMIND
             assert parsed_dir.name == "demo.pdf.parsed"
 
             files = {p.name for p in parsed_dir.iterdir() if p.is_file()}
@@ -403,7 +403,7 @@ def test_parse_docling_cache_hit_skips_download(
             )
             assert counters["calls"] == 1, "cache hit must not re-download"
 
-            monkeypatch.setenv("LIGHTRAG_FORCE_REPARSE_DOCLING", "true")
+            monkeypatch.setenv("FORGEMIND_FORCE_REPARSE_DOCLING", "true")
             await _parse_via_registry(
                 rag,
                 "docling",
@@ -573,7 +573,7 @@ def test_parse_docling_zero_blocks_raises(
 
         # Install a fake download that writes a valid bundle whose body has
         # no children — the adapter then produces zero IR blocks.
-        import lightrag.parser.external.docling.client as client_mod
+        import forgemind.parser.external.docling.client as client_mod
 
         empty_json: dict[str, Any] = {
             "schema_name": "DoclingDocument",

@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from lightrag.llm.nvidia_openai import nvidia_openai_embed
+from forgemind.llm.nvidia_openai import nvidia_openai_embed
 
 
 class _FakeAsyncOpenAI:
@@ -47,7 +47,7 @@ async def test_client_closed_after_success():
     """Successful embed: client.close() runs after the result is returned."""
     fake = _FakeAsyncOpenAI(create=AsyncMock(return_value=_make_response()))
 
-    with patch("lightrag.llm.nvidia_openai.AsyncOpenAI", return_value=fake):
+    with patch("forgemind.llm.nvidia_openai.AsyncOpenAI", return_value=fake):
         result = await nvidia_openai_embed.func.__wrapped__(texts=["hello"])
 
     assert result.tolist() == [[0.1, 0.2, 0.3]]
@@ -61,7 +61,7 @@ async def test_client_closed_on_error():
     """API error: client.close() runs before the error propagates."""
     fake = _FakeAsyncOpenAI(create=AsyncMock(side_effect=RuntimeError("boom")))
 
-    with patch("lightrag.llm.nvidia_openai.AsyncOpenAI", return_value=fake):
+    with patch("forgemind.llm.nvidia_openai.AsyncOpenAI", return_value=fake):
         with pytest.raises(RuntimeError, match="boom"):
             await nvidia_openai_embed.func.__wrapped__(texts=["hello"])
 

@@ -1,10 +1,10 @@
-"""Unit tests for the parser registry (lightrag.parser.registry)."""
+"""Unit tests for the parser registry (forgemind.parser.registry)."""
 
 import subprocess
 import sys
 
 
-from lightrag.parser import registry
+from forgemind.parser import registry
 
 
 def test_supported_engines_are_user_selectable_only():
@@ -65,11 +65,11 @@ def test_capability_queries_do_not_import_parser_impls():
     implementation (and therefore httpx). Run in a clean subprocess so other
     tests' imports don't pollute sys.modules."""
     code = (
-        "import sys; import lightrag.parser.registry as r; "
+        "import sys; import forgemind.parser.registry as r; "
         "r.supported_parser_engines(); r.suffix_capabilities('mineru'); "
         "r.engine_endpoint_configured('docling'); "
         "assert 'httpx' not in sys.modules, 'httpx leaked'; "
-        "assert 'lightrag.parser.external.mineru.parser' not in sys.modules; "
+        "assert 'forgemind.parser.external.mineru.parser' not in sys.modules; "
         "print('clean')"
     )
     proc = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)

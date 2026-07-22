@@ -18,11 +18,11 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import pytest
-import lightrag.operate as operate_module
+import forgemind.operate as operate_module
 
-from lightrag import LightRAG
-from lightrag.constants import GRAPH_FIELD_SEP
-from lightrag.utils import compute_mdhash_id, make_relation_chunk_key
+from forgemind import ForgeMind
+from forgemind.constants import GRAPH_FIELD_SEP
+from forgemind.utils import compute_mdhash_id, make_relation_chunk_key
 
 
 @pytest.fixture(autouse=True)
@@ -154,8 +154,8 @@ def _make_rag(
     relation_chunks: _KV | None = None,
     text_chunks: _KV | None = None,
     llm_cache: _KV | None = None,
-) -> LightRAG:
-    rag = LightRAG.__new__(LightRAG)
+) -> ForgeMind:
+    rag = ForgeMind.__new__(ForgeMind)
     rag.chunk_entity_relation_graph = graph
     rag.full_entities = full_entities if full_entities is not None else _KV()
     rag.full_relations = full_relations if full_relations is not None else _KV()

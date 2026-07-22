@@ -1,4 +1,4 @@
-"""Injection point B: ``LightRAG._persist_parsed_full_docs`` strips C0
+"""Injection point B: ``ForgeMind._persist_parsed_full_docs`` strips C0
 control/separator chars from the parsed body before it lands in full_docs.
 
 This is the single convergence point for every parser engine's persist. For
@@ -7,17 +7,17 @@ what keeps \\x1c-\\x1f out of downstream chunks. The content_hash must be
 derived from the cleaned body so dedup stays stable.
 
 Exercised against the real method via the shared debug stand-in
-(``lightrag.parser.debug.build_debug_rag``) so no real storage backends are
+(``forgemind.parser.debug.build_debug_rag``) so no real storage backends are
 needed.
 """
 
 import pytest
 
-from lightrag.constants import FULL_DOCS_FORMAT_RAW
-from lightrag.parser.debug import build_debug_rag
-from lightrag.utils_pipeline import (
+from forgemind.constants import FULL_DOCS_FORMAT_RAW
+from forgemind.parser.debug import build_debug_rag
+from forgemind.utils_pipeline import (
     compute_text_content_hash,
-    strip_lightrag_doc_prefix,
+    strip_forgemind_doc_prefix,
 )
 
 pytestmark = pytest.mark.offline
@@ -58,7 +58,7 @@ async def test_persist_content_hash_matches_cleaned_body():
 
     stored = rag.full_docs.data["doc-hash"]
     expected = compute_text_content_hash(
-        strip_lightrag_doc_prefix("alphabeta", FULL_DOCS_FORMAT_RAW)
+        strip_forgemind_doc_prefix("alphabeta", FULL_DOCS_FORMAT_RAW)
     )
     assert stored["content_hash"] == expected
 

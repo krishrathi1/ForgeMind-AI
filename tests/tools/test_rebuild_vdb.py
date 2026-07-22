@@ -14,15 +14,15 @@ Covers:
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-import lightrag.tools.rebuild_vdb as rebuild_vdb
-from lightrag.tools.rebuild_vdb import (
+import forgemind.tools.rebuild_vdb as rebuild_vdb
+from forgemind.tools.rebuild_vdb import (
     _strip_agtype_quotes,
     check_vdb_consistency,
     rebuild_chunks_vdb,
     rebuild_entities_vdb,
     rebuild_relationships_vdb,
 )
-from lightrag.utils import (
+from forgemind.utils import (
     VectorStorageConsistencyError,
     compute_mdhash_id,
     make_relation_vdb_ids,
@@ -524,7 +524,7 @@ def make_merge_graph():
 @pytest.fixture
 def single_attempt_vdb_ops(monkeypatch):
     """Replace the retry wrapper with a single attempt to keep tests fast."""
-    import lightrag.utils_graph as utils_graph
+    import forgemind.utils_graph as utils_graph
 
     async def _single_attempt(operation, **kwargs):
         await operation()
@@ -540,7 +540,7 @@ async def test_merge_relation_vdb_delete_failure_raises_consistency_error(
 ):
     # The step-7 delete of stale relation records runs after the graph is
     # updated; a failure there must fail loud (and not be swallowed upstream).
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -552,7 +552,7 @@ async def test_merge_relation_vdb_delete_failure_raises_consistency_error(
             graph, entities_vdb, relationships_vdb, ["Bob"], "Alice"
         )
 
-    assert "lightrag-rebuild-vdb" in str(excinfo.value)
+    assert "forgemind-rebuild-vdb" in str(excinfo.value)
     relationships_vdb.delete.assert_awaited()
     # Failure is before source-entity deletion (step 10)
     graph.delete_node.assert_not_awaited()
@@ -563,7 +563,7 @@ async def test_merge_relation_vdb_delete_failure_raises_consistency_error(
 async def test_merge_relation_vdb_failure_raises_consistency_error(
     single_attempt_vdb_ops,
 ):
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -576,7 +576,7 @@ async def test_merge_relation_vdb_failure_raises_consistency_error(
         )
 
     # Fail-loud guidance in the message
-    assert "lightrag-rebuild-vdb" in str(excinfo.value)
+    assert "forgemind-rebuild-vdb" in str(excinfo.value)
     # Graph state was written and is kept (no rollback)
     graph.upsert_edge.assert_awaited()
     # Source entities were NOT deleted (step 10 never reached)
@@ -588,7 +588,7 @@ async def test_merge_relation_vdb_failure_raises_consistency_error(
 async def test_merge_entity_vdb_failure_raises_consistency_error(
     single_attempt_vdb_ops,
 ):
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -600,7 +600,7 @@ async def test_merge_entity_vdb_failure_raises_consistency_error(
             graph, entities_vdb, relationships_vdb, ["Bob"], "Alice"
         )
 
-    assert "lightrag-rebuild-vdb" in str(excinfo.value)
+    assert "forgemind-rebuild-vdb" in str(excinfo.value)
     # Relation VDB write succeeded before the entity failure
     relationships_vdb.upsert.assert_awaited()
     graph.delete_node.assert_not_awaited()
@@ -614,7 +614,7 @@ async def test_merge_source_entity_delete_failure_raises_consistency_error(
     # Step 10 deletes the source node from the graph first, then its vector
     # record. A delete failure here happens AFTER the graph node is gone, so it
     # must fail loud with a message that does not claim the source still exists.
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -627,7 +627,7 @@ async def test_merge_source_entity_delete_failure_raises_consistency_error(
         )
 
     message = str(excinfo.value)
-    assert "lightrag-rebuild-vdb" in message
+    assert "forgemind-rebuild-vdb" in message
     # The source node was already removed; the message must not claim otherwise.
     graph.delete_node.assert_awaited_with("Bob")
     assert "were not deleted" not in message
@@ -640,7 +640,7 @@ async def test_merge_final_persist_failure_raises_consistency_error(
 ):
     # The step-11 _persist_graph_updates flush runs after source deletion; a
     # failure there must also fail loud (not a raw exception swallowed upstream).
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -656,7 +656,7 @@ async def test_merge_final_persist_failure_raises_consistency_error(
         )
 
     message = str(excinfo.value)
-    assert "lightrag-rebuild-vdb" in message
+    assert "forgemind-rebuild-vdb" in message
     # Source deletion already happened before the final persist.
     graph.delete_node.assert_awaited_with("Bob")
     assert "were not deleted" not in message
@@ -664,8 +664,8 @@ async def test_merge_final_persist_failure_raises_consistency_error(
 
 @pytest.mark.asyncio
 async def test_merge_success_path_unaffected(single_attempt_vdb_ops):
-    import lightrag.utils_graph as utils_graph
-    from lightrag.utils_graph import _merge_entities_impl
+    import forgemind.utils_graph as utils_graph
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -704,7 +704,7 @@ async def test_merge_deferred_flush_failure_raises_before_delete(
     # Deferred-embedding backends (nano/faiss) buffer in upsert() and only embed
     # in index_done_callback, so an embedder outage surfaces at flush time. The
     # fail-loud guarantee must still hold: raise before deleting source entities.
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -719,7 +719,7 @@ async def test_merge_deferred_flush_failure_raises_before_delete(
             graph, entities_vdb, relationships_vdb, ["Bob"], "Alice"
         )
 
-    assert "lightrag-rebuild-vdb" in str(excinfo.value)
+    assert "forgemind-rebuild-vdb" in str(excinfo.value)
     # upsert succeeded; the failure is the deferred flush
     relationships_vdb.upsert.assert_awaited()
     relationships_vdb.index_done_callback.assert_awaited()
@@ -732,7 +732,7 @@ async def test_merge_deferred_flush_failure_raises_before_delete(
 async def test_merge_entity_deferred_flush_failure_raises_before_delete(
     single_attempt_vdb_ops,
 ):
-    from lightrag.utils_graph import _merge_entities_impl
+    from forgemind.utils_graph import _merge_entities_impl
 
     graph = make_merge_graph()
     entities_vdb = MockVDB()
@@ -746,7 +746,7 @@ async def test_merge_entity_deferred_flush_failure_raises_before_delete(
             graph, entities_vdb, relationships_vdb, ["Bob"], "Alice"
         )
 
-    assert "lightrag-rebuild-vdb" in str(excinfo.value)
+    assert "forgemind-rebuild-vdb" in str(excinfo.value)
     # Relation flush succeeded before the entity flush failed
     relationships_vdb.index_done_callback.assert_awaited()
     entities_vdb.index_done_callback.assert_awaited()
@@ -766,8 +766,8 @@ async def test_check_only_stub_carries_embedding_model_name(monkeypatch):
     # model_name + embedding_dim, so the stub must carry the configured
     # EMBEDDING_MODEL — otherwise check-only probes the legacy-named collection
     # and misreports records as missing.
-    import lightrag.kg.factory as kg_factory
-    from lightrag.tools.rebuild_vdb import RebuildTool
+    import forgemind.kg.factory as kg_factory
+    from forgemind.tools.rebuild_vdb import RebuildTool
 
     monkeypatch.setenv("EMBEDDING_MODEL", "text-embedding-3-large")
     monkeypatch.setenv("EMBEDDING_DIM", "3072")
@@ -802,8 +802,8 @@ async def test_check_only_stub_carries_embedding_model_name(monkeypatch):
 async def test_check_only_stub_model_name_none_when_unset(monkeypatch):
     # EMBEDDING_MODEL unset -> model_name None (provider default), matching the
     # server factory; "None" literal is also treated as unset.
-    import lightrag.kg.factory as kg_factory
-    from lightrag.tools.rebuild_vdb import RebuildTool
+    import forgemind.kg.factory as kg_factory
+    from forgemind.tools.rebuild_vdb import RebuildTool
 
     monkeypatch.delenv("EMBEDDING_MODEL", raising=False)
 
@@ -831,7 +831,7 @@ async def test_check_only_stub_model_name_none_when_unset(monkeypatch):
 
 def _runnable_tool(monkeypatch, inputs):
     """A RebuildTool with shared-storage init/finalize and prompts stubbed."""
-    import lightrag.kg.shared_storage as shared
+    import forgemind.kg.shared_storage as shared
 
     monkeypatch.setattr(shared, "initialize_share_data", lambda workers=1: None)
     monkeypatch.setattr(shared, "finalize_share_data", lambda: None)

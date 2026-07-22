@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.parser.external.mineru import MinerUIRBuilder
+from forgemind.parser.external.mineru import MinerUIRBuilder
 
 
 def _write_bundle(tmp_path: Path, content_list: list[dict]) -> Path:

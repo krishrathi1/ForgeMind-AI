@@ -12,8 +12,8 @@ it's "legacy", causing all subsequent operations to fail.
 
 from unittest.mock import MagicMock, AsyncMock, patch
 
-from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
-from lightrag.kg.postgres_impl import PGVectorStorage
+from forgemind.kg.qdrant_impl import QdrantVectorDBStorage
+from forgemind.kg.postgres_impl import PGVectorStorage
 
 
 class TestNoModelSuffixSafety:
@@ -36,7 +36,7 @@ class TestNoModelSuffixSafety:
 
         # Simulate second startup: collection already exists and is empty
         # IMPORTANT: Without suffix, collection_name == legacy collection name
-        collection_name = "lightrag_vdb_chunks"  # No suffix, same as legacy
+        collection_name = "forgemind_vdb_chunks"  # No suffix, same as legacy
 
         # Both exist (they're the same collection)
         client.collection_exists.return_value = True
@@ -47,8 +47,8 @@ class TestNoModelSuffixSafety:
         # Patch _find_legacy_collection to return the SAME collection name
         # This simulates the scenario where new collection == legacy collection
         with patch(
-            "lightrag.kg.qdrant_impl._find_legacy_collection",
-            return_value="lightrag_vdb_chunks",  # Same as collection_name
+            "forgemind.kg.qdrant_impl._find_legacy_collection",
+            return_value="forgemind_vdb_chunks",  # Same as collection_name
         ):
             # Call setup_collection
             # This should detect that new == legacy and skip deletion
@@ -94,8 +94,8 @@ class TestNoModelSuffixSafety:
 
         # Simulate second startup: table already exists and is empty
         # IMPORTANT: table_name and legacy_table_name are THE SAME
-        table_name = "LIGHTRAG_VDB_CHUNKS"  # No suffix
-        legacy_table_name = "LIGHTRAG_VDB_CHUNKS"  # Same as new
+        table_name = "FORGEMIND_VDB_CHUNKS"  # No suffix
+        legacy_table_name = "FORGEMIND_VDB_CHUNKS"  # Same as new
 
         # Setup mock responses using check_table_exists on db
         async def check_table_exists_side_effect(name):
@@ -112,7 +112,7 @@ class TestNoModelSuffixSafety:
             workspace="test_workspace",
             embedding_dim=1536,
             legacy_table_name=legacy_table_name,
-            base_table="LIGHTRAG_VDB_CHUNKS",
+            base_table="FORGEMIND_VDB_CHUNKS",
         )
 
         # CRITICAL: Table should NOT be deleted (no DROP TABLE)
@@ -140,8 +140,8 @@ class TestNoModelSuffixSafety:
         client = MagicMock()
 
         # Different names (normal case)
-        collection_name = "lightrag_vdb_chunks_ada_002_1536d"  # With suffix
-        legacy_collection = "lightrag_vdb_chunks"  # Without suffix
+        collection_name = "forgemind_vdb_chunks_ada_002_1536d"  # With suffix
+        legacy_collection = "forgemind_vdb_chunks"  # Without suffix
 
         # Setup: both exist
         def collection_exists_side_effect(name):
@@ -182,8 +182,8 @@ class TestNoModelSuffixSafety:
         db = AsyncMock()
 
         # Different names (normal case)
-        table_name = "LIGHTRAG_VDB_CHUNKS_ADA_002_1536D"  # With suffix
-        legacy_table_name = "LIGHTRAG_VDB_CHUNKS"  # Without suffix
+        table_name = "FORGEMIND_VDB_CHUNKS_ADA_002_1536D"  # With suffix
+        legacy_table_name = "FORGEMIND_VDB_CHUNKS"  # Without suffix
 
         # Setup mock responses using check_table_exists on db
         async def check_table_exists_side_effect(name):
@@ -207,7 +207,7 @@ class TestNoModelSuffixSafety:
             workspace="test_workspace",
             embedding_dim=1536,
             legacy_table_name=legacy_table_name,
-            base_table="LIGHTRAG_VDB_CHUNKS",
+            base_table="FORGEMIND_VDB_CHUNKS",
         )
 
         # SHOULD delete legacy (normal Case 1 behavior)

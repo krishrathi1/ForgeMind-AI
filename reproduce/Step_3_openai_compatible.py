@@ -1,14 +1,14 @@
 import os
 import re
 import json
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.openai import openai_complete_if_cache, openai_embed
-from lightrag.utils import EmbeddingFunc, always_get_an_event_loop
+from forgemind import ForgeMind, QueryParam
+from forgemind.llm.openai import openai_complete_if_cache, openai_embed
+from forgemind.utils import EmbeddingFunc, always_get_an_event_loop
 import numpy as np
 
 
 ## For Upstage API
-# please check if embedding_dim=4096 in lightrag.py and llm.py in lightrag direcotry
+# please check if embedding_dim=4096 in forgemind.py and llm.py in forgemind direcotry
 async def llm_model_func(
     prompt, system_prompt=None, history_messages=[], **kwargs
 ) -> str:
@@ -88,8 +88,8 @@ if __name__ == "__main__":
     mode = "hybrid"
     WORKING_DIR = f"../{cls}"
 
-    rag = LightRAG(working_dir=WORKING_DIR)
-    rag = LightRAG(
+    rag = ForgeMind(working_dir=WORKING_DIR)
+    rag = ForgeMind(
         working_dir=WORKING_DIR,
         llm_model_func=llm_model_func,
         embedding_func=EmbeddingFunc(embedding_dim=4096, func=embedding_func),

@@ -1,21 +1,21 @@
 """
-Knowledge Graph Visualization with OpenSearch + LightRAG WebUI
+Knowledge Graph Visualization with OpenSearch + ForgeMind WebUI
 
 This script demonstrates two ways to visualize the knowledge graph
 stored in OpenSearch:
 
-1. **WebUI (recommended)**: Opens the LightRAG WebUI in your browser
+1. **WebUI (recommended)**: Opens the ForgeMind WebUI in your browser
    for interactive graph exploration with search, filtering, and
    force-directed layout.
 
-2. **Standalone HTML**: Fetches graph data from the LightRAG Server API
+2. **Standalone HTML**: Fetches graph data from the ForgeMind Server API
    and generates an interactive HTML file using Pyvis, similar to
    graph_visual_with_html.py but reading from OpenSearch instead of
    a local .graphml file.
 
 Prerequisites:
-    1. LightRAG Server running with OpenSearch storage:
-       lightrag-server --host 0.0.0.0 --port 9621
+    1. ForgeMind Server running with OpenSearch storage:
+       forgemind-server --host 0.0.0.0 --port 9621
 
     2. Documents already indexed (e.g., via the WebUI or API)
 
@@ -47,7 +47,7 @@ from pyvis.network import Network
 
 
 def fetch_graph(server_url: str, label: str = "*", max_nodes: int = 300) -> dict:
-    """Fetch knowledge graph data from LightRAG Server API."""
+    """Fetch knowledge graph data from ForgeMind Server API."""
     url = f"{server_url}/graphs"
     params = {"label": label, "max_nodes": max_nodes}
     resp = requests.get(url, params=params, timeout=30)
@@ -112,7 +112,7 @@ def generate_html(graph_data: dict, output_file: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Visualize LightRAG knowledge graph from OpenSearch"
+        description="Visualize ForgeMind knowledge graph from OpenSearch"
     )
     parser.add_argument(
         "--html",
@@ -122,7 +122,7 @@ def main():
     parser.add_argument(
         "--server",
         default="http://localhost:9621",
-        help="LightRAG Server URL (default: http://localhost:9621)",
+        help="ForgeMind Server URL (default: http://localhost:9621)",
     )
     parser.add_argument(
         "--output",
@@ -146,8 +146,8 @@ def main():
     try:
         requests.get(f"{args.server}/health", timeout=5)
     except requests.ConnectionError:
-        print(f"Error: Cannot connect to LightRAG Server at {args.server}")
-        print("Start the server first: lightrag-server --host 0.0.0.0 --port 9621")
+        print(f"Error: Cannot connect to ForgeMind Server at {args.server}")
+        print("Start the server first: forgemind-server --host 0.0.0.0 --port 9621")
         sys.exit(1)
 
     if args.html:
@@ -158,7 +158,7 @@ def main():
     else:
         # Open WebUI graph explorer
         url = f"{args.server}/#/graph"
-        print(f"Opening LightRAG WebUI graph explorer: {url}")
+        print(f"Opening ForgeMind WebUI graph explorer: {url}")
         webbrowser.open(url)
 
 

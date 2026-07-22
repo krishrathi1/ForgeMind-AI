@@ -24,9 +24,9 @@ _ENV_VARS_TO_ISOLATE = (
     "EMBEDDING_BINDING",
     "AUTH_ACCOUNTS",
     "TOKEN_SECRET",
-    "LIGHTRAG_API_KEY",
+    "FORGEMIND_API_KEY",
     "WHITELIST_PATHS",
-    "LIGHTRAG_API_PREFIX",
+    "FORGEMIND_API_PREFIX",
 )
 
 
@@ -36,13 +36,13 @@ def _isolate_env(monkeypatch):
     for var in _ENV_VARS_TO_ISOLATE:
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("AUTH_ACCOUNTS", "")
-    monkeypatch.setenv("LIGHTRAG_API_KEY", "")
+    monkeypatch.setenv("FORGEMIND_API_KEY", "")
     monkeypatch.setenv("TOKEN_SECRET", "")
     monkeypatch.setenv("WHITELIST_PATHS", "/health,/api/*")
     monkeypatch.setenv("LLM_BINDING", "ollama")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
 
-    import lightrag.api.config as config
+    import forgemind.api.config as config
 
     config._global_args = None
     config._initialized = False
@@ -51,7 +51,7 @@ def _isolate_env(monkeypatch):
     config._initialized = False
 
 
-class _FakeLightRAG:
+class _FakeForgeMind:
     def __init__(self, *_args, **_kwargs):
         pass
 
@@ -82,48 +82,48 @@ class _FakeOllamaAPI:
 def _build_server(monkeypatch):
     """Build the full app via create_app with all backend I/O mocked out.
 
-    Returns the lightrag_server module so callers can reach auth_handler.
+    Returns the forgemind_server module so callers can reach auth_handler.
     """
-    from lightrag.api.config import parse_args, initialize_config
+    from forgemind.api.config import parse_args, initialize_config
 
     original_argv = sys.argv.copy()
     try:
-        sys.argv = ["lightrag-server"]
+        sys.argv = ["forgemind-server"]
         args = parse_args()
     finally:
         sys.argv = original_argv
     initialize_config(args, force=True)
 
-    import lightrag.api.lightrag_server as lightrag_server
+    import forgemind.api.forgemind_server as forgemind_server
 
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     for factory in (
         "create_document_routes",
         "create_query_routes",
         "create_graph_routes",
     ):
-        monkeypatch.setattr(lightrag_server, factory, lambda *_a, **_k: APIRouter())
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+        monkeypatch.setattr(forgemind_server, factory, lambda *_a, **_k: APIRouter())
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
     monkeypatch.setattr(
-        lightrag_server, "get_namespace_data", AsyncMock(return_value={"busy": False})
+        forgemind_server, "get_namespace_data", AsyncMock(return_value={"busy": False})
     )
-    monkeypatch.setattr(lightrag_server, "get_default_workspace", lambda: "default")
+    monkeypatch.setattr(forgemind_server, "get_default_workspace", lambda: "default")
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "cleanup_keyed_lock",
         lambda: {"cleanup_performed": {}, "current_status": {}},
     )
 
-    app = lightrag_server.create_app(args)
-    return lightrag_server, app
+    app = forgemind_server.create_app(args)
+    return forgemind_server, app
 
 
 def _client_with_account(monkeypatch, username="admin", password="s3cret-plain"):
     """Build a client whose auth_handler has a single configured account."""
-    lightrag_server, app = _build_server(monkeypatch)
-    monkeypatch.setattr(lightrag_server.auth_handler, "accounts", {username: password})
-    return lightrag_server, TestClient(app)
+    forgemind_server, app = _build_server(monkeypatch)
+    monkeypatch.setattr(forgemind_server.auth_handler, "accounts", {username: password})
+    return forgemind_server, TestClient(app)
 
 
 def test_login_correct_password_returns_token(monkeypatch):
@@ -162,9 +162,9 @@ def test_login_offloads_verification_to_thread(monkeypatch):
     block the event loop (unauthenticated DoS surface, since every attempt now
     costs one bcrypt).
     """
-    lightrag_server, _app = _build_server(monkeypatch)
+    forgemind_server, _app = _build_server(monkeypatch)
     monkeypatch.setattr(
-        lightrag_server.auth_handler, "accounts", {"admin": "s3cret-plain"}
+        forgemind_server.auth_handler, "accounts", {"admin": "s3cret-plain"}
     )
 
     offloaded = []
@@ -174,7 +174,7 @@ def test_login_offloads_verification_to_thread(monkeypatch):
         offloaded.append(getattr(func, "__name__", func))
         return await real_to_thread(func, *args, **kwargs)
 
-    monkeypatch.setattr(lightrag_server.asyncio, "to_thread", spy)
+    monkeypatch.setattr(forgemind_server.asyncio, "to_thread", spy)
 
     client = TestClient(_app)
     resp = client.post("/login", data={"username": "admin", "password": "s3cret-plain"})
@@ -202,9 +202,9 @@ def test_login_lockout_returns_429_without_bcrypt(monkeypatch):
     lockout also caps the CPU/DoS cost of a login flood.
     """
     monkeypatch.setenv("LOGIN_MAX_FAILED_ATTEMPTS", "2")
-    lightrag_server, app = _build_server(monkeypatch)
+    forgemind_server, app = _build_server(monkeypatch)
     monkeypatch.setattr(
-        lightrag_server.auth_handler, "accounts", {"admin": "s3cret-plain"}
+        forgemind_server.auth_handler, "accounts", {"admin": "s3cret-plain"}
     )
 
     verify_calls = []
@@ -214,7 +214,7 @@ def test_login_lockout_returns_429_without_bcrypt(monkeypatch):
         verify_calls.append(getattr(func, "__name__", func))
         return await real_to_thread(func, *args, **kwargs)
 
-    monkeypatch.setattr(lightrag_server.asyncio, "to_thread", spy)
+    monkeypatch.setattr(forgemind_server.asyncio, "to_thread", spy)
 
     client = TestClient(app)
     for _ in range(2):
@@ -270,9 +270,9 @@ async def test_login_concurrent_attempts_cannot_bypass_limit(monkeypatch):
     verification, the rest must be rejected with 429.
     """
     monkeypatch.setenv("LOGIN_MAX_FAILED_ATTEMPTS", "5")
-    lightrag_server, app = _build_server(monkeypatch)
+    forgemind_server, app = _build_server(monkeypatch)
     monkeypatch.setattr(
-        lightrag_server.auth_handler, "accounts", {"admin": "s3cret-plain"}
+        forgemind_server.auth_handler, "accounts", {"admin": "s3cret-plain"}
     )
 
     transport = httpx.ASGITransport(app=app)

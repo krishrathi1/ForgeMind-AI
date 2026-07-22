@@ -1,4 +1,4 @@
-"""Unit tests for :func:`lightrag.sidecar.backfill.backfill_chunk_sidecars`.
+"""Unit tests for :func:`forgemind.sidecar.backfill.backfill_chunk_sidecars`.
 
 These exercise the F/R/V sidecar backfill in isolation: a small ``blocks.jsonl``
 is written to ``tmp_path`` and hand-built chunk lists are matched against it, so
@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.exceptions import ChunkBlockMatchError
-from lightrag.sidecar import backfill_chunk_sidecars
+from forgemind.exceptions import ChunkBlockMatchError
+from forgemind.sidecar import backfill_chunk_sidecars
 
 # The merged text the chunker would have received is
 # "\n\n".join(content for content rows with content.strip()).
@@ -28,7 +28,7 @@ _BLOCK_SEPARATOR = "\n\n"
 def _write_blocks(tmp_path: Path, blocks: list[tuple[str, str]]) -> str:
     """Write a blocks.jsonl with a meta header + ``(blockid, content)`` rows."""
     path = tmp_path / "doc.blocks.jsonl"
-    lines = [json.dumps({"type": "meta", "format": "lightrag", "version": "1.0"})]
+    lines = [json.dumps({"type": "meta", "format": "forgemind", "version": "1.0"})]
     for blockid, content in blocks:
         lines.append(
             json.dumps(

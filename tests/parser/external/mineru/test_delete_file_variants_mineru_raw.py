@@ -14,11 +14,11 @@ import pytest
 # to keep argparse from rejecting pytest's flags at import time.
 sys.argv = sys.argv[:1]
 
-from lightrag.api.routers.document_routes import (  # noqa: E402
+from forgemind.api.routers.document_routes import (  # noqa: E402
     _file_path_for_parsed_artifact_dir,
     delete_file_variants_by_file_path,
 )
-from lightrag.constants import PARSED_DIR_NAME  # noqa: E402
+from forgemind.constants import PARSED_DIR_NAME  # noqa: E402
 
 
 @pytest.mark.offline

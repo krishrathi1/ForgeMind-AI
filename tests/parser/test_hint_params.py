@@ -3,7 +3,7 @@
 Phase 1 wires only ``chunk_token_size``/``chunk_ts`` and
 ``chunk_overlap_token_size``/``chunk_ol`` through the existing per-document
 ``chunk_options`` channel.  ``parser_rules=""`` is passed explicitly so the
-assertions are independent of any ambient ``LIGHTRAG_PARSER``.
+assertions are independent of any ambient ``FORGEMIND_PARSER``.
 """
 
 from __future__ import annotations
@@ -13,12 +13,12 @@ import sys
 
 import pytest
 
-from lightrag.parser.param_schema import (
+from forgemind.parser.param_schema import (
     parse_chunk_params,
     split_top_level,
     take_paren_block,
 )
-from lightrag.parser.routing import (
+from forgemind.parser.routing import (
     FilenameParserHintError,
     ParserRoutingConfigError,
     canonicalize_parser_hinted_basename,
@@ -33,7 +33,7 @@ from lightrag.parser.routing import (
 # module cache and skip argparse).  Mirrors tests/api/routes/test_document_routes_chunking.py.
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-importlib.import_module("lightrag.api.routers.document_routes")
+importlib.import_module("forgemind.api.routers.document_routes")
 sys.argv = _original_argv
 
 
@@ -219,7 +219,7 @@ def test_upload_validation_raises_on_bad_filename_params(name):
 
 
 # --------------------------------------------------------------------------- #
-# routing: LIGHTRAG_PARSER rule params + overlay merge
+# routing: FORGEMIND_PARSER rule params + overlay merge
 # --------------------------------------------------------------------------- #
 
 
@@ -340,7 +340,7 @@ def _recording_rag():
 def test_upload_path_applies_hint_chunk_params(tmp_path):
     import asyncio
 
-    from lightrag.api.routers.document_routes import pipeline_enqueue_file
+    from forgemind.api.routers.document_routes import pipeline_enqueue_file
 
     rag, captured = _recording_rag()
     f = tmp_path / "notes.[-R(chunk_ts=800,chunk_ol=80)].md"
@@ -360,7 +360,7 @@ def test_upload_path_applies_hint_chunk_params(tmp_path):
 def test_upload_path_without_params_omits_chunk_options(tmp_path):
     import asyncio
 
-    from lightrag.api.routers.document_routes import pipeline_enqueue_file
+    from forgemind.api.routers.document_routes import pipeline_enqueue_file
 
     rag, captured = _recording_rag()
     f = tmp_path / "plain.[native-R].md"
@@ -376,7 +376,7 @@ def test_upload_path_without_params_omits_chunk_options(tmp_path):
 def test_upload_path_rejects_bad_hint_params(tmp_path):
     import asyncio
 
-    from lightrag.api.routers.document_routes import pipeline_enqueue_file
+    from forgemind.api.routers.document_routes import pipeline_enqueue_file
 
     rag, captured = _recording_rag()
     f = tmp_path / "bad.[-V(chunk_ol=80)].md"
@@ -392,7 +392,7 @@ def test_upload_path_rejects_bad_hint_params(tmp_path):
 def test_upload_path_rejects_effective_overlap_violation(tmp_path):
     import asyncio
 
-    from lightrag.api.routers.document_routes import pipeline_enqueue_file
+    from forgemind.api.routers.document_routes import pipeline_enqueue_file
 
     rag, captured = _recording_rag()
     # An explicit overlap (100) >= size (50) pair is rejected up front by

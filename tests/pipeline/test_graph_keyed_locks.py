@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from lightrag.kg.shared_storage import finalize_share_data, initialize_share_data
+from forgemind.kg.shared_storage import finalize_share_data, initialize_share_data
 
 pytestmark = pytest.mark.offline
 
@@ -33,7 +33,7 @@ pytestmark = pytest.mark.offline
 def single_process_shared_data():
     """Initialize the single-process shared_storage singleton.
 
-    ``LightRAG.ainsert_custom_kg`` calls ``_raise_if_recovery_required``,
+    ``ForgeMind.ainsert_custom_kg`` calls ``_raise_if_recovery_required``,
     which reads the ``pipeline_status`` namespace via ``get_namespace_data``.
     That call raises ``ValueError`` if ``initialize_share_data()`` was never
     called at all (as it never is running this file standalone), but is a
@@ -134,7 +134,7 @@ async def test_aedit_entity_rename_locks_old_and_new_names():
     same namespace and acquires per-key mutexes, so locking the entity name
     already excludes any sorted([X, *]) or sorted([Y, *]) edge lock — no
     need to enumerate incident edges here."""
-    from lightrag import utils_graph
+    from forgemind import utils_graph
 
     spy, captured = _make_keyed_lock_spy()
     graph = _make_graph_mock()
@@ -167,7 +167,7 @@ async def test_aedit_entity_rename_locks_old_and_new_names():
 @pytest.mark.asyncio
 async def test_aedit_entity_non_rename_locks_single_entity_name():
     """Non-rename edits lock just the entity name."""
-    from lightrag import utils_graph
+    from forgemind import utils_graph
 
     spy, captured = _make_keyed_lock_spy()
     graph = _make_graph_mock()
@@ -202,7 +202,7 @@ async def test_aedit_entity_non_rename_locks_single_entity_name():
 @pytest.mark.asyncio
 async def test_adelete_by_entity_locks_single_entity_name():
     """Entity delete locks just the entity name."""
-    from lightrag import utils_graph
+    from forgemind import utils_graph
 
     spy, captured = _make_keyed_lock_spy()
     graph = _make_graph_mock(edges_for_entity=[("X", "Y"), ("Z", "X")])
@@ -266,10 +266,10 @@ async def test_ainsert_custom_kg_locks_every_entity_and_endpoint(
     batch — sharing the doc-ingest namespace so concurrent callers on
     overlapping entities serialise instead of racing.
     """
-    from lightrag import lightrag as lightrag_module
-    from lightrag.lightrag import LightRAG
+    from forgemind import forgemind as forgemind_module
+    from forgemind.forgemind import ForgeMind
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.workspace = "ws1"
     rag.tokenizer = MagicMock()
     rag.tokenizer.encode = lambda _content: []
@@ -322,7 +322,7 @@ async def test_ainsert_custom_kg_locks_every_entity_and_endpoint(
         ],
     }
 
-    with patch.object(lightrag_module, "get_storage_keyed_lock", lock_spy):
+    with patch.object(forgemind_module, "get_storage_keyed_lock", lock_spy):
         with pytest.raises(_LockCaptured):
             await rag.ainsert_custom_kg(custom_kg)
 
@@ -345,10 +345,10 @@ async def test_ainsert_custom_kg_empty_batch_skips_keyed_lock(
     """A custom_kg with no entities or relationships has nothing for the
     business-layer keyed lock to serialise on — no lock is acquired and the
     chunk-only path still completes."""
-    from lightrag import lightrag as lightrag_module
-    from lightrag.lightrag import LightRAG
+    from forgemind import forgemind as forgemind_module
+    from forgemind.forgemind import ForgeMind
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.workspace = ""
     rag.tokenizer = MagicMock()
     rag.tokenizer.encode = lambda _content: []
@@ -361,7 +361,7 @@ async def test_ainsert_custom_kg_empty_batch_skips_keyed_lock(
 
     lock_spy = _AbortOnEnterLock()
 
-    with patch.object(lightrag_module, "get_storage_keyed_lock", lock_spy):
+    with patch.object(forgemind_module, "get_storage_keyed_lock", lock_spy):
         await rag.ainsert_custom_kg({"chunks": [], "entities": [], "relationships": []})
 
     assert lock_spy.captured == []

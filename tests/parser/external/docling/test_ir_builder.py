@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 
-from lightrag.parser.external.docling.ir_builder import DoclingIRBuilder
+from forgemind.parser.external.docling.ir_builder import DoclingIRBuilder
 
 
 # ---------------------------------------------------------------------------
@@ -527,7 +527,7 @@ def test_docling_adapter_empty_table_dropped(tmp_path: Path) -> None:
     Docling never populates ``IRTable.html``, so a body-less table would
     land in the sidecar as ``content=""`` and trip the analyze worker's
     "missing table content" path. Mirrors the MinerU-side filter in
-    lightrag/parser/external/mineru/ir_builder.py.
+    forgemind/parser/external/mineru/ir_builder.py.
     """
     # Four shapes of "no visible content" — all must be dropped.
     tables = [

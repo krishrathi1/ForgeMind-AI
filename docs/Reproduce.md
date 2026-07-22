@@ -2,11 +2,11 @@
 
 ## Dataset
 
-The dataset used in LightRAG can be downloaded from [TommyChien/UltraDomain](https://huggingface.co/datasets/TommyChien/UltraDomain).
+The dataset used in ForgeMind can be downloaded from [TommyChien/UltraDomain](https://huggingface.co/datasets/TommyChien/UltraDomain).
 
 ## Generate Query
 
-LightRAG uses the following prompt to generate high-level queries, with the corresponding code in `examples/generate_query.py`.
+ForgeMind uses the following prompt to generate high-level queries, with the corresponding code in `examples/generate_query.py`.
 
 **Prompt**
 
@@ -36,7 +36,7 @@ Output the results in the following structure:
 
 ## Batch Eval
 
-To evaluate the performance of two RAG systems on high-level queries, LightRAG uses the following prompt, with the specific code available in `reproduce/batch_eval.py`.
+To evaluate the performance of two RAG systems on high-level queries, ForgeMind uses the following prompt, with the specific code available in `reproduce/batch_eval.py`.
 
 **Prompt**
 
@@ -87,22 +87,22 @@ Output your evaluation in the following JSON format:
 
 ||**Agriculture**||**CS**||**Legal**||**Mix**||
 |----------------------|---------------|------------|------|------------|---------|------------|-------|------------|
-||NaiveRAG|**LightRAG**|NaiveRAG|**LightRAG**|NaiveRAG|**LightRAG**|NaiveRAG|**LightRAG**|
+||NaiveRAG|**ForgeMind**|NaiveRAG|**ForgeMind**|NaiveRAG|**ForgeMind**|NaiveRAG|**ForgeMind**|
 |**Comprehensiveness**|32.4%|**67.6%**|38.4%|**61.6%**|16.4%|**83.6%**|38.8%|**61.2%**|
 |**Diversity**|23.6%|**76.4%**|38.0%|**62.0%**|13.6%|**86.4%**|32.4%|**67.6%**|
 |**Empowerment**|32.4%|**67.6%**|38.8%|**61.2%**|16.4%|**83.6%**|42.8%|**57.2%**|
 |**Overall**|32.4%|**67.6%**|38.8%|**61.2%**|15.2%|**84.8%**|40.0%|**60.0%**|
-||RQ-RAG|**LightRAG**|RQ-RAG|**LightRAG**|RQ-RAG|**LightRAG**|RQ-RAG|**LightRAG**|
+||RQ-RAG|**ForgeMind**|RQ-RAG|**ForgeMind**|RQ-RAG|**ForgeMind**|RQ-RAG|**ForgeMind**|
 |**Comprehensiveness**|31.6%|**68.4%**|38.8%|**61.2%**|15.2%|**84.8%**|39.2%|**60.8%**|
 |**Diversity**|29.2%|**70.8%**|39.2%|**60.8%**|11.6%|**88.4%**|30.8%|**69.2%**|
 |**Empowerment**|31.6%|**68.4%**|36.4%|**63.6%**|15.2%|**84.8%**|42.4%|**57.6%**|
 |**Overall**|32.4%|**67.6%**|38.0%|**62.0%**|14.4%|**85.6%**|40.0%|**60.0%**|
-||HyDE|**LightRAG**|HyDE|**LightRAG**|HyDE|**LightRAG**|HyDE|**LightRAG**|
+||HyDE|**ForgeMind**|HyDE|**ForgeMind**|HyDE|**ForgeMind**|HyDE|**ForgeMind**|
 |**Comprehensiveness**|26.0%|**74.0%**|41.6%|**58.4%**|26.8%|**73.2%**|40.4%|**59.6%**|
 |**Diversity**|24.0%|**76.0%**|38.8%|**61.2%**|20.0%|**80.0%**|32.4%|**67.6%**|
 |**Empowerment**|25.2%|**74.8%**|40.8%|**59.2%**|26.0%|**74.0%**|46.0%|**54.0%**|
 |**Overall**|24.8%|**75.2%**|41.6%|**58.4%**|26.4%|**73.6%**|42.4%|**57.6%**|
-||GraphRAG|**LightRAG**|GraphRAG|**LightRAG**|GraphRAG|**LightRAG**|GraphRAG|**LightRAG**|
+||GraphRAG|**ForgeMind**|GraphRAG|**ForgeMind**|GraphRAG|**ForgeMind**|GraphRAG|**ForgeMind**|
 |**Comprehensiveness**|45.6%|**54.4%**|48.4%|**51.6%**|48.4%|**51.6%**|**50.4%**|49.6%|
 |**Diversity**|22.8%|**77.2%**|40.8%|**59.2%**|26.4%|**73.6%**|36.0%|**64.0%**|
 |**Empowerment**|41.2%|**58.8%**|45.2%|**54.8%**|43.6%|**56.4%**|**50.8%**|49.2%|
@@ -171,7 +171,7 @@ def extract_unique_contexts(input_directory, output_directory):
 
 ### Step-1 Insert Contexts
 
-Insert the extracted contexts into the LightRAG system.
+Insert the extracted contexts into the ForgeMind system.
 
 **Code**
 
@@ -218,7 +218,7 @@ def get_summary(context, tot_tokens=2000):
 
 ### Step-3 Query
 
-Extract and query LightRAG with the queries generated in Step-2.
+Extract and query ForgeMind with the queries generated in Step-2.
 
 **Code**
 

@@ -14,9 +14,9 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE, FULL_DOCS_FORMAT_RAW
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind import ForgeMind
+from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE, FULL_DOCS_FORMAT_RAW
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
 
 pytestmark = pytest.mark.offline
 
@@ -37,8 +37,8 @@ async def _mock_llm(prompt, **kwargs):
     return "ok"
 
 
-def _new_rag(tmp_path: Path) -> LightRAG:
-    return LightRAG(
+def _new_rag(tmp_path: Path) -> ForgeMind:
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"enqueue-seed-{tmp_path.name}",
         llm_model_func=_mock_llm,

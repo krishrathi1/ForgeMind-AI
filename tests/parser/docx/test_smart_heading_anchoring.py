@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser.docx.smart_heading.heading_flow import (
+from forgemind.parser.docx.smart_heading.heading_flow import (
     HeadingDecision,
     anchor_outline_levels,
 )
-from lightrag.parser.docx.smart_heading.style_key import classify_numbering
+from forgemind.parser.docx.smart_heading.style_key import classify_numbering
 
 pytestmark = pytest.mark.offline
 

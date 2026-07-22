@@ -1,7 +1,7 @@
 """``ainsert_custom_chunks`` as a journaled, recoverable operation (issue
 #3400, Phase 3).
 
-Drives the real LightRAG object (JSON storages, offline) with extraction
+Drives the real ForgeMind object (JSON storages, offline) with extraction
 monkeypatched to a deterministic fake (one entity per staged chunk), covering:
 
 - create mode: full doc_status bookkeeping + recovery anchors;
@@ -21,11 +21,11 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-import lightrag.lightrag as lightrag_module
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.utils import EmbeddingFunc, Tokenizer
-from lightrag.utils_pipeline import (
+import forgemind.forgemind as forgemind_module
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.utils import EmbeddingFunc, Tokenizer
+from forgemind.utils_pipeline import (
     CUSTOM_CHUNK_PATCH_METADATA_KEY,
     make_custom_chunk_id,
 )
@@ -49,8 +49,8 @@ async def _dummy_llm(*args, **kwargs) -> str:
     return "ok"
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"ccpatch-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,
@@ -205,9 +205,9 @@ async def test_patch_rejected_on_non_processed_document(tmp_path, monkeypatch):
 
 
 async def _fail_one_merge_then_restore(monkeypatch):
-    """Make lightrag.lightrag.merge_nodes_and_edges raise once, then behave."""
+    """Make forgemind.forgemind.merge_nodes_and_edges raise once, then behave."""
     calls = {"n": 0}
-    orig_merge = lightrag_module.merge_nodes_and_edges
+    orig_merge = forgemind_module.merge_nodes_and_edges
 
     async def merge_boom(**kwargs):
         calls["n"] += 1
@@ -215,7 +215,7 @@ async def _fail_one_merge_then_restore(monkeypatch):
             raise RuntimeError("merge boom")
         return await orig_merge(**kwargs)
 
-    monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", merge_boom)
+    monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", merge_boom)
     return calls
 
 
@@ -261,7 +261,7 @@ async def test_failed_patch_keeps_journal_pipeline_skips_and_resume_commits(
         assert anchors["entity_names"] == ["ALICE", "BOB"]
 
         # Busy slot was released through all of it.
-        from lightrag.kg.shared_storage import get_namespace_data
+        from forgemind.kg.shared_storage import get_namespace_data
 
         pipeline_status = await get_namespace_data(
             "pipeline_status", workspace=rag.workspace
@@ -334,7 +334,7 @@ async def test_delete_covers_journal_only_graph_candidates(tmp_path, monkeypatch
 
         # Merge succeeds (BOB reaches graph/vdb/tracking), then the operation
         # fails before the commit union.
-        orig_merge = lightrag_module.merge_nodes_and_edges
+        orig_merge = forgemind_module.merge_nodes_and_edges
         calls = {"n": 0}
 
         async def merge_then_boom(**kwargs):
@@ -344,7 +344,7 @@ async def test_delete_covers_journal_only_graph_candidates(tmp_path, monkeypatch
                 raise RuntimeError("post-merge boom")
             return result
 
-        monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", merge_then_boom)
+        monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", merge_then_boom)
         with pytest.raises(RuntimeError, match="post-merge boom"):
             await rag.ainsert_custom_chunks("base", ["bob is there"], doc_id="doc-1")
 

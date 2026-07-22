@@ -11,10 +11,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import lightrag.parser.markdown.parser as md_parser
-from lightrag.parser.markdown.parser import NativeMarkdownParser
-from lightrag.sidecar import write_sidecar
-from lightrag.utils_pipeline import compute_text_content_hash
+import forgemind.parser.markdown.parser as md_parser
+from forgemind.parser.markdown.parser import NativeMarkdownParser
+from forgemind.sidecar import write_sidecar
+from forgemind.utils_pipeline import compute_text_content_hash
 
 _MD = """# Doc Title
 

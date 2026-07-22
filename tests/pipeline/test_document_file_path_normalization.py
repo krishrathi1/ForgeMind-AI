@@ -5,14 +5,14 @@ import pytest
 
 sys.argv = sys.argv[:1]
 
-from lightrag.api.routers.document_routes import (  # noqa: E402
+from forgemind.api.routers.document_routes import (  # noqa: E402
     DocStatusResponse,
     normalize_file_path,
     pipeline_index_texts,
 )
-from lightrag.base import DocStatus  # noqa: E402
-from lightrag.constants import PROCESS_OPTION_CHUNK_FIXED  # noqa: E402
-from lightrag.pipeline import _PipelineMixin  # noqa: E402
+from forgemind.base import DocStatus  # noqa: E402
+from forgemind.constants import PROCESS_OPTION_CHUNK_FIXED  # noqa: E402
+from forgemind.pipeline import _PipelineMixin  # noqa: E402
 
 pytestmark = pytest.mark.offline
 
@@ -88,16 +88,16 @@ class _FakeKeyedLock:
 
 
 def _patch_custom_chunk_saga(monkeypatch, rag):
-    """Wire a bare LightRAG for the #3400 Phase-3 custom-chunk saga: a
+    """Wire a bare ForgeMind for the #3400 Phase-3 custom-chunk saga: a
     doc_status store for the journal, a flushable llm_response_cache for the
     staging barrier, and a stubbed per-document keyed lock (the real one
     needs initialized shared storage)."""
-    import lightrag.lightrag as lightrag_module
+    import forgemind.forgemind as forgemind_module
 
     rag.doc_status = CaptureKV()
     rag.llm_response_cache = CaptureKV()
     monkeypatch.setattr(
-        lightrag_module,
+        forgemind_module,
         "get_storage_keyed_lock",
         lambda keys, namespace="", enable_logging=False: _FakeKeyedLock(),
     )
@@ -177,10 +177,10 @@ async def test_error_document_enqueue_canonicalizes_file_path_before_upsert():
 
 @pytest.mark.asyncio
 async def test_custom_chunks_use_canonical_unknown_source_before_upsert(monkeypatch):
-    from lightrag import LightRAG
-    import lightrag.lightrag as lightrag_module
+    from forgemind import ForgeMind
+    import forgemind.forgemind as forgemind_module
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.full_docs = CaptureKV()
     rag.text_chunks = CaptureKV()
     rag.chunks_vdb = CaptureKV()
@@ -205,8 +205,8 @@ async def test_custom_chunks_use_canonical_unknown_source_before_upsert(monkeypa
     def fake_namespace_lock(name, workspace=None):
         return asyncio.Lock()
 
-    monkeypatch.setattr(lightrag_module, "get_namespace_data", fake_namespace_data)
-    monkeypatch.setattr(lightrag_module, "get_namespace_lock", fake_namespace_lock)
+    monkeypatch.setattr(forgemind_module, "get_namespace_data", fake_namespace_data)
+    monkeypatch.setattr(forgemind_module, "get_namespace_lock", fake_namespace_lock)
 
     await rag.ainsert_custom_chunks("full text", ["chunk text"], doc_id="doc-1")
 
@@ -224,10 +224,10 @@ async def test_custom_chunks_merge_extracted_entities_into_kg(monkeypatch):
     built from custom chunks (KG-dependent query modes returned nothing while
     the extraction LLM cost was still spent).
     """
-    from lightrag import LightRAG
-    import lightrag.lightrag as lightrag_module
+    from forgemind import ForgeMind
+    import forgemind.forgemind as forgemind_module
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.full_docs = CaptureKV()
     rag.text_chunks = CaptureKV()
     rag.chunks_vdb = CaptureKV()
@@ -273,9 +273,9 @@ async def test_custom_chunks_merge_extracted_entities_into_kg(monkeypatch):
     def fake_namespace_lock(name, workspace=None):
         return asyncio.Lock()
 
-    monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", fake_merge)
-    monkeypatch.setattr(lightrag_module, "get_namespace_data", fake_namespace_data)
-    monkeypatch.setattr(lightrag_module, "get_namespace_lock", fake_namespace_lock)
+    monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", fake_merge)
+    monkeypatch.setattr(forgemind_module, "get_namespace_data", fake_namespace_data)
+    monkeypatch.setattr(forgemind_module, "get_namespace_lock", fake_namespace_lock)
 
     await rag.ainsert_custom_chunks("full text", ["chunk text"], doc_id="doc-2")
 
@@ -294,10 +294,10 @@ async def test_process_extract_entities_surfaces_real_error_without_lock(monkeyp
     caller saw ``TypeError: NoneType ... async context manager`` instead of the
     actual extraction failure.
     """
-    from lightrag import LightRAG
-    import lightrag.lightrag as lightrag_module
+    from forgemind import ForgeMind
+    import forgemind.forgemind as forgemind_module
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.llm_response_cache = object()
     rag.text_chunks = object()
     rag._build_global_config = lambda: {}
@@ -305,7 +305,7 @@ async def test_process_extract_entities_surfaces_real_error_without_lock(monkeyp
     async def boom(*args, **kwargs):
         raise ValueError("real extraction failure")
 
-    monkeypatch.setattr(lightrag_module, "extract_entities", boom)
+    monkeypatch.setattr(forgemind_module, "extract_entities", boom)
 
     # Called with the default None status/lock (a lock-less direct caller).
     with pytest.raises(ValueError, match="real extraction failure"):
@@ -325,8 +325,8 @@ async def test_custom_chunks_persist_before_extraction(monkeypatch):
     """
     import asyncio
 
-    from lightrag import LightRAG
-    import lightrag.lightrag as lightrag_module
+    from forgemind import ForgeMind
+    import forgemind.forgemind as forgemind_module
 
     events: list[str] = []
 
@@ -336,7 +336,7 @@ async def test_custom_chunks_persist_before_extraction(monkeypatch):
             events.append("text_chunks_persisted")
             await super().upsert(data)
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.full_docs = CaptureKV()
     rag.text_chunks = SlowText()
     rag.chunks_vdb = CaptureKV()
@@ -378,8 +378,8 @@ async def test_custom_chunks_persist_before_extraction(monkeypatch):
     def fake_namespace_lock(name, workspace=None):
         return asyncio.Lock()
 
-    monkeypatch.setattr(lightrag_module, "get_namespace_data", fake_namespace_data)
-    monkeypatch.setattr(lightrag_module, "get_namespace_lock", fake_namespace_lock)
+    monkeypatch.setattr(forgemind_module, "get_namespace_data", fake_namespace_data)
+    monkeypatch.setattr(forgemind_module, "get_namespace_lock", fake_namespace_lock)
 
     await rag.ainsert_custom_chunks("full text", ["chunk text"], doc_id="doc-3")
 
@@ -387,12 +387,12 @@ async def test_custom_chunks_persist_before_extraction(monkeypatch):
 
 
 def _custom_chunks_rag(monkeypatch, status):
-    """A bare LightRAG wired for ainsert_custom_chunks with a shared, mutable
+    """A bare ForgeMind wired for ainsert_custom_chunks with a shared, mutable
     ``status`` dict and a real asyncio lock, extraction/merge stubbed."""
-    from lightrag import LightRAG
-    import lightrag.lightrag as lightrag_module
+    from forgemind import ForgeMind
+    import forgemind.forgemind as forgemind_module
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.full_docs = CaptureKV()
     rag.text_chunks = CaptureKV()
     rag.chunks_vdb = CaptureKV()
@@ -428,9 +428,9 @@ def _custom_chunks_rag(monkeypatch, status):
     async def fake_merge(**kwargs):
         return None
 
-    monkeypatch.setattr(lightrag_module, "get_namespace_data", fake_namespace_data)
-    monkeypatch.setattr(lightrag_module, "get_namespace_lock", fake_namespace_lock)
-    monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", fake_merge)
+    monkeypatch.setattr(forgemind_module, "get_namespace_data", fake_namespace_data)
+    monkeypatch.setattr(forgemind_module, "get_namespace_lock", fake_namespace_lock)
+    monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", fake_merge)
     return rag
 
 
@@ -449,13 +449,13 @@ async def test_custom_chunks_rejects_when_pipeline_busy(monkeypatch):
         called["extract"] = True
         return [({"E": [{"entity_name": "E"}]}, {})]
 
-    import lightrag.lightrag as lightrag_module
+    import forgemind.forgemind as forgemind_module
 
     async def fake_merge(**kwargs):
         called["merge"] = True
 
     rag._process_extract_entities = _process_extract_entities
-    monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", fake_merge)
+    monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", fake_merge)
 
     with pytest.raises(RuntimeError, match="busy"):
         await rag.ainsert_custom_chunks("full text", ["chunk text"], doc_id="doc-b")
@@ -686,8 +686,8 @@ async def test_custom_chunks_release_survives_cancel_at_lock_exit(monkeypatch):
     boundary can't leave busy=True with busy_acquired=False and wedge the
     workspace permanently busy.
     """
-    from lightrag import LightRAG
-    import lightrag.lightrag as lightrag_module
+    from forgemind import ForgeMind
+    import forgemind.forgemind as forgemind_module
 
     status = {"busy": False, "history_messages": [], "request_pending": False}
 
@@ -711,7 +711,7 @@ async def test_custom_chunks_release_survives_cancel_at_lock_exit(monkeypatch):
 
     lock = _CancelOnFirstExitLock()
 
-    rag = LightRAG.__new__(LightRAG)
+    rag = ForgeMind.__new__(ForgeMind)
     rag.full_docs = CaptureKV()
     rag.text_chunks = CaptureKV()
     rag.chunks_vdb = CaptureKV()
@@ -729,8 +729,8 @@ async def test_custom_chunks_release_survives_cancel_at_lock_exit(monkeypatch):
     def fake_namespace_lock(name, workspace=None):
         return lock
 
-    monkeypatch.setattr(lightrag_module, "get_namespace_data", fake_namespace_data)
-    monkeypatch.setattr(lightrag_module, "get_namespace_lock", fake_namespace_lock)
+    monkeypatch.setattr(forgemind_module, "get_namespace_data", fake_namespace_data)
+    monkeypatch.setattr(forgemind_module, "get_namespace_lock", fake_namespace_lock)
 
     with pytest.raises(asyncio.CancelledError):
         await rag.ainsert_custom_chunks("full text", ["chunk text"], doc_id="doc-x")

@@ -25,9 +25,9 @@ import inspect
 
 import pytest
 
-import lightrag.operate as operate
-from lightrag.kg.shared_storage import initialize_share_data
-from lightrag.operate import (
+import forgemind.operate as operate
+from forgemind.kg.shared_storage import initialize_share_data
+from forgemind.operate import (
     _rebuild_single_entity,
     _rebuild_single_relationship,
     rebuild_knowledge_from_chunks,

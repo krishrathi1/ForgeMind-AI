@@ -1,4 +1,4 @@
-# LightRAG Offline Dependencies - Native docx smart_heading (optional)
+# ForgeMind Offline Dependencies - Native docx smart_heading (optional)
 # Install with: pip install -r requirements-offline-smart-heading.txt
 # For offline installation:
 #   pip download -r requirements-offline-smart-heading.txt -d ./packages
@@ -7,8 +7,8 @@
 # direct GitHub URLs, and pip fetches direct-URL requirements from the network
 # even under --no-index/--find-links. Install by name from the local wheels.
 #
-# Recommended: Use pip install lightrag-hku[api] for the spacy runtime,
-# then install the two pinned model wheels below (or run: lightrag-download-cache --spacy)
+# Recommended: Use pip install forgemind-ai[api] for the spacy runtime,
+# then install the two pinned model wheels below (or run: forgemind-download-cache --spacy)
 #
 # NOTE: model wheels are pinned to an exact version on purpose — the smart_heading
 # algorithm promises deterministic re-parse results across environments, and a

@@ -1,8 +1,8 @@
-"""Regression tests for :func:`lightrag.utils.split_text_by_token_limit`."""
+"""Regression tests for :func:`forgemind.utils.split_text_by_token_limit`."""
 
 import pytest
 
-from lightrag.utils import Tokenizer, TokenizerInterface, split_text_by_token_limit
+from forgemind.utils import Tokenizer, TokenizerInterface, split_text_by_token_limit
 
 pytestmark = pytest.mark.offline
 

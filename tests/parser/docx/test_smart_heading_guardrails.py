@@ -5,8 +5,8 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser.docx.parse_document import ParagraphRecord
-from lightrag.parser.docx.smart_heading.guardrails import (
+from forgemind.parser.docx.parse_document import ParagraphRecord
+from forgemind.parser.docx.smart_heading.guardrails import (
     TOC_ELLIPSIS,
     TocOutputPlan,
     canonicalize_paragraph_text,
@@ -19,7 +19,7 @@ from lightrag.parser.docx.smart_heading.guardrails import (
     verify_baseline_heading_retention,
     verify_content_preservation,
 )
-from lightrag.parser.docx.smart_heading.heading_flow import HeadingDecision
+from forgemind.parser.docx.smart_heading.heading_flow import HeadingDecision
 
 pytestmark = pytest.mark.offline
 
@@ -71,7 +71,7 @@ def test_ends_with_sentence_period_detects_terminal_dot(monkeypatch) -> None:
     as a sentence terminator. The phantom 'Next' becomes its OWN sentence, so
     the function returns True. (The old ``>=`` matched the original sentence
     first and always returned False.)"""
-    from lightrag.parser.docx.smart_heading import nlp
+    from forgemind.parser.docx.smart_heading import nlp
 
     text = "This is a sentence."  # len 19; phantom yields two sentences
     monkeypatch.setattr(
@@ -83,7 +83,7 @@ def test_ends_with_sentence_period_detects_terminal_dot(monkeypatch) -> None:
 def test_ends_with_sentence_period_spares_abbreviation(monkeypatch) -> None:
     """Review D1: an abbreviation dot keeps 'Next' inside the same sentence,
     so it is NOT a terminator."""
-    from lightrag.parser.docx.smart_heading import nlp
+    from forgemind.parser.docx.smart_heading import nlp
 
     text = "See Fig."  # len 8; phantom absorbed into one sentence (0..13)
     monkeypatch.setattr(nlp, "analyze", lambda t: _FakeDoc([_FakeSent(0, 13)]))
@@ -110,7 +110,7 @@ def test_ends_with_sentence_period_spares_abbreviation(monkeypatch) -> None:
     ],
 )
 def test_strip_leading_numbering(text: str, expected: str) -> None:
-    from lightrag.parser.docx.smart_heading.guardrails import _strip_leading_numbering
+    from forgemind.parser.docx.smart_heading.guardrails import _strip_leading_numbering
 
     assert _strip_leading_numbering(text) == expected
 
@@ -129,7 +129,7 @@ def test_strip_leading_numbering(text: str, expected: str) -> None:
     ],
 )
 def test_explicit_internal_sentence_boundary(text: str, expected: bool) -> None:
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         has_explicit_internal_sentence_boundary,
     )
 
@@ -143,7 +143,7 @@ def test_strong_body_spares_multi_level_numbered_heading() -> None:
     headings as multi-sentence body. strong_body_reason must judge the title
     prose (label stripped), so a numbered heading is spared while genuine body
     still trips."""
-    from lightrag.parser.docx.smart_heading.guardrails import strong_body_reason
+    from forgemind.parser.docx.smart_heading.guardrails import strong_body_reason
 
     assert strong_body_reason("3.1.1 桌面及办公设备运维服务") is None
     assert strong_body_reason("3.1.2 政务信息化基础设施运维服务") is None
@@ -159,8 +159,8 @@ def test_strong_body_spares_heading_with_nbsp_separator() -> None:
     own "sentence" — falsely demoting the chapter heading as multi-sentence
     body. Both the strip (all Unicode whitespace) and sentence_count (ignore
     whitespace-only sentences) must spare it."""
-    from lightrag.parser.docx.smart_heading import nlp
-    from lightrag.parser.docx.smart_heading.guardrails import strong_body_reason
+    from forgemind.parser.docx.smart_heading import nlp
+    from forgemind.parser.docx.smart_heading.guardrails import strong_body_reason
 
     assert strong_body_reason("第二章 \xa0列入条件和管理措施") is None
     assert strong_body_reason("第三章 \xa0列入和移出程序") is None
@@ -180,8 +180,8 @@ def test_strong_body_multi_sentence_needs_explicit_terminator() -> None:
     gated on a deterministic internal terminator, so these are NOT strong body
     (the cover lead-in then joins its title block instead of being demoted),
     while genuine prose carrying an internal "。" still trips."""
-    from lightrag.parser.docx.smart_heading import nlp
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading import nlp
+    from forgemind.parser.docx.smart_heading.guardrails import (
         has_explicit_internal_sentence_boundary,
         strong_body_reason,
     )
@@ -832,8 +832,8 @@ def test_i1_tolerates_demoted_body_text_soft_break() -> None:
 
 
 def test_heading_max_chars_reads_env_and_floors_below_three(monkeypatch) -> None:
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
-    from lightrag.parser.docx.smart_heading.guardrails import heading_max_chars
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.parser.docx.smart_heading.guardrails import heading_max_chars
 
     monkeypatch.delenv("DOCX_SMART_HEADING_MAX_CHARS", raising=False)
     assert heading_max_chars() == DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
@@ -846,7 +846,7 @@ def test_heading_max_chars_reads_env_and_floors_below_three(monkeypatch) -> None
 
 
 def test_truncate_to_heading_length_short_string_unchanged(monkeypatch) -> None:
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         truncate_to_heading_length,
     )
 
@@ -855,8 +855,8 @@ def test_truncate_to_heading_length_short_string_unchanged(monkeypatch) -> None:
 
 
 def test_truncate_to_heading_length_weighted_cap(monkeypatch) -> None:
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.parser.docx.smart_heading.guardrails import (
         truncate_to_heading_length,
         weighted_char_length,
     )
@@ -872,8 +872,8 @@ def test_truncate_to_heading_length_weighted_cap(monkeypatch) -> None:
 def test_truncate_to_heading_length_floors_tiny_cap(monkeypatch) -> None:
     """A cap below 3 must not make the helper emit a bare '...' whose weighted
     length exceeds the cap; heading_max_chars floors it to the default."""
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.parser.docx.smart_heading.guardrails import (
         truncate_to_heading_length,
         weighted_char_length,
     )
@@ -888,8 +888,8 @@ def test_truncate_to_heading_length_raw_ceiling_above_cap(monkeypatch) -> None:
     """When the env cap exceeds MAX_HEADING_LENGTH, a long ASCII heading is
     still bounded by the hard raw 200-char ceiling (so the H1 truncate_heading
     stays a no-op and the four title-block landing sites never split)."""
-    from lightrag.constants import MAX_HEADING_LENGTH
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.constants import MAX_HEADING_LENGTH
+    from forgemind.parser.docx.smart_heading.guardrails import (
         truncate_to_heading_length,
     )
 
@@ -903,7 +903,7 @@ def test_truncate_to_heading_length_raw_ceiling_above_cap(monkeypatch) -> None:
 def test_strong_body_length_floors_tiny_cap(monkeypatch) -> None:
     """strong_body_reason shares heading_max_chars: a nonsensical cap<3 must
     not demote an ordinary short heading via the length rule."""
-    from lightrag.parser.docx.smart_heading.guardrails import strong_body_reason
+    from forgemind.parser.docx.smart_heading.guardrails import strong_body_reason
 
     monkeypatch.setenv("DOCX_SMART_HEADING_MAX_CHARS", "2")
     # Weighted 30 (10 CJK); with the floor (180) the length rule spares it.
@@ -911,7 +911,7 @@ def test_strong_body_length_floors_tiny_cap(monkeypatch) -> None:
 
 
 def test_validate_heading_max_chars_env_returns_parsed(monkeypatch) -> None:
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         validate_heading_max_chars_env,
     )
 
@@ -925,7 +925,7 @@ def test_validate_heading_max_chars_env_returns_parsed(monkeypatch) -> None:
 
 @pytest.mark.parametrize("bad", ["abc", "1.5", "2", "0", "-5"])
 def test_validate_heading_max_chars_env_raises_on_invalid(monkeypatch, bad) -> None:
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         validate_heading_max_chars_env,
     )
 

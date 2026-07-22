@@ -1,8 +1,8 @@
-# LightRAG Helm Chart
+# ForgeMind Helm Chart
 
-This is the Helm chart for LightRAG, used to deploy LightRAG services on a Kubernetes cluster.
+This is the Helm chart for ForgeMind, used to deploy ForgeMind services on a Kubernetes cluster.
 
-There are two recommended deployment methods for LightRAG:
+There are two recommended deployment methods for ForgeMind:
 1. **Lightweight Deployment**: Using built-in lightweight storage, suitable for testing and small-scale usage
 2. **Production Deployment**: Using external databases (such as PostgreSQL and Neo4J), suitable for production environments and large-scale usage
 
@@ -22,33 +22,33 @@ Make sure the following tools are installed and configured:
   * Follow the official guide: [Install and Set Up kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl).
 
 * **Helm** (v3.x+)
-  * Kubernetes package manager used to install LightRAG.
+  * Kubernetes package manager used to install ForgeMind.
   * Install it via the official instructions: [Installing Helm](https://helm.sh/docs/intro/install/).
 
 ## Lightweight Deployment (No External Databases Required)
 
 This deployment option uses built-in lightweight storage components that are perfect for testing, demos, or small-scale usage scenarios. No external database configuration is required.
 
-You can deploy LightRAG using either the provided convenience script or direct Helm commands. Both methods configure the same environment variables defined in the `lightrag/values.yaml` file.
+You can deploy ForgeMind using either the provided convenience script or direct Helm commands. Both methods configure the same environment variables defined in the `forgemind/values.yaml` file.
 
 ### Using the convenience script (recommended):
 
 ```bash
 export OPENAI_API_BASE=<YOUR_OPENAI_API_BASE>
 export OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
-bash ./install_lightrag_dev.sh
+bash ./install_forgemind_dev.sh
 ```
 
 ### Or using Helm directly:
 
 ```bash
 # You can override any env param you want
-helm upgrade --install lightrag ./lightrag \
+helm upgrade --install forgemind ./forgemind \
   --namespace rag \
-  --set-string env.LIGHTRAG_KV_STORAGE=JsonKVStorage \
-  --set-string env.LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage \
-  --set-string env.LIGHTRAG_GRAPH_STORAGE=NetworkXStorage \
-  --set-string env.LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage \
+  --set-string env.FORGEMIND_KV_STORAGE=JsonKVStorage \
+  --set-string env.FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage \
+  --set-string env.FORGEMIND_GRAPH_STORAGE=NetworkXStorage \
+  --set-string env.FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage \
   --set-string env.LLM_BINDING=openai \
   --set-string env.LLM_MODEL=gpt-4o-mini \
   --set-string env.LLM_BINDING_HOST=$OPENAI_API_BASE \
@@ -63,7 +63,7 @@ helm upgrade --install lightrag ./lightrag \
 
 ```bash
 # 1. Run this port-forward command in your terminal:
-kubectl --namespace rag port-forward svc/lightrag-dev 9621:9621
+kubectl --namespace rag port-forward svc/forgemind-dev 9621:9621
 
 # 2. While the command is running, open your browser and navigate to:
 # http://localhost:9621
@@ -102,22 +102,22 @@ kubectl get po -n rag
 # pg-cluster-postgresql-1   4/4     Running   0          59s
 ```
 
-### 2. Install LightRAG
+### 2. Install ForgeMind
 
-LightRAG and its databases are deployed within the same Kubernetes cluster, making configuration straightforward.
+ForgeMind and its databases are deployed within the same Kubernetes cluster, making configuration straightforward.
 The installation script automatically retrieves all database connection information from KubeBlocks, eliminating the need to manually set database credentials:
 
 ```bash
 export OPENAI_API_BASE=<YOUR_OPENAI_API_BASE>
 export OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
-bash ./install_lightrag.sh
+bash ./install_forgemind.sh
 ```
 
 ### Accessing the application:
 
 ```bash
 # 1. Run this port-forward command in your terminal:
-kubectl --namespace rag port-forward svc/lightrag 9621:9621
+kubectl --namespace rag port-forward svc/forgemind 9621:9621
 
 # 2. While the command is running, open your browser and navigate to:
 # http://localhost:9621
@@ -127,7 +127,7 @@ kubectl --namespace rag port-forward svc/lightrag 9621:9621
 
 ### Modifying Resource Configuration
 
-You can configure LightRAG's resource usage by modifying the `values.yaml` file:
+You can configure ForgeMind's resource usage by modifying the `values.yaml` file:
 
 ```yaml
 replicaCount: 1  # Number of replicas, can be increased as needed
@@ -154,7 +154,7 @@ persistence:
 
 ### Configuring Environment Variables
 
-The `env` section in the `values.yaml` file contains all environment configurations for LightRAG, similar to a `.env` file. When using helm upgrade or helm install commands, you can override these with the --set flag.
+The `env` section in the `values.yaml` file contains all environment configurations for ForgeMind, similar to a `.env` file. When using helm upgrade or helm install commands, you can override these with the --set flag.
 
 ```yaml
 env:
@@ -176,10 +176,10 @@ env:
   EMBEDDING_BINDING_API_KEY:                # API key
 
   # Storage Configuration
-  LIGHTRAG_KV_STORAGE: PGKVStorage              # Key-value storage type
-  LIGHTRAG_VECTOR_STORAGE: PGVectorStorage      # Vector storage type
-  LIGHTRAG_GRAPH_STORAGE: Neo4JStorage          # Graph storage type
-  LIGHTRAG_DOC_STATUS_STORAGE: PGDocStatusStorage  # Document status storage type
+  FORGEMIND_KV_STORAGE: PGKVStorage              # Key-value storage type
+  FORGEMIND_VECTOR_STORAGE: PGVectorStorage      # Vector storage type
+  FORGEMIND_GRAPH_STORAGE: Neo4JStorage          # Graph storage type
+  FORGEMIND_DOC_STATUS_STORAGE: PGDocStatusStorage  # Document status storage type
 ```
 
 ## Notes
@@ -188,4 +188,4 @@ env:
 - For security reasons, it's recommended to pass sensitive information using environment variables rather than writing them directly in scripts or values files
 - Lightweight deployment is suitable for testing and small-scale usage, but data persistence and performance may be limited
 - Production deployment (PostgreSQL + Neo4J) is recommended for production environments and large-scale usage
-- For more customized configurations, please refer to the official LightRAG documentation
+- For more customized configurations, please refer to the official ForgeMind documentation

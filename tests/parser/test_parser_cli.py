@@ -1,4 +1,4 @@
-"""Tests for the unified parser debug CLI (``lightrag/parser/cli.py``).
+"""Tests for the unified parser debug CLI (``forgemind/parser/cli.py``).
 
 The CLI behaviour under test is engine-agnostic: argument parsing, the
 flat sidecar layout (no ``__parsed__/`` middle layer), the lenient raw
@@ -30,7 +30,7 @@ from typing import Any
 
 import pytest
 
-from lightrag.parser.cli import main
+from forgemind.parser.cli import main
 
 
 def _make_main_json(
@@ -107,7 +107,7 @@ def _clean_env(monkeypatch: pytest.MonkeyPatch) -> None:
     for name in (
         "DOCLING_BBOX_ATTRIBUTES",
         "DOCLING_ENGINE_VERSION",
-        "LIGHTRAG_FORCE_REPARSE_DOCLING",
+        "FORGEMIND_FORCE_REPARSE_DOCLING",
     ):
         monkeypatch.delenv(name, raising=False)
 
@@ -246,7 +246,7 @@ def test_cli_direct_script_native_does_not_shadow_python_docx(
     doc.save(source)
 
     repo_root = Path(__file__).resolve().parents[2]
-    cli_path = repo_root / "lightrag" / "parser" / "cli.py"
+    cli_path = repo_root / "forgemind" / "parser" / "cli.py"
     proc = subprocess.run(
         [
             sys.executable,

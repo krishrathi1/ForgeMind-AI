@@ -17,19 +17,19 @@ from unittest import mock
 
 import pytest
 
-from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE
-from lightrag.parser.base import ParseContext, ParseResult
-from lightrag.parser.debug import build_debug_rag
-from lightrag.parser.registry import get_parser
-from lightrag.parser.routing import decode_parse_engine
+from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE
+from forgemind.parser.base import ParseContext, ParseResult
+from forgemind.parser.debug import build_debug_rag
+from forgemind.parser.registry import get_parser
+from forgemind.parser.routing import decode_parse_engine
 
 pytestmark = pytest.mark.offline
 
 
 @pytest.fixture(autouse=True)
-def _propagate_lightrag_logs():
-    """The ``lightrag`` logger sets propagate=False; caplog needs it on."""
-    lg = logging.getLogger("lightrag")
+def _propagate_forgemind_logs():
+    """The ``forgemind`` logger sets propagate=False; caplog needs it on."""
+    lg = logging.getLogger("forgemind")
     old = lg.propagate
     lg.propagate = True
     try:
@@ -72,7 +72,7 @@ def _parse_docx(
     Returns ``(rag, result, extract_calls)`` where ``extract_calls`` records
     the keyword arguments (notably ``runtime``) each ``extract`` call saw.
     """
-    from lightrag.parser.docx.parser import NativeDocxParser
+    from forgemind.parser.docx.parser import NativeDocxParser
 
     input_dir = tmp_path / "inputs"
     input_dir.mkdir(exist_ok=True)
@@ -100,7 +100,7 @@ def _parse_docx(
     with (
         mock.patch.object(NativeDocxParser, "extract", _spy_extract),
         mock.patch(
-            "lightrag.parser.docx.parse_document.extract_docx_blocks",
+            "forgemind.parser.docx.parse_document.extract_docx_blocks",
             _stub_extract,
         ),
     ):
@@ -163,8 +163,8 @@ def test_unknown_param_fails_loudly(tmp_path, monkeypatch) -> None:
 
 
 def test_wants_llm_bridge_gates_on_smart_heading() -> None:
-    from lightrag.parser.docx.parser import NativeDocxParser
-    from lightrag.parser.markdown.parser import NativeMarkdownParser
+    from forgemind.parser.docx.parser import NativeDocxParser
+    from forgemind.parser.markdown.parser import NativeMarkdownParser
 
     docx = NativeDocxParser()
     assert docx.wants_llm_bridge({"smart_heading": True}) is True
@@ -183,7 +183,7 @@ def test_markdown_warns_and_ignores_params(tmp_path, monkeypatch, caplog) -> Non
     source_path.write_text("# Title\n\nSome body text.\n", encoding="utf-8")
 
     rag = build_debug_rag()
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         result = asyncio.run(
             get_parser("native").parse(
                 ParseContext(
@@ -222,7 +222,7 @@ def test_markdown_does_not_warn_on_falsy_param(tmp_path, monkeypatch, caplog) ->
     source_path.write_text("# Title\n\nSome body text.\n", encoding="utf-8")
 
     rag = build_debug_rag()
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         result = asyncio.run(
             get_parser("native").parse(
                 ParseContext(
@@ -274,7 +274,7 @@ def test_i4_cache_disabled_surfaces_parse_warning(tmp_path, monkeypatch) -> None
     }
 
     with mock.patch(
-        "lightrag.parser.docx.parse_document.extract_docx_blocks",
+        "forgemind.parser.docx.parse_document.extract_docx_blocks",
         _stub_extract,
     ):
         result = asyncio.run(
@@ -329,7 +329,7 @@ def _parse_with_stub(tmp_path, monkeypatch, stub, *, parse_engine="native"):
         "parse_engine": parse_engine,
     }
     rag = build_debug_rag()
-    with mock.patch("lightrag.parser.docx.parse_document.extract_docx_blocks", stub):
+    with mock.patch("forgemind.parser.docx.parse_document.extract_docx_blocks", stub):
         result = asyncio.run(
             get_parser("native").parse(
                 ParseContext(rag, "doc-1", str(source_path), content_data)
@@ -451,7 +451,7 @@ def test_smart_audit_json_is_byte_stable_across_reparse(tmp_path, monkeypatch) -
         source_path.write_bytes(b"fake-docx")
         rag = build_debug_rag()
         with mock.patch(
-            "lightrag.parser.docx.parse_document.extract_docx_blocks", stub
+            "forgemind.parser.docx.parse_document.extract_docx_blocks", stub
         ):
             asyncio.run(
                 get_parser("native").parse(

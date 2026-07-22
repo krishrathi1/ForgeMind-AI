@@ -20,7 +20,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Pt
 
-from lightrag.parser.docx.smart_heading.features import (
+from forgemind.parser.docx.smart_heading.features import (
     StyleAttributes,
     extract_paragraph_physical_features,
     parse_styles_attributes,
@@ -371,7 +371,7 @@ def test_first_line_size_restat_for_softbreak(tmp_path) -> None:
     styles = parse_styles_attributes(str(path))
     feats = extract_paragraph_physical_features(doc2.paragraphs[0]._p, styles)
 
-    from lightrag.parser.docx.smart_heading.features import (
+    from forgemind.parser.docx.smart_heading.features import (
         first_line_size_half_points,
         half_points_to_pt,
     )
@@ -472,8 +472,8 @@ def test_sdt_docpart_gallery_toc_evidence() -> None:
 
 
 def test_read_pass_populates_smart_features(tmp_path) -> None:
-    from lightrag.parser.docx.numbering_resolver import NumberingResolver
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.numbering_resolver import NumberingResolver
+    from forgemind.parser.docx.parse_document import (
         _read_document_records,
         parse_styles_outline_levels,
     )
@@ -523,8 +523,8 @@ def test_read_pass_populates_smart_features(tmp_path) -> None:
 
 
 def test_read_pass_smart_off_skips_features(tmp_path) -> None:
-    from lightrag.parser.docx.numbering_resolver import NumberingResolver
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.numbering_resolver import NumberingResolver
+    from forgemind.parser.docx.parse_document import (
         _read_document_records,
         parse_styles_outline_levels,
     )
@@ -554,7 +554,7 @@ def test_fractional_size_values_round_to_nearest_half_point() -> None:
     """
     from xml.etree import ElementTree as ET
 
-    from lightrag.parser.docx.smart_heading.features import (
+    from forgemind.parser.docx.smart_heading.features import (
         _RawStyle,
         _element_direct_size,
         _read_rpr,
@@ -577,7 +577,7 @@ def test_bare_sz_does_not_mask_valid_szcs() -> None:
     — the effective size falls back to the complex-script size."""
     from xml.etree import ElementTree as ET
 
-    from lightrag.parser.docx.smart_heading.features import _element_direct_size
+    from forgemind.parser.docx.smart_heading.features import _element_direct_size
 
     w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
     rpr = ET.fromstring(f'<w:rPr xmlns:w="{w}"><w:sz/><w:szCs w:val="28"/></w:rPr>')
@@ -591,8 +591,8 @@ def test_table_cell_features_captured_on_table_records(tmp_path) -> None:
     per physical cell; a
     gridSpan full-width merge is ONE cell, sizes resolve through the style
     cascade, and an ``outlineLvl`` cell paragraph flags ``has_outline``."""
-    from lightrag.parser.docx.numbering_resolver import NumberingResolver
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.numbering_resolver import NumberingResolver
+    from forgemind.parser.docx.parse_document import (
         _read_document_records,
         parse_styles_outline_levels,
     )
@@ -659,8 +659,8 @@ def test_empty_para_records_carry_page_and_section_evidence(tmp_path) -> None:
     sectPr one must also reset numbering tracking (the same semantics a
     non-empty sectPr paragraph gets), observable as the auto-number sequence
     restarting after the blank section break."""
-    from lightrag.parser.docx.numbering_resolver import NumberingResolver
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.numbering_resolver import NumberingResolver
+    from forgemind.parser.docx.parse_document import (
         _read_document_records,
         parse_styles_outline_levels,
     )
@@ -707,8 +707,8 @@ def test_empty_para_sectpr_reset_parity_with_nonempty(tmp_path) -> None:
     clears continuity tracking, not the numId counters — Word numbering
     continues across sections by numId; what must not differ is the reset
     call itself). Asserted as label parity between the two shapes."""
-    from lightrag.parser.docx.numbering_resolver import NumberingResolver
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.numbering_resolver import NumberingResolver
+    from forgemind.parser.docx.parse_document import (
         _read_document_records,
         parse_styles_outline_levels,
     )
@@ -778,7 +778,7 @@ def test_toc_entry_field_reference_flags_toc(tmp_path) -> None:
     no 'TOC' instruction) must be flagged is_toc_field, else it evades TOC
     removal and — once its unsized runs resolve to the heading-sized TOC
     style — is mis-promoted to a heading (test2 目次 regression)."""
-    from lightrag.parser.docx.smart_heading.features import _is_toc_instr
+    from forgemind.parser.docx.smart_heading.features import _is_toc_instr
 
     assert _is_toc_instr('HYPERLINK \\L "_TOC114570378"')
     assert _is_toc_instr("PAGEREF _TOC114570378 \\H")

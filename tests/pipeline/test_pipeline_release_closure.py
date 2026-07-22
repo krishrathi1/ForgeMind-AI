@@ -6,19 +6,19 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lightrag import LightRAG, ROLES, RoleLLMConfig
-from lightrag.base import DocStatus
-from lightrag.constants import (
+from forgemind import ForgeMind, ROLES, RoleLLMConfig
+from forgemind.base import DocStatus
+from forgemind.constants import (
     FULL_DOCS_FORMAT_PENDING_PARSE,
     PARSED_DIR_NAME,
     PARSER_ENGINE_MINERU,
     PARSER_ENGINE_NATIVE,
 )
-from lightrag.operate import (
+from forgemind.operate import (
     _get_relationship_vdb_timeout_seconds,
     _parse_mm_display_name,
 )
-from lightrag.parser.routing import (
+from forgemind.parser.routing import (
     FilenameParserHintError,
     ParserRoutingConfigError,
     canonicalize_parser_hinted_basename,
@@ -26,9 +26,9 @@ from lightrag.parser.routing import (
     resolve_stored_document_parser_engine,
     validate_parser_routing_config,
 )
-from lightrag.parser.base import ParseContext
-from lightrag.parser.registry import get_parser
-from lightrag.utils import (
+from forgemind.parser.base import ParseContext
+from forgemind.parser.registry import get_parser
+from forgemind.utils import (
     EmbeddingFunc,
     Tokenizer,
     compute_mdhash_id,
@@ -68,7 +68,7 @@ _ROLE_FIELD_SUFFIXES = (
 )
 
 
-def _new_rag(tmp_path: Path, **kwargs) -> LightRAG:
+def _new_rag(tmp_path: Path, **kwargs) -> ForgeMind:
     role_configs: dict[str, RoleLLMConfig] = {}
     for spec in ROLES:
         bucket = {}
@@ -85,7 +85,7 @@ def _new_rag(tmp_path: Path, **kwargs) -> LightRAG:
     # helper drives several VLM-specific tests, so default the switch ON.
     kwargs.setdefault("vlm_process_enable", True)
 
-    return LightRAG(
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"test-release-closure-{tmp_path.name}",
         llm_model_func=_mock_llm,
@@ -107,7 +107,7 @@ def test_parse_engine_routing_by_filename_and_env(monkeypatch):
     )
 
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://fake-mineru")
-    monkeypatch.setenv("LIGHTRAG_PARSER", "pdf:mineru-iet,*:native")
+    monkeypatch.setenv("FORGEMIND_PARSER", "pdf:mineru-iet,*:native")
     assert resolve_stored_document_parser_engine("paper.pdf", {}) == "mineru"
     # A row that is not pending_parse is already-extracted content -> the
     # passthrough handler (legacy now means worker-stage extraction).
@@ -119,14 +119,14 @@ def test_parse_engine_routing_by_filename_and_env(monkeypatch):
 
 @pytest.mark.offline
 def test_parse_engine_rule_fallback_and_default_legacy(monkeypatch):
-    monkeypatch.setenv("LIGHTRAG_PARSER", "pdf:native,*:legacy")
+    monkeypatch.setenv("FORGEMIND_PARSER", "pdf:native,*:legacy")
     assert resolve_stored_document_parser_engine("paper.pdf", {}) == "legacy"
 
-    monkeypatch.setenv("LIGHTRAG_PARSER", "pptx:docling,*:legacy")
+    monkeypatch.setenv("FORGEMIND_PARSER", "pptx:docling,*:legacy")
     monkeypatch.delenv("DOCLING_ENDPOINT", raising=False)
     assert resolve_stored_document_parser_engine("slides.pptx", {}) == "legacy"
 
-    monkeypatch.delenv("LIGHTRAG_PARSER", raising=False)
+    monkeypatch.delenv("FORGEMIND_PARSER", raising=False)
     monkeypatch.delenv("MINERU_LOCAL_ENDPOINT", raising=False)
     assert resolve_stored_document_parser_engine("slides.pptx", {}) == "legacy"
 
@@ -166,7 +166,7 @@ def test_canonicalize_parser_hinted_basename():
 
 @pytest.mark.offline
 def test_filename_parser_directives_decodes_engine_and_options():
-    from lightrag.parser.routing import filename_parser_directives
+    from forgemind.parser.routing import filename_parser_directives
 
     assert filename_parser_directives("paper.[native-iet].docx") == ("native", "iet")
     assert filename_parser_directives("memo.[native-R!].md") == ("native", "R!")
@@ -184,7 +184,7 @@ def test_filename_hint_rejects_invalid_engine_qualified_options():
     during parser directive resolution instead of silently falling back to
     parser rules/defaults.
     """
-    from lightrag.parser.routing import (
+    from forgemind.parser.routing import (
         canonicalize_parser_hinted_basename,
         filename_parser_directives,
         resolve_file_parser_directives,
@@ -229,7 +229,7 @@ def test_filename_hint_rejects_invalid_engine_qualified_options():
 
 @pytest.mark.offline
 def test_filename_hint_missing_required_endpoint_rejects(monkeypatch):
-    from lightrag.parser.routing import resolve_file_parser_directives
+    from forgemind.parser.routing import resolve_file_parser_directives
 
     monkeypatch.delenv("DOCLING_ENDPOINT", raising=False)
 
@@ -239,7 +239,7 @@ def test_filename_hint_missing_required_endpoint_rejects(monkeypatch):
 
 @pytest.mark.offline
 def test_parse_process_options_decodes_flags():
-    from lightrag.parser.routing import parse_process_options
+    from forgemind.parser.routing import parse_process_options
 
     opts = parse_process_options("iet")
     assert opts.images and opts.tables and opts.equations
@@ -260,7 +260,7 @@ def test_parse_process_options_decodes_flags():
 
 @pytest.mark.offline
 def test_validate_process_options_rejects_invalid_combos():
-    from lightrag.parser.routing import validate_process_options
+    from forgemind.parser.routing import validate_process_options
 
     assert validate_process_options("iet") == []
     assert validate_process_options("R!") == []
@@ -276,7 +276,7 @@ def test_validate_process_options_rejects_invalid_combos():
 
 
 @pytest.mark.offline
-def test_lightrag_parser_rule_supports_options_suffix(monkeypatch):
+def test_forgemind_parser_rule_supports_options_suffix(monkeypatch):
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://fake-mineru")
     monkeypatch.delenv("DOCLING_ENDPOINT", raising=False)
     # Valid options suffix passes validation.
@@ -292,17 +292,17 @@ def test_lightrag_parser_rule_supports_options_suffix(monkeypatch):
 
 @pytest.mark.offline
 def test_resolve_file_parser_directives_priority(monkeypatch):
-    from lightrag.parser.routing import resolve_file_parser_directives
+    from forgemind.parser.routing import resolve_file_parser_directives
 
     monkeypatch.setenv("MINERU_LOCAL_ENDPOINT", "http://fake-mineru")
-    monkeypatch.setenv("LIGHTRAG_PARSER", "docx:native-iet,*:legacy")
+    monkeypatch.setenv("FORGEMIND_PARSER", "docx:native-iet,*:legacy")
 
     # Filename hint takes precedence for engine and options.
     engine, options = resolve_file_parser_directives("paper.[native-R!].docx")
     assert engine == "native"
     assert options == "R!"
 
-    # No filename hint → fall through to LIGHTRAG_PARSER defaults for both.
+    # No filename hint → fall through to FORGEMIND_PARSER defaults for both.
     engine, options = resolve_file_parser_directives("plain.docx")
     assert engine == "native"
     assert options == "iet"
@@ -319,7 +319,7 @@ def test_doc_status_metadata_carry_over_helper():
     and layers in any transition-specific extras passed via ``extra=``.
     Empty / missing carry-over fields are dropped, not written as null.
     """
-    from lightrag.utils_pipeline import doc_status_transition_metadata
+    from forgemind.utils_pipeline import doc_status_transition_metadata
 
     class _StubStatusDoc:
         def __init__(self, metadata):
@@ -365,7 +365,7 @@ def test_carry_over_keys_grouped_by_stage():
     forces any future field addition to update this assertion alongside the
     tuple, preventing silent regressions in the dialog's timeline display.
     """
-    from lightrag.utils_pipeline import _DOC_STATUS_METADATA_CARRY_OVER_KEYS
+    from forgemind.utils_pipeline import _DOC_STATUS_METADATA_CARRY_OVER_KEYS
 
     assert _DOC_STATUS_METADATA_CARRY_OVER_KEYS == (
         "process_options",
@@ -397,7 +397,7 @@ def test_carry_over_helper_propagates_end_times_and_skipped():
     PROCESSING / PROCESSED / FAILED upserts keep them visible for post-mortem
     stage-duration analysis.
     """
-    from lightrag.utils_pipeline import doc_status_transition_metadata
+    from forgemind.utils_pipeline import doc_status_transition_metadata
 
     class _StubStatusDoc:
         def __init__(self, metadata):
@@ -732,7 +732,7 @@ def test_purge_doc_chunks_and_kg_is_noop_for_empty_chunks(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -777,7 +777,7 @@ def test_purge_doc_chunks_and_kg_clears_chunks_for_unknown_doc(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1012,7 +1012,7 @@ def test_apipeline_enqueue_allows_concurrent_with_busy(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1061,7 +1061,7 @@ def test_apipeline_enqueue_rejects_when_scanning(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1136,7 +1136,7 @@ def test_enqueue_during_busy_sets_request_pending(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1200,7 +1200,7 @@ def test_enqueue_status_upsert_failure_still_nudges_busy_loop(tmp_path, monkeypa
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1324,10 +1324,10 @@ def test_enqueue_status_upsert_failure_survives_wake_failure(
                 rag, "apipeline_process_enqueue_documents", _failing_process
             )
 
-            # The "lightrag" logger sets propagate=False, so caplog (a root
+            # The "forgemind" logger sets propagate=False, so caplog (a root
             # handler) cannot see its records unless we re-enable propagation
             # for the duration of the test (monkeypatch auto-reverts it).
-            monkeypatch.setattr(logging.getLogger("lightrag"), "propagate", True)
+            monkeypatch.setattr(logging.getLogger("forgemind"), "propagate", True)
             with caplog.at_level(logging.WARNING):
                 with pytest.raises(RuntimeError, match="partial doc-status"):
                     await rag.apipeline_enqueue_documents(
@@ -1353,7 +1353,7 @@ def test_process_enqueue_holding_busy_releases_when_no_docs(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1392,10 +1392,10 @@ def test_finalize_does_not_clobber_new_owner_bookkeeping(tmp_path):
     """
 
     async def _run():
-        import lightrag.pipeline as pipeline_mod
+        import forgemind.pipeline as pipeline_mod
         from unittest import mock
 
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1468,7 +1468,7 @@ def test_atomic_release_busy_or_consume_pending(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1528,7 +1528,7 @@ def test_apipeline_enqueue_rejects_when_destructive_busy(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -1596,7 +1596,7 @@ def test_concurrent_enqueue_dedupes_same_content_different_filenames(tmp_path):
     """
 
     async def _run():
-        import lightrag.pipeline as pipeline_module
+        import forgemind.pipeline as pipeline_module
 
         rag = _new_rag(tmp_path)
         await rag.initialize_storages()
@@ -1687,7 +1687,7 @@ def test_apipeline_enqueue_from_scan_bypasses_scanning_guard(tmp_path):
     """
 
     async def _run():
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_namespace_data,
             get_namespace_lock,
         )
@@ -2158,7 +2158,7 @@ def test_content_hash_lookup_via_storage(tmp_path):
 
 @pytest.mark.offline
 def test_enqueue_rejects_removed_or_unknown_docs_format(tmp_path):
-    """The 'lightrag' ingestion entrypoint was removed: enqueue accepts only
+    """The 'forgemind' ingestion entrypoint was removed: enqueue accepts only
     raw / pending_parse and raises explicitly for anything else (previously
     an unknown value was silently treated as raw)."""
 
@@ -2169,8 +2169,8 @@ def test_enqueue_rejects_removed_or_unknown_docs_format(tmp_path):
             with pytest.raises(ValueError, match="Unsupported docs_format"):
                 await rag.apipeline_enqueue_documents(
                     "",
-                    file_paths="first.lightrag",
-                    docs_format="lightrag",
+                    file_paths="first.forgemind",
+                    docs_format="forgemind",
                 )
             with pytest.raises(ValueError, match="Unsupported docs_format"):
                 await rag.apipeline_enqueue_documents(
@@ -2182,8 +2182,8 @@ def test_enqueue_rejects_removed_or_unknown_docs_format(tmp_path):
             with pytest.raises(TypeError):
                 await rag.apipeline_enqueue_documents(  # type: ignore[call-arg]
                     "",
-                    file_paths="first.lightrag",
-                    lightrag_document_paths="__parsed__/doc.blocks.jsonl",
+                    file_paths="first.forgemind",
+                    forgemind_document_paths="__parsed__/doc.blocks.jsonl",
                 )
             # Nothing was enqueued by the rejected calls.
             failed = await rag.doc_status.get_docs_by_status(DocStatus.FAILED)
@@ -2357,7 +2357,7 @@ def test_pending_parse_duplicate_hash_fails_and_archives_source(tmp_path, monkey
     """Two PENDING_PARSE docx files with identical extracted bodies must be
     detected as content_hash duplicates and the loser archived.
 
-    ``content_hash`` for LIGHTRAG-format docs is the MD5 of the normalized
+    ``content_hash`` for FORGEMIND-format docs is the MD5 of the normalized
     ``merged_text`` (sidecar item ids and ``<base>.blocks.assets/`` prefixes
     stripped via :func:`normalize_merged_text_for_hash`), so identical
     bodies under different filenames produce the same hash and
@@ -2373,15 +2373,15 @@ def test_pending_parse_duplicate_hash_fails_and_archives_source(tmp_path, monkey
         try:
             from datetime import datetime, timezone
 
-            import lightrag.lightrag as lightrag_module
-            import lightrag.pipeline as pipeline_module
+            import forgemind.forgemind as forgemind_module
+            import forgemind.pipeline as pipeline_module
 
             class _FrozenDateTime(datetime):
                 @classmethod
                 def now(cls, tz=None):  # noqa: D401
                     return datetime(2026, 1, 1, tzinfo=tz or timezone.utc)
 
-            monkeypatch.setattr(lightrag_module, "datetime", _FrozenDateTime)
+            monkeypatch.setattr(forgemind_module, "datetime", _FrozenDateTime)
             monkeypatch.setattr(pipeline_module, "datetime", _FrozenDateTime)
 
             # Both docx files emit the same blocks list, so combined with the
@@ -2397,7 +2397,7 @@ def test_pending_parse_duplicate_hash_fails_and_archives_source(tmp_path, monkey
                 "table_chunk_role": "none",
             }
             monkeypatch.setattr(
-                "lightrag.parser.docx.parse_document.extract_docx_blocks",
+                "forgemind.parser.docx.parse_document.extract_docx_blocks",
                 lambda *args, **kwargs: [dict(stable_block)],
             )
 
@@ -2528,7 +2528,7 @@ def test_three_phase_status_flow(tmp_path, monkeypatch):
             return parsed_data
 
         monkeypatch.setattr(rag, "_process_extract_entities", _fake_extract)
-        monkeypatch.setattr("lightrag.pipeline.merge_nodes_and_edges", _fake_merge)
+        monkeypatch.setattr("forgemind.pipeline.merge_nodes_and_edges", _fake_merge)
         # "sample text" enqueues as RAW; the worker dispatches it to the
         # PassthroughParser (no parse_* wrapper involved), so no parse stub is
         # needed — the status-flow assertions below exercise the real path.
@@ -2633,7 +2633,7 @@ def test_analyze_multimodal_invalid_json_hard_fails(tmp_path):
             "blocks_path": str(blocks),
             "content": "body",
         }
-        from lightrag.exceptions import MultimodalAnalysisError
+        from forgemind.exceptions import MultimodalAnalysisError
 
         with pytest.raises(MultimodalAnalysisError):
             await rag.analyze_multimodal(
@@ -2982,7 +2982,7 @@ def test_parser_source_resolver_prefers_exact_canonical_file(tmp_path, monkeypat
 
 
 @pytest.mark.offline
-def test_parse_mineru_to_lightrag_document(tmp_path, monkeypatch):
+def test_parse_mineru_to_forgemind_document(tmp_path, monkeypatch):
     """End-to-end: parse_mineru routes through MinerURawClient + sidecar
     writer and produces spec-compliant *.parsed/ + *.mineru_raw/ artifacts.
 
@@ -2990,10 +2990,10 @@ def test_parse_mineru_to_lightrag_document(tmp_path, monkeypatch):
     cache), the MinerU download choreography happens inside
     :meth:`MinerURawClient.download_into`. We stub that method directly.
     """
-    from lightrag.parser.external.mineru import compute_size_and_hash
-    from lightrag.parser.external.mineru.cache import current_mineru_options_signature
-    from lightrag.parser.external.mineru.client import MinerURawClient
-    from lightrag.parser.external.mineru.manifest import (
+    from forgemind.parser.external.mineru import compute_size_and_hash
+    from forgemind.parser.external.mineru.cache import current_mineru_options_signature
+    from forgemind.parser.external.mineru.client import MinerURawClient
+    from forgemind.parser.external.mineru.manifest import (
         Manifest,
         ManifestFile,
         write_manifest,
@@ -3069,7 +3069,7 @@ def test_parse_mineru_to_lightrag_document(tmp_path, monkeypatch):
             content_data={"content": ""},
         )
 
-        assert parsed["parse_format"] == "lightrag"
+        assert parsed["parse_format"] == "forgemind"
         assert parsed["blocks_path"]
         blocks_path = Path(parsed["blocks_path"])
         assert blocks_path.exists()
@@ -3077,7 +3077,7 @@ def test_parse_mineru_to_lightrag_document(tmp_path, monkeypatch):
         lines = blocks_path.read_text(encoding="utf-8").splitlines()
         meta = json.loads(lines[0])
         assert meta["type"] == "meta"
-        assert meta["format"] == "lightrag"
+        assert meta["format"] == "forgemind"
         assert meta["drawing_file"] is True
         assert meta["table_file"] is True
         assert meta["equation_file"] is True
@@ -3093,7 +3093,7 @@ def test_parse_mineru_to_lightrag_document(tmp_path, monkeypatch):
         assert equations["equations"]
 
         full_doc = await rag.full_docs.get_by_id("doc-1")
-        assert full_doc["parse_format"] == "lightrag"
+        assert full_doc["parse_format"] == "forgemind"
         # Per docs/FileProcessingConfiguration-zh.md spec, ``content`` is now
         # ``{{LRdoc}}`` followed by a leading-text summary of the document.
         assert full_doc["content"].startswith("{{LRdoc}}")
@@ -3108,10 +3108,10 @@ def test_parse_mineru_to_lightrag_document(tmp_path, monkeypatch):
 
 @pytest.mark.offline
 def test_parse_mineru_uses_hint_source_and_canonical_upload_name(tmp_path, monkeypatch):
-    from lightrag.parser.external.mineru import compute_size_and_hash
-    from lightrag.parser.external.mineru.cache import current_mineru_options_signature
-    from lightrag.parser.external.mineru.client import MinerURawClient
-    from lightrag.parser.external.mineru.manifest import (
+    from forgemind.parser.external.mineru import compute_size_and_hash
+    from forgemind.parser.external.mineru.cache import current_mineru_options_signature
+    from forgemind.parser.external.mineru.client import MinerURawClient
+    from forgemind.parser.external.mineru.manifest import (
         Manifest,
         ManifestFile,
         write_manifest,
@@ -3126,8 +3126,8 @@ def test_parse_mineru_uses_hint_source_and_canonical_upload_name(tmp_path, monke
         rag = _new_rag(tmp_path / "work")
         await rag.initialize_storages()
 
-        hinted_name = "LightRAG - Simple and Fast RAG.[mineru].pdf"
-        canonical_name = "LightRAG - Simple and Fast RAG.pdf"
+        hinted_name = "ForgeMind - Simple and Fast RAG.[mineru].pdf"
+        canonical_name = "ForgeMind - Simple and Fast RAG.pdf"
         src_file = input_dir / hinted_name
         src_file.write_bytes(b"fake-pdf")
 
@@ -3194,7 +3194,7 @@ def test_parse_mineru_uses_hint_source_and_canonical_upload_name(tmp_path, monke
         expected_raw_dir = (
             input_dir
             / PARSED_DIR_NAME
-            / ("LightRAG - Simple and Fast RAG.pdf.mineru_raw")
+            / ("ForgeMind - Simple and Fast RAG.pdf.mineru_raw")
         )
         archived_source = input_dir / PARSED_DIR_NAME / hinted_name
 
@@ -3221,7 +3221,7 @@ def test_mm_chunks_and_modality_relations_from_sidecars(tmp_path):
                     json.dumps(
                         {
                             "type": "meta",
-                            "format": "lightrag",
+                            "format": "forgemind",
                             "version": "1.0",
                             "doc_id": "doc-1",
                         },
@@ -3322,7 +3322,7 @@ def test_mm_chunks_sanitize_vlm_control_characters(tmp_path):
             json.dumps(
                 {
                     "type": "meta",
-                    "format": "lightrag",
+                    "format": "forgemind",
                     "version": "1.0",
                     "doc_id": "doc-1",
                 },
@@ -3537,7 +3537,7 @@ def test_parse_mineru_empty_service_result_raises_without_fallback(
     ``normalize_from_workdir`` raises :class:`FileNotFoundError` and the
     parse fails fast.
     """
-    from lightrag.parser.external.mineru.client import MinerURawClient
+    from forgemind.parser.external.mineru.client import MinerURawClient
 
     async def _run():
         rag = _new_rag(tmp_path)
@@ -3574,7 +3574,7 @@ def test_build_chunks_dict_preserves_existing_llm_cache_list():
     a chunk's pre-existing llm_cache_list — multimodal chunks arrive with
     analysis cache ids already attached so document deletion can clean
     them up via the per-chunk llm_cache_list."""
-    from lightrag.utils_pipeline import build_chunks_dict_from_chunking_result
+    from forgemind.utils_pipeline import build_chunks_dict_from_chunking_result
 
     chunking_result = [
         {
@@ -3722,7 +3722,7 @@ def test_strip_internal_multimodal_markup_cleans_table_id():
     their internal id stripped before the entity-extraction prompt sees
     them. ``format`` / ``caption`` and the row body stay verbatim so the
     extractor still recognizes the structured element."""
-    from lightrag.chunk_schema import (
+    from forgemind.chunk_schema import (
         strip_internal_multimodal_markup_for_extraction,
     )
 
@@ -3750,7 +3750,7 @@ def test_strip_internal_multimodal_markup_cite_default_unwraps():
     test pins the default to prevent regressions on the extraction
     path when callers refactor the function signature.
     """
-    from lightrag.chunk_schema import (
+    from forgemind.chunk_schema import (
         strip_internal_multimodal_markup_for_extraction,
     )
 
@@ -3775,7 +3775,7 @@ def test_strip_internal_multimodal_markup_cite_keep_tag_strips_refid_only():
     internal ``refid``.  Other identifier transformations
     (``<table id=…>`` / ``<drawing id=…/>`` / ``<equation id=…>``) are
     unaffected by the flag and still apply."""
-    from lightrag.chunk_schema import (
+    from forgemind.chunk_schema import (
         strip_internal_multimodal_markup_for_extraction,
     )
 
@@ -3879,12 +3879,12 @@ def test_engine_params_survive_persist_to_full_docs(tmp_path, monkeypatch):
     ``engine_name(params)`` so full_docs keeps the per-file params instead of
     reverting to the bare engine name.
     """
-    from lightrag.parser.external.mineru import compute_size_and_hash
-    from lightrag.parser.external.mineru.cache import (
+    from forgemind.parser.external.mineru import compute_size_and_hash
+    from forgemind.parser.external.mineru.cache import (
         current_mineru_options_signature,
     )
-    from lightrag.parser.external.mineru.client import MinerURawClient
-    from lightrag.parser.external.mineru.manifest import (
+    from forgemind.parser.external.mineru.client import MinerURawClient
+    from forgemind.parser.external.mineru.manifest import (
         Manifest,
         ManifestFile,
         write_manifest,
@@ -3959,8 +3959,8 @@ def test_idle_trigger_releases_slot_silently_without_stop_message(
     rewrites storage — then release it SILENTLY: a run that did no work records no
     ``pipeline stopped`` bookkeeping.
     """
-    import lightrag.pipeline as pipeline_mod
-    from lightrag.kg.shared_storage import get_namespace_data
+    import forgemind.pipeline as pipeline_mod
+    from forgemind.kg.shared_storage import get_namespace_data
 
     calls = {"acquire": 0}
     real_acquire = pipeline_mod.acquire_processing_reservation

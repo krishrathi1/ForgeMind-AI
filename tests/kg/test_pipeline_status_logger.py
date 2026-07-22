@@ -23,7 +23,7 @@ import multiprocessing as mp
 
 import pytest
 
-from lightrag.kg.shared_storage import PipelineStatusLogger
+from forgemind.kg.shared_storage import PipelineStatusLogger
 
 pytestmark = pytest.mark.offline
 
@@ -230,7 +230,7 @@ def test_never_raises_even_when_diagnostic_logging_itself_fails(monkeypatch):
     def _boom_debug(*_args, **_kwargs):
         raise RuntimeError("logging subsystem down")
 
-    monkeypatch.setattr(logging.getLogger("lightrag"), "debug", _boom_debug)
+    monkeypatch.setattr(logging.getLogger("forgemind"), "debug", _boom_debug)
     status = _CountingStatus()
     status.fail_next_gets = 1
     status_logger = PipelineStatusLogger(status)

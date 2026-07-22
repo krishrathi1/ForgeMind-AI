@@ -19,10 +19,10 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag.base import DocProcessingStatus, DocStatus
-from lightrag.lightrag import LightRAG
-from lightrag.utils import EmbeddingFunc, Tokenizer
-from lightrag.utils_pipeline import (
+from forgemind.base import DocProcessingStatus, DocStatus
+from forgemind.forgemind import ForgeMind
+from forgemind.utils import EmbeddingFunc, Tokenizer
+from forgemind.utils_pipeline import (
     doc_status_metadata_has_attempt_fields,
     doc_status_reset_metadata,
 )
@@ -87,9 +87,9 @@ def _status_to_text(status: object) -> str:
     return str(status).replace("DocStatus.", "").lower()
 
 
-async def _build_rag(tmp_path, test_name: str) -> LightRAG:
+async def _build_rag(tmp_path, test_name: str) -> ForgeMind:
     workspace = f"{test_name}_{uuid4().hex[:8]}"
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=str(tmp_path / test_name),
         workspace=workspace,
         llm_model_func=_dummy_llm,

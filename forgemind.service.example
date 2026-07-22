@@ -1,0 +1,30 @@
+[Unit]
+Description=ForgeMind XYJ Service
+After=network.target
+
+[Service]
+Type=simple
+User=netman
+# Memory settings
+MemoryHigh=8G
+MemoryMax=12G
+
+# Set the ForgeMind installation directory (change this to match your installation path)
+Environment="FORGEMIND_HOME=/home/netman/forgemind-xyj"
+
+# Set Environment to your Python virtual environment
+Environment="PATH=${FORGEMIND_HOME}/.venv/bin"
+WorkingDirectory=${FORGEMIND_HOME}
+ExecStart=${FORGEMIND_HOME}/.venv/bin/forgemind-server
+# ExecStart=${FORGEMIND_HOME}/.venv/bin/forgemind-gunicorn
+
+# Kill mode require ExecStart must be gunicorn or unvicorn main process
+KillMode=process
+ExecStop=/bin/kill -s TERM $MAINPID
+TimeoutStopSec=60
+
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

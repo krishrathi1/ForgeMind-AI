@@ -20,10 +20,10 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
 
 pytestmark = pytest.mark.offline
 
@@ -91,8 +91,8 @@ def _deterministic_chunking(
     return [{"tokens": 1, "content": f"{content}::chunk1", "chunk_order_index": 0}]
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"pwsplit-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,
@@ -123,7 +123,7 @@ def test_pipeline_diverts_smart_warnings_keeps_nonsmart_on_doc_status(
             source_path.write_bytes(b"fake-docx")
 
             with mock.patch(
-                "lightrag.parser.docx.parse_document.extract_docx_blocks",
+                "forgemind.parser.docx.parse_document.extract_docx_blocks",
                 _stub_extract_mixed,
             ):
                 await rag.apipeline_enqueue_documents(

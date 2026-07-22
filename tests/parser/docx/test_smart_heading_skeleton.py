@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser.docx.parse_document import ParagraphRecord
-from lightrag.parser.docx.smart_heading.heading_flow import (
+from forgemind.parser.docx.parse_document import ParagraphRecord
+from forgemind.parser.docx.smart_heading.heading_flow import (
     HeadingDecision,
     align_numbering_series,
     clamp_deep_levels,
@@ -13,7 +13,7 @@ from lightrag.parser.docx.smart_heading.heading_flow import (
     demote_strong_body_headings,
     merge_split_headings,
 )
-from lightrag.parser.docx.smart_heading.style_key import classify_numbering
+from forgemind.parser.docx.smart_heading.style_key import classify_numbering
 
 pytestmark = pytest.mark.offline
 
@@ -360,11 +360,11 @@ def test_merged_then_demoted_heading_keeps_member_text() -> None:
     The absorbed-member markers are only laid
     down while the merged heading survives; once demoted, the members fall
     back to their own paragraph rows, so I1 passes (no content loss)."""
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.guardrails import (
         verify_content_preservation,
     )
-    from lightrag.parser.docx.smart_heading.heading_flow import SmartHeadingResult
+    from forgemind.parser.docx.smart_heading.heading_flow import SmartHeadingResult
 
     records = [
         ParagraphRecord(
@@ -418,8 +418,8 @@ def test_title_block_members_emitted_exactly_once() -> None:
     """Review C3: non-lead members of a multi-paragraph title block are
     emitted once (inside the composite level-0 block), never re-emitted as
     standalone body rows."""
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.heading_flow import SmartHeadingResult
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.heading_flow import SmartHeadingResult
 
     records = [
         ParagraphRecord(kind="para", text="关于加强质量管理的通知"),

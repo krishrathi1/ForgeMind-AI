@@ -4,11 +4,11 @@ import json
 
 import pytest
 
-from lightrag.chunker.paragraph_semantic import (
+from forgemind.chunker.paragraph_semantic import (
     _split_long_block,
     chunking_by_paragraph_semantic,
 )
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -154,7 +154,7 @@ def test_split_long_block_character_fallback_keeps_configured_overlap(monkeypatc
             )
         return chunks
 
-    import lightrag.chunker.recursive_character as rc_mod
+    import forgemind.chunker.recursive_character as rc_mod
 
     monkeypatch.setattr(rc_mod, "chunking_by_recursive_character", fake_chunker)
 
@@ -290,7 +290,7 @@ def test_public_chunking_adds_part_suffixes_for_long_text_fallback(
             )
         return chunks
 
-    import lightrag.chunker.recursive_character as rc_mod
+    import forgemind.chunker.recursive_character as rc_mod
 
     monkeypatch.setattr(rc_mod, "chunking_by_recursive_character", fake_chunker)
 

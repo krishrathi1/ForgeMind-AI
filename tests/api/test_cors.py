@@ -1,7 +1,7 @@
 """
-Tests for CORS middleware configuration on the LightRAG API server.
+Tests for CORS middleware configuration on the ForgeMind API server.
 
-LightRAG authenticates exclusively via request headers (Authorization Bearer
+ForgeMind authenticates exclusively via request headers (Authorization Bearer
 token and X-API-Key) and never via cookies or other ambient credentials. The
 Fetch spec forbids pairing the wildcard origin "*" with credentialed responses
 ("Access-Control-Allow-Origin: *" together with
@@ -23,7 +23,7 @@ from fastapi.testclient import TestClient
 
 
 # Env vars that the project's `.env` may have populated (via load_dotenv at
-# import time of lightrag.api.config). Tests must be hermetic and not depend on
+# import time of forgemind.api.config). Tests must be hermetic and not depend on
 # developer-local .env values, so we clear/override anything that affects
 # parse_args() / create_app().
 _ENV_VARS_TO_ISOLATE = (
@@ -36,11 +36,11 @@ _ENV_VARS_TO_ISOLATE = (
     "EMBEDDING_BINDING_API_KEY",
     "EMBEDDING_MODEL",
     "CORS_ORIGINS",
-    "LIGHTRAG_API_PREFIX",
-    "LIGHTRAG_KV_STORAGE",
-    "LIGHTRAG_VECTOR_STORAGE",
-    "LIGHTRAG_GRAPH_STORAGE",
-    "LIGHTRAG_DOC_STATUS_STORAGE",
+    "FORGEMIND_API_PREFIX",
+    "FORGEMIND_KV_STORAGE",
+    "FORGEMIND_VECTOR_STORAGE",
+    "FORGEMIND_GRAPH_STORAGE",
+    "FORGEMIND_DOC_STATUS_STORAGE",
 )
 
 
@@ -51,7 +51,7 @@ def _isolate_env(monkeypatch):
     Clear env vars that affect parse_args()/create_app(), then set the minimal
     viable defaults (ollama bindings) so create_app's binding validation passes
     without touching real services. The global config singleton in
-    lightrag.api.config is reset before and after each test so neither developer
+    forgemind.api.config is reset before and after each test so neither developer
     .env values nor other tests' parsed args leak into our CORS assertions.
     """
     for var in _ENV_VARS_TO_ISOLATE:
@@ -59,7 +59,7 @@ def _isolate_env(monkeypatch):
     monkeypatch.setenv("LLM_BINDING", "ollama")
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
 
-    import lightrag.api.config as config
+    import forgemind.api.config as config
 
     config._global_args = None
     config._initialized = False
@@ -70,13 +70,13 @@ def _isolate_env(monkeypatch):
 
 def _build_client(cors_origins, monkeypatch):
     """Create a TestClient for an app configured with the given CORS_ORIGINS."""
-    from lightrag.api.config import parse_args, initialize_config
+    from forgemind.api.config import parse_args, initialize_config
 
     monkeypatch.setenv("CORS_ORIGINS", cors_origins)
 
     original_argv = sys.argv.copy()
     try:
-        sys.argv = ["lightrag-server"]
+        sys.argv = ["forgemind-server"]
         args = parse_args()
     finally:
         sys.argv = original_argv
@@ -86,9 +86,9 @@ def _build_client(cors_origins, monkeypatch):
     # polluted with pytest's argv. Pin the parsed args explicitly.
     initialize_config(args, force=True)
 
-    with patch("lightrag.api.lightrag_server.LightRAG") as mock_rag:
+    with patch("forgemind.api.forgemind_server.ForgeMind") as mock_rag:
         mock_rag.return_value = MagicMock()
-        from lightrag.api.lightrag_server import create_app
+        from forgemind.api.forgemind_server import create_app
 
         app = create_app(args)
     return TestClient(app)

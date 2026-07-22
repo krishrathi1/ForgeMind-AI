@@ -6,12 +6,12 @@ import pytest
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-LIGHTRAG_ROOT = PROJECT_ROOT / "lightrag"
-SHARED_STORAGE = LIGHTRAG_ROOT / "kg" / "shared_storage.py"
+FORGEMIND_ROOT = PROJECT_ROOT / "forgemind"
+SHARED_STORAGE = FORGEMIND_ROOT / "kg" / "shared_storage.py"
 
 
 def _production_python_sources():
-    for path in LIGHTRAG_ROOT.rglob("*.py"):
+    for path in FORGEMIND_ROOT.rglob("*.py"):
         if path != SHARED_STORAGE:
             yield path
 

@@ -22,7 +22,7 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from lightrag.api import config as api_config
+from forgemind.api import config as api_config
 
 
 # ---------------------------------------------------------------------------
@@ -32,7 +32,7 @@ from lightrag.api import config as api_config
 
 def test_wrap_auto_detects_supports_asymmetric_when_context_present():
     """If the wrapped function takes ``context``, supports_asymmetric should be True."""
-    from lightrag.utils import wrap_embedding_func_with_attrs
+    from forgemind.utils import wrap_embedding_func_with_attrs
 
     @wrap_embedding_func_with_attrs(embedding_dim=4, max_token_size=64)
     async def my_embed(texts, context="document"):
@@ -43,7 +43,7 @@ def test_wrap_auto_detects_supports_asymmetric_when_context_present():
 
 def test_wrap_auto_detects_no_supports_asymmetric_for_legacy_func():
     """Legacy embed without ``context`` should default to supports_asymmetric=False."""
-    from lightrag.utils import wrap_embedding_func_with_attrs
+    from forgemind.utils import wrap_embedding_func_with_attrs
 
     @wrap_embedding_func_with_attrs(embedding_dim=4, max_token_size=64)
     async def legacy_embed(texts):
@@ -54,7 +54,7 @@ def test_wrap_auto_detects_no_supports_asymmetric_for_legacy_func():
 
 def test_wrap_explicit_supports_asymmetric_overrides_auto_detect():
     """Explicit kwarg must win over signature inspection."""
-    from lightrag.utils import wrap_embedding_func_with_attrs
+    from forgemind.utils import wrap_embedding_func_with_attrs
 
     @wrap_embedding_func_with_attrs(
         embedding_dim=4, max_token_size=64, supports_asymmetric=False
@@ -67,7 +67,7 @@ def test_wrap_explicit_supports_asymmetric_overrides_auto_detect():
 
 def test_wrap_auto_detects_per_function_when_decorator_reused():
     """Reusing a decorator must not share auto-detected support between functions."""
-    from lightrag.utils import wrap_embedding_func_with_attrs
+    from forgemind.utils import wrap_embedding_func_with_attrs
 
     decorator = wrap_embedding_func_with_attrs(embedding_dim=4, max_token_size=64)
 
@@ -91,7 +91,7 @@ def test_wrap_auto_detects_per_function_when_decorator_reused():
 @pytest.mark.asyncio
 async def test_embedding_func_strips_context_for_legacy_func():
     """Legacy func that doesn't accept ``context`` must not see it (no TypeError)."""
-    from lightrag.utils import EmbeddingFunc
+    from forgemind.utils import EmbeddingFunc
 
     received_kwargs: list[dict] = []
 
@@ -111,7 +111,7 @@ async def test_embedding_func_strips_context_for_legacy_func():
 
 @pytest.mark.asyncio
 async def test_embedding_func_forwards_context_when_supported():
-    from lightrag.utils import EmbeddingFunc
+    from forgemind.utils import EmbeddingFunc
 
     received: list[str] = []
 
@@ -264,7 +264,7 @@ def _fake_jina_response(num: int, dim: int = 4) -> list[dict]:
 async def test_jina_default_task_is_query_when_context_query(monkeypatch):
     """Default ``task=None`` + ``context='query'`` must produce ``retrieval.query``."""
     monkeypatch.setenv("JINA_API_KEY", "fake")
-    from lightrag.llm import jina as jina_mod
+    from forgemind.llm import jina as jina_mod
 
     captured: list[dict] = []
 
@@ -280,7 +280,7 @@ async def test_jina_default_task_is_query_when_context_query(monkeypatch):
 @pytest.mark.asyncio
 async def test_jina_default_task_is_passage_when_context_document(monkeypatch):
     monkeypatch.setenv("JINA_API_KEY", "fake")
-    from lightrag.llm import jina as jina_mod
+    from forgemind.llm import jina as jina_mod
 
     captured: list[dict] = []
 
@@ -296,7 +296,7 @@ async def test_jina_default_task_is_passage_when_context_document(monkeypatch):
 @pytest.mark.asyncio
 async def test_jina_explicit_task_overrides_context(monkeypatch):
     monkeypatch.setenv("JINA_API_KEY", "fake")
-    from lightrag.llm import jina as jina_mod
+    from forgemind.llm import jina as jina_mod
 
     captured: list[dict] = []
 
@@ -320,7 +320,7 @@ async def test_jina_explicit_task_overrides_context(monkeypatch):
 def gemini_client_cache_cleared():
     """gemini.py caches its Client via lru_cache; clear it between tests."""
     pytest.importorskip("google.genai")
-    from lightrag.llm import gemini as gemini_mod
+    from forgemind.llm import gemini as gemini_mod
 
     gemini_mod._get_gemini_client.cache_clear()
     yield
@@ -330,7 +330,7 @@ def gemini_client_cache_cleared():
 @pytest.mark.asyncio
 async def test_gemini_task_type_query_for_query_context(gemini_client_cache_cleared):
     pytest.importorskip("google.genai")
-    from lightrag.llm import gemini as gemini_mod
+    from forgemind.llm import gemini as gemini_mod
 
     captured: list[dict] = []
 
@@ -355,7 +355,7 @@ async def test_gemini_task_type_document_for_document_context(
     gemini_client_cache_cleared,
 ):
     pytest.importorskip("google.genai")
-    from lightrag.llm import gemini as gemini_mod
+    from forgemind.llm import gemini as gemini_mod
 
     captured: list[dict] = []
 
@@ -378,7 +378,7 @@ async def test_gemini_task_type_document_for_document_context(
 @pytest.mark.asyncio
 async def test_gemini_explicit_task_type_overrides_context(gemini_client_cache_cleared):
     pytest.importorskip("google.genai")
-    from lightrag.llm import gemini as gemini_mod
+    from forgemind.llm import gemini as gemini_mod
 
     captured: list[dict] = []
 

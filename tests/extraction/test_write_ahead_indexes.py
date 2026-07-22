@@ -14,10 +14,10 @@ import asyncio
 
 import pytest
 
-import lightrag.operate as operate
-from lightrag.exceptions import IndexFlushError
-from lightrag.kg.shared_storage import initialize_share_data
-from lightrag.operate import merge_nodes_and_edges
+import forgemind.operate as operate
+from forgemind.exceptions import IndexFlushError
+from forgemind.kg.shared_storage import initialize_share_data
+from forgemind.operate import merge_nodes_and_edges
 
 
 class _FakeTokenizer:

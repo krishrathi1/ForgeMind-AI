@@ -17,8 +17,8 @@ import asyncio
 
 import pytest
 
-import lightrag.kg.shared_storage as shared_storage
-from lightrag.kg.shared_storage import (
+import forgemind.kg.shared_storage as shared_storage
+from forgemind.kg.shared_storage import (
     _get_combined_key,
     cleanup_keyed_lock,
     finalize_share_data,

@@ -11,7 +11,7 @@ import re
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from lightrag.kg.postgres_impl import PGGraphStorage, _dollar_quote
+from forgemind.kg.postgres_impl import PGGraphStorage, _dollar_quote
 
 
 # ---------------------------------------------------------------------------

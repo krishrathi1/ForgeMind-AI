@@ -15,9 +15,9 @@ import numpy as np
 import pytest
 from unittest.mock import AsyncMock
 
-from lightrag.kg.postgres_impl import PGVectorStorage
-from lightrag.namespace import NameSpace
-from lightrag.utils import EmbeddingFunc
+from forgemind.kg.postgres_impl import PGVectorStorage
+from forgemind.namespace import NameSpace
+from forgemind.utils import EmbeddingFunc
 
 pytestmark = pytest.mark.offline
 

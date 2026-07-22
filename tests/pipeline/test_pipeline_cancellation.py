@@ -31,14 +31,14 @@ from unittest.mock import AsyncMock, Mock
 import numpy as np
 import pytest
 
-from lightrag import LightRAG, ROLES, RoleLLMConfig
-from lightrag.base import DocProcessingStatus, DocStatus
-from lightrag.exceptions import MultimodalAnalysisError, PipelineCancelledException
-from lightrag.kg.shared_storage import get_namespace_data, get_namespace_lock
-from lightrag.pipeline import _BatchRunContext
-from lightrag.parser.llm_bridge import LLMBridgePipelineCancelled, SyncLLMBridge
-from lightrag.parser.registry import parser_specs_snapshot
-from lightrag.utils import EmbeddingFunc, Tokenizer
+from forgemind import ForgeMind, ROLES, RoleLLMConfig
+from forgemind.base import DocProcessingStatus, DocStatus
+from forgemind.exceptions import MultimodalAnalysisError, PipelineCancelledException
+from forgemind.kg.shared_storage import get_namespace_data, get_namespace_lock
+from forgemind.pipeline import _BatchRunContext
+from forgemind.parser.llm_bridge import LLMBridgePipelineCancelled, SyncLLMBridge
+from forgemind.parser.registry import parser_specs_snapshot
+from forgemind.utils import EmbeddingFunc, Tokenizer
 
 
 pytestmark = pytest.mark.offline
@@ -60,14 +60,14 @@ async def _noop_llm(prompt, **kwargs):  # pragma: no cover - never invoked
     return ""
 
 
-def _build_rag(tmp_path: Path, *, vlm_func=None) -> LightRAG:
+def _build_rag(tmp_path: Path, *, vlm_func=None) -> ForgeMind:
     role_configs = {}
     for spec in ROLES:
         if spec.name == "vlm" and vlm_func is not None:
             role_configs[spec.name] = RoleLLMConfig(func=vlm_func)
         else:
             role_configs[spec.name] = RoleLLMConfig()
-    return LightRAG(
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"cancel-{tmp_path.name}",
         llm_model_func=vlm_func or _noop_llm,
@@ -82,7 +82,7 @@ def _build_rag(tmp_path: Path, *, vlm_func=None) -> LightRAG:
     )
 
 
-async def _shutdown_role_workers(rag: LightRAG) -> None:
+async def _shutdown_role_workers(rag: ForgeMind) -> None:
     """Explicitly shut down each role wrapper's priority-queue workers.
 
     finalize_storages() only finalizes storages — it does NOT touch the
@@ -98,12 +98,12 @@ async def _shutdown_role_workers(rag: LightRAG) -> None:
         try:
             await rag._shutdown_llm_wrapper(func)
         except Exception as exc:
-            logging.getLogger("lightrag").warning(
+            logging.getLogger("forgemind").warning(
                 f"role worker shutdown raised during test teardown: {exc}"
             )
 
 
-async def _make_ctx(rag: LightRAG) -> tuple[_BatchRunContext, dict, Any]:
+async def _make_ctx(rag: ForgeMind) -> tuple[_BatchRunContext, dict, Any]:
     """Build a fresh _BatchRunContext bound to the RAG's workspace.
 
     The pipeline_status dict and lock come from the same shared_storage
@@ -187,7 +187,7 @@ async def test_parse_worker_drains_queue_when_cancelled_before_start(
         # The worker resolves its parser via the registry; if the boundary
         # cancellation check works, get_parser is never reached.
         get_parser_spy = Mock(side_effect=AssertionError("parser must not be resolved"))
-        monkeypatch.setattr("lightrag.pipeline.get_parser", get_parser_spy)
+        monkeypatch.setattr("forgemind.pipeline.get_parser", get_parser_spy)
 
         for i in range(3):
             doc_id = f"doc-{i}"
@@ -296,7 +296,7 @@ async def test_pipeline_cancel_interrupts_inflight_native_parser_llm(
                 raise AssertionError("bridge cancellation should interrupt parse")
 
         monkeypatch.setattr(
-            "lightrag.pipeline.get_parser", lambda *_a, **_k: _BlockingNativeParser()
+            "forgemind.pipeline.get_parser", lambda *_a, **_k: _BlockingNativeParser()
         )
         batch = asyncio.create_task(
             rag._run_pipeline_batch(
@@ -470,7 +470,7 @@ async def test_analyze_multimodal_inflight_cancellation_polls_flag(
 
         # Use plain dict + asyncio.Lock so the poll loop's lock
         # acquisition has no chance of contending with the real
-        # NamespaceLock used during LightRAG initialization paths.
+        # NamespaceLock used during ForgeMind initialization paths.
         pipeline_status: dict = {
             "busy": True,
             "history_messages": [],

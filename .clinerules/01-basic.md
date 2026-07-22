@@ -1,7 +1,7 @@
-# LightRAG Project Intelligence (.clinerules)
+# ForgeMind Project Intelligence (.clinerules)
 
 ## Project Overview
-LightRAG is a mature, production-ready Retrieval-Augmented Generation (RAG) system with comprehensive knowledge graph capabilities. The system has evolved from experimental to production-ready status with extensive functionality across all major components.
+ForgeMind is a mature, production-ready Retrieval-Augmented Generation (RAG) system with comprehensive knowledge graph capabilities. The system has evolved from experimental to production-ready status with extensive functionality across all major components.
 
 ## Current System State (August 15, 2025)
 - **Status**: Production Ready - Stable and Mature
@@ -15,7 +15,7 @@ LightRAG is a mature, production-ready Retrieval-Augmented Generation (RAG) syst
 
 ### 1. Embedding Format Compatibility (CRITICAL)
 **Pattern**: Always handle both base64 and raw array embedding formats
-**Location**: `lightrag/llm/openai.py` - `openai_embed` function
+**Location**: `forgemind/llm/openai.py` - `openai_embed` function
 **Issue**: Custom OpenAI-compatible endpoints return embeddings as raw arrays, not base64 strings
 **Solution**:
 ```python
@@ -50,7 +50,7 @@ else np.frombuffer(base64.b64decode(dp.embedding), dtype=np.float32)
 ### 6. Async Generator Lock Management (CRITICAL)
 **Pattern**: Never hold locks across async generator yields - create snapshots instead
 **Issue**: Holding locks while yielding causes deadlock when consumers need the same lock
-**Location**: `lightrag/tools/migrate_llm_cache.py` - `stream_default_caches_json`
+**Location**: `forgemind/tools/migrate_llm_cache.py` - `stream_default_caches_json`
 **Solution**: Create snapshot of data while holding lock, release lock, then iterate over snapshot
 ```python
 # WRONG - Deadlock prone:
@@ -76,7 +76,7 @@ for key, value in matching_items:
 
 ### 1. Dependency Injection
 **Pattern**: Pass configuration through object constructors, not direct imports
-**Example**: OllamaAPI receives configuration through LightRAG object
+**Example**: OllamaAPI receives configuration through ForgeMind object
 **Benefit**: Better testability and modularity
 
 ### 2. Memory Bank Documentation

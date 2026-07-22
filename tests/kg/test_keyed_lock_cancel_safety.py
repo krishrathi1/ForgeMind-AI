@@ -24,8 +24,8 @@ from unittest.mock import MagicMock
 
 import pytest
 
-import lightrag.kg.shared_storage as shared_storage
-from lightrag.kg.shared_storage import (
+import forgemind.kg.shared_storage as shared_storage
+from forgemind.kg.shared_storage import (
     KeyedUnifiedLock,
     NamespaceLock,
     _KeyedLockContext,

@@ -1,16 +1,16 @@
 """Routing + registry wiring for the native markdown engine.
 
 ``parser_rules=""`` is passed explicitly so these assertions are independent of
-any ambient ``LIGHTRAG_PARSER`` in the dev environment.
+any ambient ``FORGEMIND_PARSER`` in the dev environment.
 """
 
 from __future__ import annotations
 
 import asyncio
 
-from lightrag.parser import registry
-from lightrag.parser.native_dispatch import NativeParser
-from lightrag.parser.routing import resolve_file_parser_directives
+from forgemind.parser import registry
+from forgemind.parser.native_dispatch import NativeParser
+from forgemind.parser.routing import resolve_file_parser_directives
 
 
 def _engine(path: str, rules: str = "") -> str:

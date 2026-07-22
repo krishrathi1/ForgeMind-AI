@@ -1,7 +1,7 @@
 """Offline unit tests for the storage-flush error handling around
 ``index_done_callback`` (PR #3187).
 
-These lock the ``LightRAG._insert_done`` / ``_discard_pending_index_ops`` /
+These lock the ``ForgeMind._insert_done`` / ``_discard_pending_index_ops`` /
 ``_insert_done_with_cleanup`` contract that the file pipeline relies on to
 fail fast on a shared-buffer flush error instead of cascading every
 subsequent document into FAILED.
@@ -10,7 +10,7 @@ The tests inject lightweight spy storages via ``_index_storages`` (and, for
 the enqueue-owned / LLM-cache special cases, by binding the spy onto the real
 ``rag.full_docs`` / ``rag.doc_status`` / ``rag.llm_response_cache`` attributes
 so the ``is`` identity checks fire). No storage driver is imported and no real
-backend flush is exercised — this is pure lightrag.py logic.
+backend flush is exercised — this is pure forgemind.py logic.
 """
 
 from __future__ import annotations
@@ -22,19 +22,19 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.exceptions import IndexFlushError
-from lightrag.utils import EmbeddingFunc, Tokenizer
+from forgemind import ForgeMind
+from forgemind.exceptions import IndexFlushError
+from forgemind.utils import EmbeddingFunc, Tokenizer
 
 pytestmark = pytest.mark.offline
 
 
 @pytest.fixture(autouse=True)
-def _propagate_lightrag_logs():
-    """The ``lightrag`` logger sets ``propagate=False``, so caplog's root
+def _propagate_forgemind_logs():
+    """The ``forgemind`` logger sets ``propagate=False``, so caplog's root
     handler would miss its records. Re-enable propagation for these tests so
     ``caplog`` can capture the best-effort error logs we assert on."""
-    lg = logging.getLogger("lightrag")
+    lg = logging.getLogger("forgemind")
     old = lg.propagate
     lg.propagate = True
     try:
@@ -59,8 +59,8 @@ async def _noop_llm(*args, **kwargs) -> str:  # pragma: no cover - never invoked
     return ""
 
 
-async def _make_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _make_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"insdone-{uuid4().hex[:8]}",
         llm_model_func=_noop_llm,
@@ -268,7 +268,7 @@ async def test_insert_done_multiple_failures_raises_first_logs_rest(
         ]
         monkeypatch.setattr(rag, "_index_storages", lambda: spies)
 
-        with caplog.at_level("ERROR", logger="lightrag"):
+        with caplog.at_level("ERROR", logger="forgemind"):
             with pytest.raises(IndexFlushError):
                 await rag._insert_done()
 
@@ -395,7 +395,7 @@ async def test_discard_best_effort_swallows_drop_error(tmp_path, monkeypatch, ca
         after = _SpyStorage("after_vdb", recorder=rec)
         monkeypatch.setattr(rag, "_index_storages", lambda: [cache, boom, after])
 
-        with caplog.at_level("ERROR", logger="lightrag"):
+        with caplog.at_level("ERROR", logger="forgemind"):
             # Must NOT raise — cleanup is best-effort and never masks the
             # original abort cause.
             await rag._discard_pending_index_ops()
@@ -423,7 +423,7 @@ async def test_discard_llm_cache_flush_error_swallowed_still_drops(
         rag.llm_response_cache = cache
         monkeypatch.setattr(rag, "_index_storages", lambda: [cache])
 
-        with caplog.at_level("ERROR", logger="lightrag"):
+        with caplog.at_level("ERROR", logger="forgemind"):
             await rag._discard_pending_index_ops()
 
         # Flush failed (logged), but the drop still ran so a poisoned cache

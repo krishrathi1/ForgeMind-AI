@@ -7,9 +7,9 @@ import pytest
 from fastapi import HTTPException
 from starlette.status import HTTP_403_FORBIDDEN
 
-from lightrag.api.passwords import BCRYPT_PASSWORD_PREFIX, hash_password
-from lightrag.tools.hash_password import main as hash_password_main
-from lightrag.utils import logger as lightrag_logger
+from forgemind.api.passwords import BCRYPT_PASSWORD_PREFIX, hash_password
+from forgemind.tools.hash_password import main as hash_password_main
+from forgemind.utils import logger as forgemind_logger
 
 
 def import_real_api_module(module_name: str):
@@ -25,7 +25,7 @@ def import_real_api_module(module_name: str):
 
 @pytest.fixture
 def auth_module(monkeypatch):
-    config = import_real_api_module("lightrag.api.config")
+    config = import_real_api_module("forgemind.api.config")
 
     mock_global_args = SimpleNamespace(
         token_secret="test-jwt-secret",
@@ -37,10 +37,10 @@ def auth_module(monkeypatch):
 
     monkeypatch.setattr(config, "global_args", mock_global_args)
 
-    module = import_real_api_module("lightrag.api.auth")
+    module = import_real_api_module("forgemind.api.auth")
     module = importlib.reload(module)
     yield module
-    sys.modules.pop("lightrag.api.auth", None)
+    sys.modules.pop("forgemind.api.auth", None)
 
 
 def build_bcrypt_value(password: str) -> str:
@@ -78,7 +78,7 @@ def test_plaintext_verify_uses_constant_time_comparison():
     GHSA-c759-cx9p-mrwq). Behavior across lengths and unicode is the regression
     anchor for the constant-time path.
     """
-    from lightrag.api.passwords import verify_password as verify
+    from forgemind.api.passwords import verify_password as verify
 
     assert verify("secret", "secret")
     assert not verify("secret", "secre")  # shorter guess
@@ -174,7 +174,7 @@ def test_verify_password_unicode_plaintext(auth_module):
 
 
 def test_invalid_auth_accounts_raises(monkeypatch):
-    config = import_real_api_module("lightrag.api.config")
+    config = import_real_api_module("forgemind.api.config")
 
     mock_global_args = SimpleNamespace(
         token_secret="test-jwt-secret",
@@ -187,13 +187,13 @@ def test_invalid_auth_accounts_raises(monkeypatch):
     monkeypatch.setattr(config, "global_args", mock_global_args)
 
     with pytest.raises(ValueError, match="AUTH_ACCOUNTS must use"):
-        import_real_api_module("lightrag.api.auth")
+        import_real_api_module("forgemind.api.auth")
 
-    sys.modules.pop("lightrag.api.auth", None)
+    sys.modules.pop("forgemind.api.auth", None)
 
 
 def test_initialize_config_rejects_default_token_secret_with_auth_accounts():
-    config = import_real_api_module("lightrag.api.config")
+    config = import_real_api_module("forgemind.api.config")
 
     insecure_args = SimpleNamespace(
         auth_accounts="admin:admin_pass",
@@ -205,7 +205,7 @@ def test_initialize_config_rejects_default_token_secret_with_auth_accounts():
 
 
 def test_initialize_config_allows_custom_token_secret_with_auth_accounts():
-    config = import_real_api_module("lightrag.api.config")
+    config = import_real_api_module("forgemind.api.config")
 
     secure_args = SimpleNamespace(
         auth_accounts="admin:admin_pass",
@@ -220,7 +220,7 @@ def test_initialize_config_allows_custom_token_secret_with_auth_accounts():
 def test_guest_tokens_fall_back_to_default_secret_when_token_secret_missing(
     monkeypatch,
 ):
-    config = import_real_api_module("lightrag.api.config")
+    config = import_real_api_module("forgemind.api.config")
 
     mock_global_args = SimpleNamespace(
         token_secret=None,
@@ -236,9 +236,9 @@ def test_guest_tokens_fall_back_to_default_secret_when_token_secret_missing(
     def capture_warning(message):
         warning_messages.append(message)
 
-    monkeypatch.setattr(lightrag_logger, "warning", capture_warning)
+    monkeypatch.setattr(forgemind_logger, "warning", capture_warning)
 
-    module = import_real_api_module("lightrag.api.auth")
+    module = import_real_api_module("forgemind.api.auth")
     module = importlib.reload(module)
     handler = module.AuthHandler()
 
@@ -253,7 +253,7 @@ def test_guest_tokens_fall_back_to_default_secret_when_token_secret_missing(
         for msg in warning_messages
     )
 
-    sys.modules.pop("lightrag.api.auth", None)
+    sys.modules.pop("forgemind.api.auth", None)
 
 
 def _load_api_key_only_modules(monkeypatch):
@@ -263,7 +263,7 @@ def _load_api_key_only_modules(monkeypatch):
     ``auth_configured`` is False and AuthHandler falls back to the public
     DEFAULT_TOKEN_SECRET. Returns (config, auth, utils_api).
     """
-    config = import_real_api_module("lightrag.api.config")
+    config = import_real_api_module("forgemind.api.config")
 
     mock_global_args = SimpleNamespace(
         token_secret=None,  # -> AuthHandler falls back to DEFAULT_TOKEN_SECRET
@@ -276,9 +276,9 @@ def _load_api_key_only_modules(monkeypatch):
     )
     monkeypatch.setattr(config, "global_args", mock_global_args)
 
-    auth = import_real_api_module("lightrag.api.auth")
+    auth = import_real_api_module("forgemind.api.auth")
     auth = importlib.reload(auth)
-    utils_api = import_real_api_module("lightrag.api.utils_api")
+    utils_api = import_real_api_module("forgemind.api.utils_api")
     return config, auth, utils_api
 
 
@@ -323,8 +323,8 @@ async def test_combined_auth_rejects_guest_token_in_api_key_mode(monkeypatch):
         )
         assert result is None
     finally:
-        sys.modules.pop("lightrag.api.utils_api", None)
-        sys.modules.pop("lightrag.api.auth", None)
+        sys.modules.pop("forgemind.api.utils_api", None)
+        sys.modules.pop("forgemind.api.auth", None)
 
 
 async def test_combined_auth_allows_guest_token_when_fully_open(monkeypatch):
@@ -349,8 +349,8 @@ async def test_combined_auth_allows_guest_token_when_fully_open(monkeypatch):
         )
         assert result is None
     finally:
-        sys.modules.pop("lightrag.api.utils_api", None)
-        sys.modules.pop("lightrag.api.auth", None)
+        sys.modules.pop("forgemind.api.utils_api", None)
+        sys.modules.pop("forgemind.api.auth", None)
 
 
 def test_hash_password_returns_prefixed_value(auth_module):

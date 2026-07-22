@@ -9,7 +9,7 @@ pytest.importorskip(
 
 from pymongo.errors import PyMongoError, BulkWriteError, DuplicateKeyError
 
-from lightrag.kg.mongo_impl import (
+from forgemind.kg.mongo_impl import (
     MongoDocStatusStorage,
     MongoGraphStorage,
     _canonical_edge_endpoints,
@@ -176,7 +176,7 @@ class TestMongoEdgeKey:
             calls.append((collection, ops))
 
         with patch(
-            "lightrag.kg.mongo_impl._run_batched_bulk_write",
+            "forgemind.kg.mongo_impl._run_batched_bulk_write",
             new=AsyncMock(side_effect=fake_bulk),
         ):
             await s.upsert_edges_batch(
@@ -206,7 +206,7 @@ class TestMongoEdgeKey:
                 raise BulkWriteError({"writeErrors": [{"code": 11000}]})
 
         with patch(
-            "lightrag.kg.mongo_impl._run_batched_bulk_write",
+            "forgemind.kg.mongo_impl._run_batched_bulk_write",
             new=AsyncMock(side_effect=fake_bulk),
         ):
             await s.upsert_edges_batch([("A", "B", {"weight": 1.0})])
@@ -223,7 +223,7 @@ class TestMongoEdgeKey:
                 raise BulkWriteError({"writeErrors": [{"code": 121}]})
 
         with patch(
-            "lightrag.kg.mongo_impl._run_batched_bulk_write",
+            "forgemind.kg.mongo_impl._run_batched_bulk_write",
             new=AsyncMock(side_effect=fake_bulk),
         ):
             with pytest.raises(BulkWriteError):
@@ -248,7 +248,7 @@ class TestMongoEdgeKey:
                 raise BulkWriteError({"writeErrors": [{"code": 121}]})
 
         with patch(
-            "lightrag.kg.mongo_impl._run_batched_bulk_write",
+            "forgemind.kg.mongo_impl._run_batched_bulk_write",
             new=AsyncMock(side_effect=fake_bulk),
         ):
             with pytest.raises(BulkWriteError) as exc:
@@ -272,7 +272,7 @@ class TestMongoEdgeKey:
                 )
 
         with patch(
-            "lightrag.kg.mongo_impl._run_batched_bulk_write",
+            "forgemind.kg.mongo_impl._run_batched_bulk_write",
             new=AsyncMock(side_effect=fake_bulk),
         ):
             with pytest.raises(BulkWriteError):
@@ -340,7 +340,7 @@ class TestMongoEdgeKey:
         )
         s.edge_collection.create_index = AsyncMock()
 
-        with patch("lightrag.kg.mongo_impl.logger") as mock_logger:
+        with patch("forgemind.kg.mongo_impl.logger") as mock_logger:
             await s.create_edge_indexes_and_migrate_if_not_exists()
 
         # OpenSearch-aligned start/complete log wording.

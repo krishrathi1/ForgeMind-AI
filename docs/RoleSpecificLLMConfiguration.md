@@ -1,6 +1,6 @@
 # Role-Specific LLM/VLM Configuration Guide
 
-LightRAG supports configuring different LLMs or VLMs for different processing stages. This mechanism is useful when using a lower-cost model for extraction, a stronger model for final answers, or a dedicated vision-language model for multimodal analysis.
+ForgeMind supports configuring different LLMs or VLMs for different processing stages. This mechanism is useful when using a lower-cost model for extraction, a stronger model for final answers, or a dedicated vision-language model for multimodal analysis.
 
 ## Role Overview
 
@@ -13,7 +13,7 @@ Four roles are currently supported:
 | `QUERY` | The query stage, used to produce the final answer to the question based on the recalled content. A high-quality model with thinking mode enabled is recommended; the stronger the model, the higher the answer quality. A parameter size of 30B or above and a context length of at least 32KB are suggested. |
 | `VLM` | Used during the file insertion stage to analyze images. A high-quality model with image recognition capability is required; a parameter size of 30B or above is suggested. |
 
-If a role has no dedicated configuration, LightRAG uses the base `LLM_*` configuration.
+If a role has no dedicated configuration, ForgeMind uses the base `LLM_*` configuration.
 
 ## Base LLM Configuration
 
@@ -132,7 +132,7 @@ If a role's `{ROLE}_LLM_BINDING` differs from the base `LLM_BINDING`, it is a cr
 
 - `{ROLE}_LLM_MODEL` must be set.
 - Non-Bedrock providers must set `{ROLE}_LLM_BINDING_API_KEY`.
-- If `{ROLE}_LLM_BINDING_HOST` is not set, LightRAG tries to use that provider's default host.
+- If `{ROLE}_LLM_BINDING_HOST` is not set, ForgeMind tries to use that provider's default host.
 - Provider options do not inherit base provider options. They start empty and only apply role-specific provider options.
 
 Example: use Ollama as the base for local extraction, then use OpenAI for final answers:
@@ -296,7 +296,7 @@ KEYWORD_MAX_ASYNC_LLM=4
 KEYWORD_LLM_TIMEOUT=60
 ```
 
-This pattern is not cross-provider because all three roles use the `openai` binding. LightRAG passes each role's `*_LLM_BINDING_HOST` and `*_LLM_BINDING_API_KEY` to the OpenAI-compatible client separately.
+This pattern is not cross-provider because all three roles use the `openai` binding. ForgeMind passes each role's `*_LLM_BINDING_HOST` and `*_LLM_BINDING_API_KEY` to the OpenAI-compatible client separately.
 
 Note: provider options within the same provider inherit the base `OPENAI_LLM_*`. If the local vLLM server does not support official OpenAI parameters such as `reasoning_effort`, do not set the global `OPENAI_LLM_REASONING_EFFORT`; use role-level variables such as `EXTRACT_OPENAI_LLM_REASONING_EFFORT` and `QUERY_OPENAI_LLM_REASONING_EFFORT` instead.
 
@@ -371,6 +371,6 @@ Do not set `QUERY_LLM_BINDING_API_KEY`; Bedrock rejects that configuration.
 - Within the same provider, provider options such as `OPENAI_LLM_REASONING_EFFORT`, `OPENAI_LLM_MAX_TOKENS`, `OLLAMA_LLM_NUM_CTX`, and `GEMINI_LLM_THINKING_CONFIG` are inherited automatically.
 - There is currently no clean role-level semantic for "unsetting an inherited provider option". If a model in a same-provider role does not support a base option, explicitly override that option for the role with a supported value, or configure the role as cross-provider and set only the role-specific provider options it supports.
 - `AZURE_OPENAI_DEPLOYMENT` and `AZURE_OPENAI_API_VERSION` for `azure_openai` are global environment variables. If `AZURE_OPENAI_DEPLOYMENT` is set, it may take precedence over the role model name.
-- Gemini Vertex AI mode is controlled by process-level Google environment variables. In the same LightRAG process, some roles cannot use Vertex AI while others use AI Studio API keys.
+- Gemini Vertex AI mode is controlled by process-level Google environment variables. In the same ForgeMind process, some roles cannot use Vertex AI while others use AI Studio API keys.
 - In Docker/Compose, `LLM_BINDING_HOST` usually needs to use a container-reachable address such as `host.docker.internal`; role-level hosts follow the same principle.
-- Restart LightRAG Server after modifying `.env`. Some IDE terminals preload `.env`, so opening a new terminal session is recommended to confirm that environment variables take effect.
+- Restart ForgeMind Server after modifying `.env`. Some IDE terminals preload `.env`, so opening a new terminal session is recommended to confirm that environment variables take effect.

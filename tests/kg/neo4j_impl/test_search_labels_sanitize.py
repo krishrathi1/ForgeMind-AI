@@ -19,7 +19,7 @@ sys.path.append(
     )
 )
 
-from lightrag.kg.neo4j_impl import Neo4JStorage
+from forgemind.kg.neo4j_impl import Neo4JStorage
 
 
 @pytest.mark.parametrize(

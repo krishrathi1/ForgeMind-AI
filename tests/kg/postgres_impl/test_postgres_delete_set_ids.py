@@ -17,11 +17,11 @@ import pytest
 
 pytest.importorskip("asyncpg")
 
-from lightrag.kg.postgres_impl import (  # noqa: E402
+from forgemind.kg.postgres_impl import (  # noqa: E402
     PGDocStatusStorage,
     PGKVStorage,
 )
-from lightrag.namespace import NameSpace  # noqa: E402
+from forgemind.namespace import NameSpace  # noqa: E402
 
 
 class _FakeTransaction:

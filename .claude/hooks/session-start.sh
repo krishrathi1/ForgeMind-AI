@@ -19,9 +19,9 @@ if command -v uv >/dev/null 2>&1; then
 fi
 
 # --- WebUI frontend (bun) ---
-if command -v bun >/dev/null 2>&1 && [ -f lightrag_webui/package.json ]; then
+if command -v bun >/dev/null 2>&1 && [ -f forgemind_webui/package.json ]; then
   echo "[session-start] Installing WebUI dependencies..."
-  (cd lightrag_webui && bun install --frozen-lockfile)
+  (cd forgemind_webui && bun install --frozen-lockfile)
 fi
 
 echo "[session-start] Dependencies ready."

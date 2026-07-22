@@ -8,8 +8,8 @@ from fastapi.testclient import TestClient
 
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-_document_routes = importlib.import_module("lightrag.api.routers.document_routes")
-_base = importlib.import_module("lightrag.base")
+_document_routes = importlib.import_module("forgemind.api.routers.document_routes")
+_base = importlib.import_module("forgemind.base")
 sys.argv = _original_argv
 
 create_document_routes = _document_routes.create_document_routes

@@ -1,4 +1,4 @@
-"""Unit tests for :func:`lightrag.utils.strip_control_characters`.
+"""Unit tests for :func:`forgemind.utils.strip_control_characters`.
 
 The helper removes C0 control / separator characters (notably the
 ``\\x1c``-``\\x1f`` FS/GS/RS/US separators) and Unicode surrogates while
@@ -9,7 +9,7 @@ parser-extracted body text cannot carry these chars into chunks/storage.
 
 import pytest
 
-from lightrag.utils import strip_control_characters
+from forgemind.utils import strip_control_characters
 
 pytestmark = pytest.mark.offline
 

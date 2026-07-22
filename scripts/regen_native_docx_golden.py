@@ -4,7 +4,7 @@ sidecar pipeline.
 
 The fixtures live at
 ``tests/parser/docx/golden/native_docx/<scenario>/``
-and capture the exact on-disk artifacts ``LightRAG.parse_native`` produces
+and capture the exact on-disk artifacts ``ForgeMind.parse_native`` produces
 for each scenario in ``tests/parser/docx/_native_docx_fixtures.py``.
 
 Usage::
@@ -27,17 +27,17 @@ sys.path.insert(0, str(PROJECT_ROOT / "tests" / "parser" / "docx"))
 
 
 async def _regen() -> None:
-    from lightrag.constants import (
+    from forgemind.constants import (
         FULL_DOCS_FORMAT_PENDING_PARSE,
         PARSED_DIR_NAME,
     )
-    from lightrag.parser.base import ParseContext
-    from lightrag.parser.debug import (
+    from forgemind.parser.base import ParseContext
+    from forgemind.parser.debug import (
         FrozenDateTime,
         build_debug_rag,
     )
-    from lightrag.parser.registry import get_parser
-    import lightrag.pipeline as pipeline_module
+    from forgemind.parser.registry import get_parser
+    import forgemind.pipeline as pipeline_module
 
     from _native_docx_fixtures import SCENARIOS  # type: ignore[import]
 
@@ -83,7 +83,7 @@ async def _regen() -> None:
             with (
                 mock.patch.dict("os.environ", {"INPUT_DIR": str(input_dir)}),
                 mock.patch(
-                    "lightrag.parser.docx.parse_document.extract_docx_blocks",
+                    "forgemind.parser.docx.parse_document.extract_docx_blocks",
                     _stub_extract,
                 ),
                 mock.patch.object(
@@ -91,7 +91,7 @@ async def _regen() -> None:
                     "archive_docx_source_after_full_docs_sync",
                     _noop_archive,
                 ),
-                mock.patch("lightrag.sidecar.writer.datetime", FrozenDateTime),
+                mock.patch("forgemind.sidecar.writer.datetime", FrozenDateTime),
             ):
                 await get_parser("native").parse(
                     ParseContext(

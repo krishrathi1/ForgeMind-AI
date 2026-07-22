@@ -8,14 +8,14 @@ pytest.importorskip(
 )
 
 from qdrant_client import models  # noqa: E402
-from lightrag.utils import EmbeddingFunc  # noqa: E402
-from lightrag.kg.qdrant_impl import QdrantVectorDBStorage  # noqa: E402
+from forgemind.utils import EmbeddingFunc  # noqa: E402
+from forgemind.kg.qdrant_impl import QdrantVectorDBStorage  # noqa: E402
 
 
 # Mock QdrantClient
 @pytest.fixture
 def mock_qdrant_client():
-    with patch("lightrag.kg.qdrant_impl.QdrantClient") as mock_client_cls:
+    with patch("forgemind.kg.qdrant_impl.QdrantClient") as mock_client_cls:
         client = mock_client_cls.return_value
         client.collection_exists.return_value = False
         client.count.return_value.count = 0
@@ -31,7 +31,7 @@ def mock_qdrant_client():
 # Mock get_data_init_lock to avoid async lock issues in tests
 @pytest.fixture(autouse=True)
 def mock_data_init_lock():
-    with patch("lightrag.kg.qdrant_impl.get_data_init_lock") as mock_lock:
+    with patch("forgemind.kg.qdrant_impl.get_data_init_lock") as mock_lock:
         mock_lock_ctx = AsyncMock()
         mock_lock.return_value = mock_lock_ctx
         yield mock_lock
@@ -64,7 +64,7 @@ async def test_qdrant_collection_naming(mock_qdrant_client, mock_embedding_func)
     # Verify collection name contains model suffix
     expected_suffix = "test_model_768d"
     assert expected_suffix in storage.final_namespace
-    assert storage.final_namespace == f"lightrag_vdb_chunks_{expected_suffix}"
+    assert storage.final_namespace == f"forgemind_vdb_chunks_{expected_suffix}"
 
 
 async def test_qdrant_migration_trigger(mock_qdrant_client, mock_embedding_func):
@@ -82,7 +82,7 @@ async def test_qdrant_migration_trigger(mock_qdrant_client, mock_embedding_func)
     )
 
     # Legacy collection name (without model suffix)
-    legacy_collection = "lightrag_vdb_chunks"
+    legacy_collection = "forgemind_vdb_chunks"
 
     # Setup mocks for migration scenario
     # 1. New collection does not exist, only legacy exists
@@ -209,7 +209,7 @@ async def test_scenario_1_new_workspace_creation(
 ):
     """
     场景1：新建workspace
-    预期：直接创建lightrag_vdb_chunks_text_embedding_3_large_3072d
+    预期：直接创建forgemind_vdb_chunks_text_embedding_3_large_3072d
     """
     # Use a large embedding model
     large_model_func = EmbeddingFunc(
@@ -237,7 +237,7 @@ async def test_scenario_1_new_workspace_creation(
     await storage.initialize()
 
     # Verify: Should create new collection with model suffix
-    expected_collection = "lightrag_vdb_chunks_text_embedding_3_large_3072d"
+    expected_collection = "forgemind_vdb_chunks_text_embedding_3_large_3072d"
     assert storage.final_namespace == expected_collection
 
     # Verify create_collection was called with correct name
@@ -263,8 +263,8 @@ async def test_scenario_2_legacy_upgrade_migration(
 ):
     """
     场景2：从旧版本升级
-    已存在lightrag_vdb_chunks（无后缀）
-    预期：自动迁移数据到lightrag_vdb_chunks_text_embedding_ada_002_1536d
+    已存在forgemind_vdb_chunks（无后缀）
+    预期：自动迁移数据到forgemind_vdb_chunks_text_embedding_ada_002_1536d
     注意：迁移后不再自动删除遗留集合，需要手动删除
     """
     # Use ada-002 model
@@ -287,7 +287,7 @@ async def test_scenario_2_legacy_upgrade_migration(
     )
 
     # Legacy collection name (without model suffix)
-    legacy_collection = "lightrag_vdb_chunks"
+    legacy_collection = "forgemind_vdb_chunks"
     new_collection = storage.final_namespace
 
     # Case 4: Only legacy collection exists
@@ -344,7 +344,7 @@ async def test_scenario_2_legacy_upgrade_migration(
     await storage.initialize()
 
     # Verify: New collection should be created
-    expected_new_collection = "lightrag_vdb_chunks_text_embedding_ada_002_1536d"
+    expected_new_collection = "forgemind_vdb_chunks_text_embedding_ada_002_1536d"
     assert storage.final_namespace == expected_new_collection
 
     # Verify migration steps
@@ -421,11 +421,11 @@ async def test_scenario_3_multi_model_coexistence(mock_qdrant_client):
     assert storage_a.final_namespace != storage_b.final_namespace
 
     # Verify: Model A collection
-    expected_collection_a = "lightrag_vdb_chunks_bge_small_768d"
+    expected_collection_a = "forgemind_vdb_chunks_bge_small_768d"
     assert storage_a.final_namespace == expected_collection_a
 
     # Verify: Model B collection
-    expected_collection_b = "lightrag_vdb_chunks_bge_large_1024d"
+    expected_collection_b = "forgemind_vdb_chunks_bge_large_1024d"
     assert storage_b.final_namespace == expected_collection_b
 
     # Verify: Different embedding dimensions are preserved
@@ -456,7 +456,7 @@ async def test_case1_empty_legacy_auto_cleanup(mock_qdrant_client, mock_embeddin
     )
 
     # Legacy collection name (without model suffix)
-    legacy_collection = "lightrag_vdb_chunks"
+    legacy_collection = "forgemind_vdb_chunks"
     new_collection = storage.final_namespace
 
     # Mock: Both collections exist
@@ -525,7 +525,7 @@ async def test_case1_nonempty_legacy_warning(mock_qdrant_client, mock_embedding_
     )
 
     # Legacy collection name (without model suffix)
-    legacy_collection = "lightrag_vdb_chunks"
+    legacy_collection = "forgemind_vdb_chunks"
     new_collection = storage.final_namespace
 
     # Mock: Both collections exist

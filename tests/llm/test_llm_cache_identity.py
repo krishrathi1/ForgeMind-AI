@@ -1,7 +1,7 @@
 import pytest
 
-from lightrag.base import QueryParam
-from lightrag.operate import naive_query
+from forgemind.base import QueryParam
+from forgemind.operate import naive_query
 
 
 class _FakeTokenizer:
@@ -31,7 +31,7 @@ class _FakeChunksVDB:
         return [
             {
                 "id": "chunk-1",
-                "content": "LightRAG cache identity test chunk.",
+                "content": "ForgeMind cache identity test chunk.",
                 "file_path": "test.md",
             }
         ]

@@ -2,8 +2,8 @@ import sys
 
 import pytest
 
-from lightrag.api.config import parse_args
-from lightrag.constants import DEFAULT_MAX_ASYNC
+from forgemind.api.config import parse_args
+from forgemind.constants import DEFAULT_MAX_ASYNC
 
 
 pytestmark = pytest.mark.offline
@@ -26,7 +26,7 @@ def _clear_max_async_env(monkeypatch):
 
 def test_role_max_async_defaults_none_when_env_unset(monkeypatch):
     _clear_max_async_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("MAX_ASYNC", "10")
 
     args = parse_args()
@@ -40,7 +40,7 @@ def test_role_max_async_defaults_none_when_env_unset(monkeypatch):
 
 def test_role_max_async_env_override_keeps_other_roles_none(monkeypatch):
     _clear_max_async_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("MAX_ASYNC", "10")
     monkeypatch.setenv("EXTRACT_MAX_ASYNC_LLM", "7")
 
@@ -55,7 +55,7 @@ def test_role_max_async_env_override_keeps_other_roles_none(monkeypatch):
 
 def test_role_max_async_literal_none_string_is_preserved(monkeypatch):
     _clear_max_async_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("MAX_ASYNC", "10")
     monkeypatch.setenv("QUERY_MAX_ASYNC_LLM", "None")
 
@@ -67,7 +67,7 @@ def test_role_max_async_literal_none_string_is_preserved(monkeypatch):
 
 def test_max_async_llm_new_name(monkeypatch):
     _clear_max_async_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("MAX_ASYNC_LLM", "8")
 
     args = parse_args()
@@ -77,7 +77,7 @@ def test_max_async_llm_new_name(monkeypatch):
 
 def test_max_async_llm_takes_precedence_over_legacy(monkeypatch):
     _clear_max_async_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
     monkeypatch.setenv("MAX_ASYNC_LLM", "8")
     monkeypatch.setenv("MAX_ASYNC", "10")
 
@@ -88,7 +88,7 @@ def test_max_async_llm_takes_precedence_over_legacy(monkeypatch):
 
 def test_max_async_defaults_when_unset(monkeypatch):
     _clear_max_async_env(monkeypatch)
-    monkeypatch.setattr(sys, "argv", ["lightrag-server"])
+    monkeypatch.setattr(sys, "argv", ["forgemind-server"])
 
     args = parse_args()
 

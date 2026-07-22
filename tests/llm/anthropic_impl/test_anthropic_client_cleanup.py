@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from lightrag.llm.anthropic import anthropic_complete_if_cache
+from forgemind.llm.anthropic import anthropic_complete_if_cache
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ async def test_client_closed_on_rate_limit_error():
     fake_client = _make_error_client(err)
 
     with (
-        patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client),
+        patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client),
         pytest.raises(RateLimitError),
     ):
         await anthropic_complete_if_cache.__wrapped__(
@@ -131,7 +131,7 @@ async def test_client_closed_on_api_connection_error():
     fake_client = _make_error_client(err)
 
     with (
-        patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client),
+        patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client),
         pytest.raises(APIConnectionError),
     ):
         await anthropic_complete_if_cache.__wrapped__(
@@ -157,8 +157,8 @@ async def test_client_closed_on_api_timeout_error():
     fake_client = _make_error_client(err)
 
     with (
-        patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client),
-        patch("lightrag.llm.anthropic.logger") as mock_logger,
+        patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client),
+        patch("forgemind.llm.anthropic.logger") as mock_logger,
         pytest.raises(APITimeoutError),
     ):
         await anthropic_complete_if_cache.__wrapped__(
@@ -179,7 +179,7 @@ async def test_client_closed_on_generic_exception():
     fake_client = _make_error_client(err)
 
     with (
-        patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client),
+        patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client),
         pytest.raises(RuntimeError),
     ):
         await anthropic_complete_if_cache.__wrapped__(
@@ -203,7 +203,7 @@ async def test_client_closed_on_create_cancelled():
     fake_client = _make_error_client(asyncio.CancelledError())
 
     with (
-        patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client),
+        patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client),
         pytest.raises(asyncio.CancelledError),
     ):
         await anthropic_complete_if_cache.__wrapped__(
@@ -224,7 +224,7 @@ async def test_client_closed_after_non_streaming_success():
     """Non-streaming response: client.close() is called after returning content."""
     fake_client = _make_success_client("test response")
 
-    with patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client):
+    with patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client):
         result = await anthropic_complete_if_cache.__wrapped__(
             model="claude-3-opus", prompt="hello", api_key="test-key"
         )
@@ -253,7 +253,7 @@ async def test_close_error_does_not_swallow_original_exception():
     fake_client.close = AsyncMock(side_effect=RuntimeError("close failed"))
 
     with (
-        patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client),
+        patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client),
         pytest.raises(RateLimitError),  # original error, not RuntimeError
     ):
         await anthropic_complete_if_cache.__wrapped__(
@@ -275,7 +275,7 @@ async def test_stream_closed_after_full_consumption():
     )
     fake_client = _make_stream_client(stream)
 
-    with patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client):
+    with patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client):
         gen = await anthropic_complete_if_cache.__wrapped__(
             model="claude-3-opus", prompt="hello", api_key="test-key", stream=True
         )
@@ -293,7 +293,7 @@ async def test_stream_closed_on_early_consumer_break():
     stream = _FakeAnthropicStream([_make_text_event("a"), _make_text_event("b")])
     fake_client = _make_stream_client(stream)
 
-    with patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client):
+    with patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client):
         gen = await anthropic_complete_if_cache.__wrapped__(
             model="claude-3-opus", prompt="hello", api_key="test-key", stream=True
         )
@@ -312,7 +312,7 @@ async def test_stream_closed_on_iteration_error():
     stream = _FakeAnthropicStream([], error=RuntimeError("stream boom"))
     fake_client = _make_stream_client(stream)
 
-    with patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client):
+    with patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client):
         gen = await anthropic_complete_if_cache.__wrapped__(
             model="claude-3-opus", prompt="hello", api_key="test-key", stream=True
         )
@@ -332,7 +332,7 @@ async def test_stream_close_error_does_not_block_client_close():
     stream.close = AsyncMock(side_effect=RuntimeError("stream close failed"))
     fake_client = _make_stream_client(stream)
 
-    with patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client):
+    with patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client):
         gen = await anthropic_complete_if_cache.__wrapped__(
             model="claude-3-opus", prompt="hello", api_key="test-key", stream=True
         )
@@ -358,7 +358,7 @@ async def test_client_closed_when_stream_close_cancelled():
     stream.close = AsyncMock(side_effect=asyncio.CancelledError())
     fake_client = _make_stream_client(stream)
 
-    with patch("lightrag.llm.anthropic.AsyncAnthropic", return_value=fake_client):
+    with patch("forgemind.llm.anthropic.AsyncAnthropic", return_value=fake_client):
         gen = await anthropic_complete_if_cache.__wrapped__(
             model="claude-3-opus", prompt="hello", api_key="test-key", stream=True
         )

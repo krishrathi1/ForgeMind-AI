@@ -12,12 +12,12 @@ import pytest
 
 nano_vectordb = pytest.importorskip("nano_vectordb")  # noqa: F841
 
-from lightrag.kg.nano_vector_db_impl import NanoVectorDBStorage  # noqa: E402
-from lightrag.kg.shared_storage import (  # noqa: E402
+from forgemind.kg.nano_vector_db_impl import NanoVectorDBStorage  # noqa: E402
+from forgemind.kg.shared_storage import (  # noqa: E402
     initialize_share_data,
     finalize_share_data,
 )
-from lightrag.utils import EmbeddingFunc  # noqa: E402
+from forgemind.utils import EmbeddingFunc  # noqa: E402
 
 DIM = 8
 

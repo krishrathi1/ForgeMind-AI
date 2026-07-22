@@ -8,8 +8,8 @@ import pytest
 
 pytest.importorskip("langchain_experimental")
 
-from lightrag.chunker import chunking_by_semantic_vector  # noqa: E402
-from lightrag.utils import EmbeddingFunc, Tokenizer, TokenizerInterface  # noqa: E402
+from forgemind.chunker import chunking_by_semantic_vector  # noqa: E402
+from forgemind.utils import EmbeddingFunc, Tokenizer, TokenizerInterface  # noqa: E402
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -96,10 +96,10 @@ def test_v_chunker_falls_back_to_recursive_when_no_embedding():
     is embeddings, so without them R is the closest neighbour."""
     body = "Para A.\n\nPara B for fallback test.\n\nPara C."
 
-    lightrag_logger = logging.getLogger("lightrag")
+    forgemind_logger = logging.getLogger("forgemind")
     handler = _ListHandler()
     handler.setLevel(logging.WARNING)
-    lightrag_logger.addHandler(handler)
+    forgemind_logger.addHandler(handler)
     try:
 
         async def _run():
@@ -112,7 +112,7 @@ def test_v_chunker_falls_back_to_recursive_when_no_embedding():
 
         chunks = asyncio.run(_run())
     finally:
-        lightrag_logger.removeHandler(handler)
+        forgemind_logger.removeHandler(handler)
 
     assert len(chunks) >= 1
     assert any(
@@ -188,8 +188,8 @@ def test_semantic_groups_mirror_matches_upstream_split_text():
     from langchain_core.embeddings import Embeddings
     from langchain_experimental.text_splitter import SemanticChunker
 
-    from lightrag.chunker.semantic_vector import _semantic_groups_with_spans
-    from lightrag.constants import DEFAULT_SENTENCE_SPLIT_REGEX
+    from forgemind.chunker.semantic_vector import _semantic_groups_with_spans
+    from forgemind.constants import DEFAULT_SENTENCE_SPLIT_REGEX
 
     class _SyncEmbeddings(Embeddings):
         """Deterministic per-text vectors, mirroring _make_deterministic_embedding

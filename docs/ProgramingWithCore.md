@@ -1,24 +1,24 @@
-# Programming With LightRAG Core
+# Programming With ForgeMind Core
 
-> If you want to integrate LightRAG into your project, we recommend using the REST API provided by the LightRAG Server. LightRAG Core is intended for embedded applications or researchers conducting studies and evaluations.
+> If you want to integrate ForgeMind into your project, we recommend using the REST API provided by the ForgeMind Server. ForgeMind Core is intended for embedded applications or researchers conducting studies and evaluations.
 
 ## A Simple Program
 
 ```python
 import os
 import asyncio
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.openai import gpt_4o_mini_complete, gpt_4o_complete, openai_embed
-from lightrag.utils import setup_logger
+from forgemind import ForgeMind, QueryParam
+from forgemind.llm.openai import gpt_4o_mini_complete, gpt_4o_complete, openai_embed
+from forgemind.utils import setup_logger
 
-setup_logger("lightrag", level="INFO")
+setup_logger("forgemind", level="INFO")
 
 WORKING_DIR = "./rag_storage"
 if not os.path.exists(WORKING_DIR):
     os.mkdir(WORKING_DIR)
 
 async def initialize_rag():
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=WORKING_DIR,
         embedding_func=openai_embed,
         llm_model_func=gpt_4o_mini_complete,
@@ -58,17 +58,17 @@ Notes:
 
 **Important:**
 
-**LightRAG requires explicit initialization before use.** You must call `await rag.initialize_storages()` after creating a LightRAG instance, otherwise you will encounter errors.
+**ForgeMind requires explicit initialization before use.** You must call `await rag.initialize_storages()` after creating a ForgeMind instance, otherwise you will encounter errors.
 
 
-## LightRAG Init Parameters
+## ForgeMind Init Parameters
 
 **Parameters**
 
 | **Parameter** | **Type** | **Explanation** | **Default** |
 | -------------- | ---------- | ----------------- | ------------- |
-| **working_dir** | `str` | Directory where the cache will be stored | `lightrag_cache+timestamp` |
-| **workspace** | str | Workspace name for data isolation between different LightRAG Instances | |
+| **working_dir** | `str` | Directory where the cache will be stored | `forgemind_cache+timestamp` |
+| **workspace** | str | Workspace name for data isolation between different ForgeMind Instances | |
 | **kv_storage** | `str` | Storage type for documents and text chunks. Supported types: `JsonKVStorage`,`PGKVStorage`,`RedisKVStorage`,`MongoKVStorage`,`OpenSearchKVStorage` | `JsonKVStorage` |
 | **vector_storage** | `str` | Storage type for embedding vectors. Supported types: `NanoVectorDBStorage`,`PGVectorStorage`,`MilvusVectorDBStorage`,`ChromaVectorDBStorage`,`FaissVectorDBStorage`,`MongoVectorDBStorage`,`QdrantVectorDBStorage`,`OpenSearchVectorDBStorage` | `NanoVectorDBStorage` |
 | **graph_storage** | `str` | Storage type for graph edges and nodes. Supported types: `NetworkXStorage`,`Neo4JStorage`,`PGGraphStorage`,`AGEStorage`,`OpenSearchGraphStorage` | `NetworkXStorage` |
@@ -98,7 +98,7 @@ Notes:
 
 ## addon_params
 
-`addon_params` is a live configuration mapping on each `LightRAG` instance. LightRAG currently reads the fields below; unknown custom keys may remain in the dict, but core LightRAG behavior does not use them.
+`addon_params` is a live configuration mapping on each `ForgeMind` instance. ForgeMind currently reads the fields below; unknown custom keys may remain in the dict, but core ForgeMind behavior does not use them.
 
 ### Supported Fields
 
@@ -141,9 +141,9 @@ Compact `chunker` shape:
 
 ### Initialization
 
-When you create a `LightRAG` object, `addon_params` is normalized before storage initialization:
+When you create a `ForgeMind` object, `addon_params` is normalized before storage initialization:
 
-- If `addon_params` is omitted, LightRAG builds defaults from `SUMMARY_LANGUAGE`, `ENTITY_TYPE_PROMPT_FILE`, and the chunker-related `CHUNK_*` environment variables.
+- If `addon_params` is omitted, ForgeMind builds defaults from `SUMMARY_LANGUAGE`, `ENTITY_TYPE_PROMPT_FILE`, and the chunker-related `CHUNK_*` environment variables.
 - If you pass a partial dict, missing `language`, `entity_type_prompt_file`, and `chunker` values are still backfilled from the same env-backed defaults.
 - `entity_type_prompt_file` and `entity_types_guidance` are resolved into a cached entity extraction prompt profile during construction.
 - `chunk_token_size` and `chunk_overlap_token_size` constructor arguments are overlaid into `addon_params["chunker"]` only for slots that were not already set by explicit `addon_params` or strategy-specific env vars.
@@ -151,7 +151,7 @@ When you create a `LightRAG` object, `addon_params` is normalized before storage
 Example:
 
 ```python
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=llm_model_func,
     embedding_func=embedding_func,
@@ -172,7 +172,7 @@ await rag.initialize_storages()
 
 ### Updating After Creation
 
-`rag.addon_params` is an observable mapping. Top-level updates mark the derived prompt cache dirty; the cache is refreshed the next time LightRAG builds runtime config for extraction or query work.
+`rag.addon_params` is an observable mapping. Top-level updates mark the derived prompt cache dirty; the cache is refreshed the next time ForgeMind builds runtime config for extraction or query work.
 
 Update one field:
 
@@ -232,7 +232,7 @@ Use `QueryParam` to control the behavior of your query:
 
 ```python
 class QueryParam:
-    """Configuration parameters for query execution in LightRAG."""
+    """Configuration parameters for query execution in ForgeMind."""
 
     mode: Literal["local", "global", "hybrid", "naive", "mix", "bypass"] = "global"
     """Specifies the retrieval mode:
@@ -295,7 +295,7 @@ class QueryParam:
 
 ## LLM and Embedding Injection
 
-LightRAG requires LLM and Embedding models for document indexing and querying. During initialization, inject the relevant model functions into LightRAG.
+ForgeMind requires LLM and Embedding models for document indexing and querying. During initialization, inject the relevant model functions into ForgeMind.
 
 ### Model Selection Requirements
 
@@ -305,13 +305,13 @@ LightRAG requires LLM and Embedding models for document indexing and querying. D
 
 #### Using OpenAI-like APIs
 
-LightRAG supports OpenAI-like chat/embeddings APIs:
+ForgeMind supports OpenAI-like chat/embeddings APIs:
 
 ```python
 import os
 import numpy as np
-from lightrag.utils import wrap_embedding_func_with_attrs
-from lightrag.llm.openai import openai_complete_if_cache, openai_embed
+from forgemind.utils import wrap_embedding_func_with_attrs
+from forgemind.llm.openai import openai_complete_if_cache, openai_embed
 
 async def llm_model_func(
     prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
@@ -336,7 +336,7 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
     )
 
 async def initialize_rag():
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=WORKING_DIR,
         llm_model_func=llm_model_func,
         embedding_func=embedding_func  # Pass the decorated function directly
@@ -351,7 +351,7 @@ async def initialize_rag():
 
 #### Using Hugging Face Models
 
-See `lightrag_hf_demo.py`
+See `forgemind_hf_demo.py`
 
 ```python
 from functools import partial
@@ -361,8 +361,8 @@ from transformers import AutoTokenizer, AutoModel
 tokenizer = AutoTokenizer.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 embed_model = AutoModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2")
 
-# Initialize LightRAG with Hugging Face model
-rag = LightRAG(
+# Initialize ForgeMind with Hugging Face model
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=hf_model_complete,  # Use Hugging Face model for text generation
     llm_model_name='meta-llama/Llama-3.1-8B-Instruct',  # Model name from Hugging Face
@@ -386,15 +386,15 @@ Pull the model you plan to use and an embedding model, for example `nomic-embed-
 
 ```python
 import numpy as np
-from lightrag.utils import wrap_embedding_func_with_attrs
-from lightrag.llm.ollama import ollama_model_complete, ollama_embed
+from forgemind.utils import wrap_embedding_func_with_attrs
+from forgemind.llm.ollama import ollama_model_complete, ollama_embed
 
 @wrap_embedding_func_with_attrs(embedding_dim=768, max_token_size=8192, model_name="nomic-embed-text")
 async def embedding_func(texts: list[str]) -> np.ndarray:
     return await ollama_embed.func(texts, embed_model="nomic-embed-text")
 
-# Initialize LightRAG with Ollama model
-rag = LightRAG(
+# Initialize ForgeMind with Ollama model
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=ollama_model_complete,
     llm_model_name='your_model_name',
@@ -404,7 +404,7 @@ rag = LightRAG(
 
 #### Increasing context size
 
-LightRAG requires at least 32k context tokens. Ollama defaults to 8k. Two approaches:
+ForgeMind requires at least 32k context tokens. Ollama defaults to 8k. Two approaches:
 
 *Approach 1: Edit Modelfile*
 
@@ -419,7 +419,7 @@ ollama create -f Modelfile qwen2m
 *Approach 2: Set `num_ctx` via `llm_model_kwargs`*
 
 ```python
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=ollama_model_complete,
     llm_model_name='your_model_name',
@@ -438,20 +438,20 @@ For low-RAM GPUs (e.g. 6GB), select a small model and tune the context window. F
 
 #### LlamaIndex
 
-LightRAG supports integration with LlamaIndex (`llm/llama_index_impl.py`):
+ForgeMind supports integration with LlamaIndex (`llm/llama_index_impl.py`):
 
 ```python
 import asyncio
-from lightrag import LightRAG
-from lightrag.llm.llama_index_impl import llama_index_complete_if_cache, llama_index_embed
+from forgemind import ForgeMind
+from forgemind.llm.llama_index_impl import llama_index_complete_if_cache, llama_index_embed
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.llms.openai import OpenAI
-from lightrag.utils import setup_logger
+from forgemind.utils import setup_logger
 
-setup_logger("lightrag", level="INFO")
+setup_logger("forgemind", level="INFO")
 
 async def initialize_rag():
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir="your/path",
         llm_model_func=llama_index_complete_if_cache,
         embedding_func=EmbeddingFunc(
@@ -467,17 +467,17 @@ async def initialize_rag():
 
 **Further reading:**
 - [LlamaIndex Documentation](https://developers.llamaindex.ai/python/framework/)
-- [Direct OpenAI Example](examples/unofficial-sample/lightrag_llamaindex_direct_demo.py)
-- [LiteLLM Proxy Example](examples/unofficial-sample/lightrag_llamaindex_litellm_demo.py)
-- [LiteLLM Proxy with Opik Example](examples/unofficial-sample/lightrag_llamaindex_litellm_opik_demo.py)
+- [Direct OpenAI Example](examples/unofficial-sample/forgemind_llamaindex_direct_demo.py)
+- [LiteLLM Proxy Example](examples/unofficial-sample/forgemind_llamaindex_litellm_demo.py)
+- [LiteLLM Proxy with Opik Example](examples/unofficial-sample/forgemind_llamaindex_litellm_opik_demo.py)
 
 #### Using Azure OpenAI Models
 
 ```python
 import os
 import numpy as np
-from lightrag.utils import wrap_embedding_func_with_attrs
-from lightrag.llm.azure_openai import azure_openai_complete_if_cache, azure_openai_embed
+from forgemind.utils import wrap_embedding_func_with_attrs
+from forgemind.llm.azure_openai import azure_openai_complete_if_cache, azure_openai_embed
 
 async def llm_model_func(
     prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
@@ -507,7 +507,7 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
         deployment_name=os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME")
     )
 
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=llm_model_func,
     embedding_func=embedding_func
@@ -519,8 +519,8 @@ rag = LightRAG(
 ```python
 import os
 import numpy as np
-from lightrag.utils import wrap_embedding_func_with_attrs
-from lightrag.llm.gemini import gemini_model_complete, gemini_embed
+from forgemind.utils import wrap_embedding_func_with_attrs
+from forgemind.llm.gemini import gemini_model_complete, gemini_embed
 
 async def llm_model_func(
     prompt, system_prompt=None, history_messages=[], keyword_extraction=False, **kwargs
@@ -546,7 +546,7 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
         model="models/text-embedding-004"
     )
 
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=llm_model_func,
     llm_model_name="gemini-2.0-flash",
@@ -562,11 +562,11 @@ To enhance retrieval quality, documents can be re-ranked based on a more effecti
 - **Jina AI**: `jina_rerank`
 - **Aliyun**: `ali_rerank`
 
-Inject one of these functions into the `rerank_model_func` attribute of the LightRAG object. For detailed usage, refer to `examples/rerank_example.py`.
+Inject one of these functions into the `rerank_model_func` attribute of the ForgeMind object. For detailed usage, refer to `examples/rerank_example.py`.
 
 ### User Prompt vs. Query
 
-When using LightRAG for content queries, avoid combining the search process with unrelated output processing, as this significantly impacts query effectiveness. The `user_prompt` parameter in `QueryParam` does not participate in the RAG retrieval phase — it guides the LLM on how to process the retrieved results after the query is completed.
+When using ForgeMind for content queries, avoid combining the search process with unrelated output processing, as this significantly impacts query effectiveness. The `user_prompt` parameter in `QueryParam` does not participate in the RAG retrieval phase — it guides the LLM on how to process the retrieved results after the query is completed.
 
 ```python
 query_param = QueryParam(
@@ -586,7 +586,7 @@ print(response_default)
 
 ### Sotrage Types
 
-LightRAG uses 4 types of storage for different purposes:
+ForgeMind uses 4 types of storage for different purposes:
 
 | Storage Type | Purpose |
 |---|---|
@@ -636,7 +636,7 @@ MongoDocStatusStorage       MongoDB
 OpenSearchDocStatusStorage  OpenSearch
 ```
 
-Example connection configurations for each storage type can be found in the repository's `env.example` file. The database instance in the connection string must be created beforehand — LightRAG only creates tables within the instance, not the instance itself.
+Example connection configurations for each storage type can be found in the repository's `env.example` file. The database instance in the connection string must be created beforehand — ForgeMind only creates tables within the instance, not the instance itself.
 
 ###  Backend-Specific Setup
 
@@ -652,12 +652,12 @@ export NEO4J_DATABASE="neo4j"  # Required for community edition
 ```
 
 ```python
-from lightrag.utils import setup_logger
+from forgemind.utils import setup_logger
 
-setup_logger("lightrag", level="INFO")
+setup_logger("forgemind", level="INFO")
 
 async def initialize_rag():
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=WORKING_DIR,
         llm_model_func=gpt_4o_mini_complete,
         graph_storage="Neo4JStorage",
@@ -674,7 +674,7 @@ PostgreSQL can provide a one-stop solution as KV store, VectorDB (pgvector), and
 
 - PostgreSQL is lightweight; the whole binary distribution including all necessary plugins can be zipped to 40MB: Ref to [Windows Release](https://github.com/ShanGor/apache-age-windows/releases/tag/PG17%2Fv1.5.0-rc0) as it is easy to install for Linux/Mac.
 - If you prefer Docker, start with this image to avoid hiccups: https://hub.docker.com/r/gzdaniel/postgres-for-rag. The latest image no longer ships hardcoded credentials; on first start it creates the user, password, and database from the `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` environment variables (these are set automatically when you deploy via the `scripts/setup/setup.sh` wizard, so you can pick any values).
-- How to start: see [examples/lightrag_gemini_postgres_demo.py](https://github.com/HKUDS/LightRAG/blob/main/examples/lightrag_gemini_postgres_demo.py)
+- How to start: see [examples/forgemind_gemini_postgres_demo.py](https://github.com/krishrathi1/ForgeMind-AI/blob/main/examples/forgemind_gemini_postgres_demo.py)
 - For high-performance graph database requirements, Neo4j is recommended as Apache AGE's performance is not as competitive.
 
 #### Using Faiss Storage
@@ -691,7 +691,7 @@ async def embedding_func(texts: list[str]) -> np.ndarray:
     embeddings = model.encode(texts, convert_to_numpy=True)
     return embeddings
 
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=llm_model_func,
     embedding_func=EmbeddingFunc(
@@ -717,7 +717,7 @@ export MEMGRAPH_URI="bolt://localhost:7687"
 
 ```python
 async def initialize_rag():
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=WORKING_DIR,
         llm_model_func=gpt_4o_mini_complete,
         graph_storage="MemgraphStorage",
@@ -734,21 +734,21 @@ Milvus is a high-performance, scalable vector database for production-level vect
 
 ```bash
 MILVUS_URI=http://localhost:19530
-MILVUS_DB_NAME=lightrag
-LIGHTRAG_VECTOR_STORAGE=MilvusVectorDBStorage
+MILVUS_DB_NAME=forgemind
+FORGEMIND_VECTOR_STORAGE=MilvusVectorDBStorage
 ```
 
 **Quick setup via Python SDK:**
 
 ```python
-rag = LightRAG(
+rag = ForgeMind(
     working_dir="./rag_storage",
     llm_model_func=...,
     embedding_func=...,
     vector_storage="MilvusVectorDBStorage",
     vector_db_storage_cls_kwargs={
         "milvus_uri": "http://localhost:19530",
-        "milvus_db_name": "lightrag",
+        "milvus_db_name": "forgemind",
         "cosine_better_than_threshold": 0.2,
     },
 )
@@ -756,13 +756,13 @@ rag = LightRAG(
 
 #### Using MongoDB Storage
 
-MongoDB provides a one-stop storage solution for LightRAG with native KV storage and vector storage. LightRAG uses MongoDB collections to implement a simple graph storage.
+MongoDB provides a one-stop storage solution for ForgeMind with native KV storage and vector storage. ForgeMind uses MongoDB collections to implement a simple graph storage.
 
 `MongoVectorDBStorage` requires a MongoDB deployment with Atlas Search / Vector Search support (e.g., MongoDB Atlas or Atlas local). The setup wizard's bundled local Docker MongoDB service is MongoDB Community Edition — it can be used for KV/graph/doc-status storage but **not** for `MongoVectorDBStorage`.
 
 #### Using Redis Storage
 
-LightRAG supports Redis as KV storage. Configure persistence and memory usage carefully. Recommended Redis configuration:
+ForgeMind supports Redis as KV storage. Configure persistence and memory usage carefully. Recommended Redis configuration:
 
 ```
 save 900 1
@@ -778,7 +778,7 @@ When the interactive setup manages a local Redis container, it stages a user-edi
 
 #### Using OpenSearch Storage
 
-OpenSearch provides a unified storage solution for all four LightRAG storage types (KV, Vector, Graph, DocStatus). It offers native k-NN vector search, full-text search, and horizontal scalability without cloud-only restrictions.
+OpenSearch provides a unified storage solution for all four ForgeMind storage types (KV, Vector, Graph, DocStatus). It offers native k-NN vector search, full-text search, and horizontal scalability without cloud-only restrictions.
 
 **Requirements**: OpenSearch 3.x or higher with k-NN plugin enabled.
 
@@ -806,7 +806,7 @@ export OPENSEARCH_VERIFY_CERTS=false
 
 **Usage**:
 ```python
-rag = LightRAG(
+rag = ForgeMind(
     working_dir=WORKING_DIR,
     llm_model_func=your_llm_func,
     embedding_func=your_embed_func,
@@ -850,27 +850,27 @@ python examples/opensearch_storage_demo.py
 5. Run the full OpenAI + OpenSearch demo (requires `OPENAI_API_KEY`):
 ```bash
 export OPENAI_API_KEY=your-api-key
-python examples/lightrag_openai_opensearch_graph_demo.py
+python examples/forgemind_openai_opensearch_graph_demo.py
 ```
 
-6. Visualize the knowledge graph via LightRAG WebUI:
+6. Visualize the knowledge graph via ForgeMind WebUI:
 ```bash
-LIGHTRAG_KV_STORAGE=OpenSearchKVStorage \
-LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage \
-LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage \
-LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage \
+FORGEMIND_KV_STORAGE=OpenSearchKVStorage \
+FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage \
+FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage \
+FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage \
 LLM_BINDING=openai \
 EMBEDDING_BINDING=openai \
 EMBEDDING_MODEL=text-embedding-3-large \
 EMBEDDING_DIM=3072 \
 OPENAI_API_KEY=your-api-key \
-lightrag-server
+forgemind-server
 ```
 
 
-## Data Isolation Between LightRAG Instances
+## Data Isolation Between ForgeMind Instances
 
-The `workspace` parameter ensures data isolation between different LightRAG instances. Once initialized, the `workspace` is immutable.
+The `workspace` parameter ensures data isolation between different ForgeMind instances. Once initialized, the `workspace` is immutable.
 
 | Storage Type | Isolation Method |
 |---|---|
@@ -885,7 +885,7 @@ The `workspace` parameter ensures data isolation between different LightRAG inst
 
 Storage-specific workspace environment variables override the common `WORKSPACE` variable: `REDIS_WORKSPACE`, `MILVUS_WORKSPACE`, `QDRANT_WORKSPACE`, `MONGODB_WORKSPACE`, `POSTGRES_WORKSPACE`, `NEO4J_WORKSPACE`, `OPENSEARCH_WORKSPACE`.
 
-For a practical demonstration of managing multiple isolated knowledge bases, see [Workspace Demo](examples/lightrag_gemini_workspace_demo.py).
+For a practical demonstration of managing multiple isolated knowledge bases, see [Workspace Demo](examples/forgemind_gemini_workspace_demo.py).
 
 
 ## Insert
@@ -903,7 +903,7 @@ rag.insert("Text")
 rag.insert(["TEXT1", "TEXT2", ...])
 
 # Batch Insert with custom batch size
-rag = LightRAG(
+rag = ForgeMind(
     ...
     working_dir=WORKING_DIR,
     max_parallel_insert=4
@@ -930,7 +930,7 @@ rag.insert(["TEXT1", "TEXT2", ...], ids=["ID_FOR_TEXT1", "ID_FOR_TEXT2"])
 `apipeline_enqueue_documents` and `apipeline_process_enqueue_documents` allow incremental insertion of documents in the background while the main thread continues executing.
 
 ```python
-rag = LightRAG(..)
+rag = ForgeMind(..)
 await rag.apipeline_enqueue_documents(input)
 # Your routine in loop
 await rag.apipeline_process_enqueue_documents(input)
@@ -962,7 +962,7 @@ rag.insert(documents, file_paths=file_paths)
 
 ## Edit Entities and Relations
 
-LightRAG supports comprehensive knowledge graph management: create, edit, and delete entities and relationships.
+ForgeMind supports comprehensive knowledge graph management: create, edit, and delete entities and relationships.
 
 * Create Entities and Relations
 
@@ -1090,7 +1090,7 @@ These operations maintain data consistency across both the graph database and ve
 
 ## Delete Functions
 
-LightRAG provides comprehensive deletion capabilities.
+ForgeMind provides comprehensive deletion capabilities.
 
 ### Delete Entities
 
@@ -1204,16 +1204,16 @@ When merging entities:
 
 1. **`AttributeError: __aenter__`**
    - **Cause**: Storage backends not initialized
-   - **Solution**: Call `await rag.initialize_storages()` after creating the LightRAG instance
+   - **Solution**: Call `await rag.initialize_storages()` after creating the ForgeMind instance
 
 2. **`KeyError: 'history_messages'`**
    - **Cause**: Pipeline status not initialized
-   - **Solution**: Call `await rag.initialize_storages()` after creating the LightRAG instance
+   - **Solution**: Call `await rag.initialize_storages()` after creating the ForgeMind instance
 
 3. **Both errors in sequence**
    - **Solution**: Always follow this pattern:
    ```python
-   rag = LightRAG(...)
+   rag = ForgeMind(...)
    await rag.initialize_storages()
    ```
 

@@ -19,7 +19,7 @@ sys.path.append(
     )
 )
 
-from lightrag.kg.shared_storage import initialize_share_data
+from forgemind.kg.shared_storage import initialize_share_data
 
 
 # Mock embedding function that returns random vectors
@@ -37,7 +37,7 @@ async def neo4j_storage():
     if not os.getenv("NEO4J_URI"):
         pytest.skip("Neo4j not configured (NEO4J_URI not set)")
 
-    from lightrag.kg.neo4j_impl import Neo4JStorage
+    from forgemind.kg.neo4j_impl import Neo4JStorage
 
     # Initialize shared_storage for locks
     initialize_share_data()
@@ -296,7 +296,7 @@ async def test_multiple_workspaces_have_separate_indexes(neo4j_storage):
     """
     Test that different workspaces have their own separate indexes.
     """
-    from lightrag.kg.neo4j_impl import Neo4JStorage
+    from forgemind.kg.neo4j_impl import Neo4JStorage
 
     # Create storage for workspace 1
     storage1 = neo4j_storage

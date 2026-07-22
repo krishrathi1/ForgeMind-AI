@@ -1,13 +1,13 @@
 # Third-Party Parser Engine Development and Registration Guide
 
-LightRAG's parsing layer dispatches all parsing engines through a unified `BaseParser` contract plus the central engine registry (`lightrag/parser/registry.py`). Built-in engines (`native` / `legacy` / `mineru` / `docling`) and third-party engines use the exact same dispatch path: both pipeline workers and the debug CLI drive parsing through `get_parser(engine).parse(ParseContext(...))`, with **no special cases for built-in engines**. Therefore, a third-party package only needs to do two things:
+ForgeMind's parsing layer dispatches all parsing engines through a unified `BaseParser` contract plus the central engine registry (`forgemind/parser/registry.py`). Built-in engines (`native` / `legacy` / `mineru` / `docling`) and third-party engines use the exact same dispatch path: both pipeline workers and the debug CLI drive parsing through `get_parser(engine).parse(ParseContext(...))`, with **no special cases for built-in engines**. Therefore, a third-party package only needs to do two things:
 
 1. **Implement** a `BaseParser` subclass;
-2. **Register** a `ParserSpec` (automatic discovery through the `lightrag.parsers` entry point is recommended).
+2. **Register** a `ParserSpec` (automatic discovery through the `forgemind.parsers` entry point is recommended).
 
-Once that is done, the engine automatically gets: a dedicated (or shared) parsing concurrency pool, three engine-selection methods (filename hints / `LIGHTRAG_PARSER` routing rules / API `parse_engine` parameter), suffix capability validation, and single-file debug support through `python -m lightrag.parser.cli --engine <name>`.
+Once that is done, the engine automatically gets: a dedicated (or shared) parsing concurrency pool, three engine-selection methods (filename hints / `FORGEMIND_PARSER` routing rules / API `parse_engine` parameter), suffix capability validation, and single-file debug support through `python -m forgemind.parser.cli --engine <name>`.
 
-> For architecture background, see RFC #3197; for the sidecar file format, see `docs/LightRAGSidecarFormat.md`; for CLI usage, see `docs/ParserDebugCLI.md`.
+> For architecture background, see RFC #3197; for the sidecar file format, see `docs/ForgeMindSidecarFormat.md`; for CLI usage, see `docs/ParserDebugCLI.md`.
 
 ---
 
@@ -25,7 +25,7 @@ For a single document, all engine responsibilities converge into one `parse(ctx)
 
 ## 2. Implementing a Parser
 
-### 2.1 Contract (`lightrag/parser/base.py`)
+### 2.1 Contract (`forgemind/parser/base.py`)
 
 ```python
 class MyParser(BaseParser):
@@ -38,12 +38,12 @@ class MyParser(BaseParser):
 
 | Member | Description |
 |---|---|
-| `ctx.rag` | LightRAG instance (used for `_persist_parsed_full_docs`, etc.) |
+| `ctx.rag` | ForgeMind instance (used for `_persist_parsed_full_docs`, etc.) |
 | `ctx.doc_id` / `ctx.file_path` / `ctx.content_data` | Document identifier, normalized file path, and `full_docs` row |
 | `ctx.resolve(engine_name)` | Returns `ResolvedSource(source_path, document_name, parsed_dir)`: resolves the on-disk source file path, normalized document name, and derived `__parsed__/<base>.parsed/` artifact directory |
 | `ctx.archive_source(path)` | After parsing succeeds and `full_docs` synchronization is complete, archives the source file into `__parsed__/` |
 
-`ParseResult` fields: `doc_id` / `file_path` / `parse_format` (`"raw"` or `"lightrag"`) / `content` / `blocks_path` (`""` when there is no sidecar) / `parse_engine` / `parse_stage_skipped` (skipped scenarios such as cache hits) / `parse_warnings` (non-fatal warnings, persisted to `doc_status.metadata`).
+`ParseResult` fields: `doc_id` / `file_path` / `parse_format` (`"raw"` or `"forgemind"`) / `content` / `blocks_path` (`""` when there is no sidecar) / `parse_engine` / `parse_stage_skipped` (skipped scenarios such as cache hits) / `parse_warnings` (non-fatal warnings, persisted to `doc_status.metadata`).
 
 > Note: `parse_warnings → doc_status.metadata` is the general contract for every parser — the pipeline mirrors whatever a parser returns, without inspecting key names. The built-in native DOCX smart-heading engine is the one exception: it diverts *its own* `smart_`/`title_block_`-prefixed diagnostics to the sidecar `<base>.smart_audit.json` (under a `parse_warnings` key) instead of doc_status, and returns only the remaining non-smart warnings. This is a private policy of that engine, not a global prefix rule — a third-party parser returning `smart_*` warnings still gets them written to `doc_status.metadata`.
 
@@ -51,7 +51,7 @@ class MyParser(BaseParser):
 
 **A. Plain-text engine (no sidecar) - inherit `BaseParser` directly**
 
-See `lightrag/parser/legacy/parser.py` (`LegacyParser`). Core skeleton:
+See `forgemind/parser/legacy/parser.py` (`LegacyParser`). Core skeleton:
 
 ```python
 class MyTextParser(BaseParser):
@@ -82,7 +82,7 @@ class MyTextParser(BaseParser):
         )
 ```
 
-**B. Local parser that produces a sidecar - inherit `NativeParserBase`** (`lightrag/parser/native_base.py`)
+**B. Local parser that produces a sidecar - inherit `NativeParserBase`** (`forgemind/parser/native_base.py`)
 
 The template fixes the complete flow of "pre-clean artifact directory (with rollback) -> extract in a thread -> build IR -> write sidecar -> persist -> archive". You only need to implement two hooks:
 
@@ -98,9 +98,9 @@ class MyNativeParser(NativeParserBase):
         """blocks -> IRDoc (handed to the shared sidecar writer)."""
 ```
 
-Optional overrides: `validate_source` (by default only requires the file to exist); `surface_warnings` (maps extraction warnings to `parse_warnings`); and `finalize_parse_warnings` (full control, runs after `extract` so it sees the complete warnings dict — an engine may divert a subset of warnings to sidecar audit artifacts and return only the remainder for doc_status; the default just calls `surface_warnings`). Reference implementation: `lightrag/parser/docx/parser.py`, whose `finalize_parse_warnings` writes the smart-heading `<base>.smart_audit.json`.
+Optional overrides: `validate_source` (by default only requires the file to exist); `surface_warnings` (maps extraction warnings to `parse_warnings`); and `finalize_parse_warnings` (full control, runs after `extract` so it sees the complete warnings dict — an engine may divert a subset of warnings to sidecar audit artifacts and return only the remainder for doc_status; the default just calls `surface_warnings`). Reference implementation: `forgemind/parser/docx/parser.py`, whose `finalize_parse_warnings` writes the smart-heading `<base>.smart_audit.json`.
 
-**C. External parsing service (download raw bundle + cache) - inherit `ExternalParserBase`** (`lightrag/parser/external/_base.py`)
+**C. External parsing service (download raw bundle + cache) - inherit `ExternalParserBase`** (`forgemind/parser/external/_base.py`)
 
 The template fixes the flow of "raw cache-hit check -> if missed, clear the directory and download again -> build IR -> write sidecar -> persist -> archive". Implement three hooks plus two class attributes:
 
@@ -108,14 +108,14 @@ The template fixes the flow of "raw cache-hit check -> if missed, clear the dire
 class MyExternalParser(ExternalParserBase):
     engine_name = "myengine"
     raw_dir_suffix = ".myengine_raw"          # Raw bundle directory suffix (starts with .)
-    force_reparse_env = "LIGHTRAG_FORCE_REPARSE_MYENGINE"
+    force_reparse_env = "FORGEMIND_FORCE_REPARSE_MYENGINE"
 
     def is_bundle_valid(self, raw_dir, source_path) -> bool: ...   # Cache-hit check
     async def download_into(self, raw_dir, source_path, *, upload_name): ...
     def build_ir(self, raw_dir, document_name) -> IRDoc: ...
 ```
 
-Optional override: `validate_ir` (post-build validation, for example failing on zero blocks). Reference implementations: `lightrag/parser/external/mineru/parser.py`, `.../docling/parser.py`.
+Optional override: `validate_ir` (post-build validation, for example failing on zero blocks). Reference implementations: `forgemind/parser/external/mineru/parser.py`, `.../docling/parser.py`.
 
 ### 2.3 Failure Semantics (Important)
 
@@ -126,7 +126,7 @@ Optional override: `validate_ir` (post-build validation, for example failing on 
 ## 3. Declaring `ParserSpec` (Capability Metadata)
 
 ```python
-from lightrag.parser.registry import ParserSpec, register_parser
+from forgemind.parser.registry import ParserSpec, register_parser
 
 register_parser(ParserSpec(
     engine_name="myengine",
@@ -142,7 +142,7 @@ register_parser(ParserSpec(
 
 | Field | Required | Description |
 |---|---|---|
-| `engine_name` | yes | Registry key; also the engine name used by `--engine`, filename hints, and `LIGHTRAG_PARSER`. **Registering the same name as an existing engine overwrites the previous registration** (including built-in engines). Avoid colliding with `native/legacy/mineru/docling` unless you intentionally want to replace that implementation. |
+| `engine_name` | yes | Registry key; also the engine name used by `--engine`, filename hints, and `FORGEMIND_PARSER`. **Registering the same name as an existing engine overwrites the previous registration** (including built-in engines). Avoid colliding with `native/legacy/mineru/docling` unless you intentionally want to replace that implementation. |
 | `impl` | yes | `"module:Class"` string. The registry imports it only when a document is actually parsed. **The implementation must never be imported early during registration** (capability queries must stay import-cheap; this is a registry design invariant). |
 | `suffixes` | yes | File extensions the engine can handle (lowercase, no dot). Used for routing validation and worker-side suffix guarding. |
 | `queue_group` | | Concurrency-pool group. Defaults to `"native"` (sharing the native pool). Use a unique group name for a dedicated pool. |
@@ -153,26 +153,26 @@ register_parser(ParserSpec(
 ### Concurrency Model
 
 - For each batch, the pipeline creates **one queue plus one worker group for every `queue_group`**;
-- Worker count for a group: built-in groups (`native` / `mineru` / `docling`) are determined by LightRAG instance fields `max_parallel_parse_*` (constructor overrides are supported); a third-party dedicated group uses the `concurrency` value from the group's sole owner spec; **only one** spec in a group may declare `concurrency`, otherwise batch startup fails;
+- Worker count for a group: built-in groups (`native` / `mineru` / `docling`) are determined by ForgeMind instance fields `max_parallel_parse_*` (constructor overrides are supported); a third-party dedicated group uses the `concurrency` value from the group's sole owner spec; **only one** spec in a group may declare `concurrency`, otherwise batch startup fails;
 - When using `queue_group="native"` to share the built-in pool, `concurrency` does not take effect (pool size is determined by `max_parallel_parse_native`; ignored spec-level `concurrency` values are recorded as warning logs at batch startup). Lightweight local engines (such as `legacy`) fit this mode, while external-service engines should usually use a dedicated group so slow requests do not block local parsing.
 
 ## 4. Registration: Automatic Discovery via Entry Point (Recommended)
 
-LightRAG automatically discovers third-party engines through the `lightrag.parsers` entry-point group (`lightrag/parser/plugins.py`). A third-party package only needs to:
+ForgeMind automatically discovers third-party engines through the `forgemind.parsers` entry-point group (`forgemind/parser/plugins.py`). A third-party package only needs to:
 
 **1. Declare the entry point in its own `pyproject.toml`:**
 
 ```toml
-[project.entry-points."lightrag.parsers"]
-myengine = "my_pkg.lightrag_plugin:register"
+[project.entry-points."forgemind.parsers"]
+myengine = "my_pkg.forgemind_plugin:register"
 ```
 
 **2. Provide a zero-argument registration function:**
 
 ```python
-# my_pkg/lightrag_plugin.py - keep imports cheap: do not import parser implementations here
+# my_pkg/forgemind_plugin.py - keep imports cheap: do not import parser implementations here
 import os
-from lightrag.parser.registry import ParserSpec, register_parser
+from forgemind.parser.registry import ParserSpec, register_parser
 
 def register() -> None:
     register_parser(ParserSpec(
@@ -184,33 +184,33 @@ def register() -> None:
     ))
 ```
 
-After `pip install my-pkg`, it works immediately without changing LightRAG code:
+After `pip install my-pkg`, it works immediately without changing ForgeMind code:
 
-- **API Server**: `create_app()` calls `load_third_party_parsers()` **before** validating `LIGHTRAG_PARSER` routing rules, so routing rules can directly reference third-party engine names (for example, `LIGHTRAG_PARSER="foo:myengine"`). File-type guarding for uploads and scans is **derived entirely from the registry plus routing at runtime**. The criterion is "can this file route to an engine that supports it": a bare suffix (no hint) requires a `LIGHTRAG_PARSER` rule that routes it to your engine (otherwise the default `legacy` engine cannot handle it, so the file is rejected instead of being accepted and later FAILED during parsing); uploads with a filename hint (for example, `report.[myengine].foo`) pass without a rule; unique suffixes of engines whose endpoints are not configured do not participate (the same rule used by built-in mineru/docling image formats). **Practical recommendation: when publishing a third-party engine, tell users to configure the matching `LIGHTRAG_PARSER="foo:myengine"` rule in deployment docs**, so bare-filename uploads and directory scans work automatically;
-- **Debug CLI**: `python -m lightrag.parser.cli sample.foo --engine myengine` works directly (`main()` loads plugins before building `--engine` choices). For engines without sidecars (`blocks_path=""`), the CLI prints a plain-text summary instead of a block summary; engines inheriting `ExternalParserBase` automatically get raw cache display and `--force-reparse` support;
-- **Embedded library usage** (using the `LightRAG` class directly without going through the server or CLI): call this once before building the pipeline:
+- **API Server**: `create_app()` calls `load_third_party_parsers()` **before** validating `FORGEMIND_PARSER` routing rules, so routing rules can directly reference third-party engine names (for example, `FORGEMIND_PARSER="foo:myengine"`). File-type guarding for uploads and scans is **derived entirely from the registry plus routing at runtime**. The criterion is "can this file route to an engine that supports it": a bare suffix (no hint) requires a `FORGEMIND_PARSER` rule that routes it to your engine (otherwise the default `legacy` engine cannot handle it, so the file is rejected instead of being accepted and later FAILED during parsing); uploads with a filename hint (for example, `report.[myengine].foo`) pass without a rule; unique suffixes of engines whose endpoints are not configured do not participate (the same rule used by built-in mineru/docling image formats). **Practical recommendation: when publishing a third-party engine, tell users to configure the matching `FORGEMIND_PARSER="foo:myengine"` rule in deployment docs**, so bare-filename uploads and directory scans work automatically;
+- **Debug CLI**: `python -m forgemind.parser.cli sample.foo --engine myengine` works directly (`main()` loads plugins before building `--engine` choices). For engines without sidecars (`blocks_path=""`), the CLI prints a plain-text summary instead of a block summary; engines inheriting `ExternalParserBase` automatically get raw cache display and `--force-reparse` support;
+- **Embedded library usage** (using the `ForgeMind` class directly without going through the server or CLI): call this once before building the pipeline:
 
 ```python
-from lightrag.parser.plugins import load_third_party_parsers
+from forgemind.parser.plugins import load_third_party_parsers
 load_third_party_parsers()   # Idempotent within the process
 ```
 
 Loading semantics: idempotent per process (repeated calls are no-ops); **if a single plugin raises an exception, it is only logged and skipped**. It does not affect other plugins or built-in engines, and it does not block server startup. However, that engine will be unavailable, so watch for `[parser-plugins]` lines in startup logs.
 
-> If you do not want to publish a package, you can skip entry points and directly call `register_parser(...)` in your own startup script before starting/calling LightRAG. The registry is an in-process module singleton, so the effect is the same, just without "install and it works" behavior.
+> If you do not want to publish a package, you can skip entry points and directly call `register_parser(...)` in your own startup script before starting/calling ForgeMind. The registry is an in-process module singleton, so the effect is the same, just without "install and it works" behavior.
 
 ## 5. Routing: Making Documents Use Your Engine
 
-Engine selection priority (`lightrag/parser/routing.py`):
+Engine selection priority (`forgemind/parser/routing.py`):
 
 1. **Filename hint**: `report.[myengine].foo` (processing options are allowed, such as `report.[myengine-iet].foo`);
-2. **`LIGHTRAG_PARSER` rules**: for example, `LIGHTRAG_PARSER="foo:myengine,pdf:mineru"` (matched by suffix glob; the first match wins);
+2. **`FORGEMIND_PARSER` rules**: for example, `FORGEMIND_PARSER="foo:myengine,pdf:mineru"` (matched by suffix glob; the first match wins);
 3. **Default**: `legacy`.
 
 When API upload explicitly passes `parse_engine="myengine"`, that engine is fixed directly (stored in the `PENDING_PARSE` row and honored verbatim by the worker; unsupported suffixes are FAILED instead of silently falling back). Engines that register `endpoint_configured` are skipped by routing when the endpoint is not configured (hint/rule validation also shows the `endpoint_requirement` prompt).
 
 ## 6. Testing Recommendations
 
-- **Unit-test the engine itself**: bypass the CLI and directly call `get_parser("myengine").parse(ParseContext(fake_rag, doc_id, file_path, content_data))`. `fake_rag` only needs to provide `_persist_parsed_full_docs` / `_resolve_source_file_for_parser` / `full_docs` / `doc_status` (see `build_debug_rag()` in `lightrag/parser/debug.py`, or the minimal `_FakeRag` in `tests/parser/test_legacy_parser.py`);
+- **Unit-test the engine itself**: bypass the CLI and directly call `get_parser("myengine").parse(ParseContext(fake_rag, doc_id, file_path, content_data))`. `fake_rag` only needs to provide `_persist_parsed_full_docs` / `_resolve_source_file_for_parser` / `full_docs` / `doc_status` (see `build_debug_rag()` in `forgemind/parser/debug.py`, or the minimal `_FakeRag` in `tests/parser/test_legacy_parser.py`);
 - **The registry is a module-level singleton**: after calling `register_parser` in a test, clean up with `finally: registry._REGISTRY.pop("myengine", None)` (see `tests/parser/test_registry.py`);
-- **Entry-point loading logic**: see `tests/parser/test_plugins.py` (monkeypatch `lightrag.parser.plugins.entry_points` to inject a fake entry point; the `plugins._loaded` flag must be reset).
+- **Entry-point loading logic**: see `tests/parser/test_plugins.py` (monkeypatch `forgemind.parser.plugins.entry_points` to inject a fake entry point; the `plugins._loaded` flag must be reset).

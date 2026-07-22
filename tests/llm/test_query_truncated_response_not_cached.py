@@ -1,8 +1,8 @@
 import pytest
 
-from lightrag.base import QueryParam
-from lightrag.operate import naive_query
-from lightrag.utils import TruncatedResponse
+from forgemind.base import QueryParam
+from forgemind.operate import naive_query
+from forgemind.utils import TruncatedResponse
 
 
 class _FakeTokenizer:

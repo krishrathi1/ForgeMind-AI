@@ -26,18 +26,18 @@ from typing import Any
 import numpy as np
 import pytest
 
-from lightrag import LightRAG, ROLES, RoleLLMConfig
-from lightrag.base import DocProcessingStatus, DocStatus
-from lightrag.constants import (
-    FULL_DOCS_FORMAT_LIGHTRAG,
+from forgemind import ForgeMind, ROLES, RoleLLMConfig
+from forgemind.base import DocProcessingStatus, DocStatus
+from forgemind.constants import (
+    FULL_DOCS_FORMAT_FORGEMIND,
     FULL_DOCS_FORMAT_RAW,
 )
-from lightrag.kg.shared_storage import get_namespace_data, get_namespace_lock
-from lightrag.pipeline import _BatchRunContext
-from lightrag.parser.base import ParseResult
-from lightrag.parser.registry import parser_specs_snapshot
-from lightrag.utils import EmbeddingFunc, Tokenizer, get_content_summary
-from lightrag.utils_pipeline import make_lightrag_doc_content
+from forgemind.kg.shared_storage import get_namespace_data, get_namespace_lock
+from forgemind.pipeline import _BatchRunContext
+from forgemind.parser.base import ParseResult
+from forgemind.parser.registry import parser_specs_snapshot
+from forgemind.utils import EmbeddingFunc, Tokenizer, get_content_summary
+from forgemind.utils_pipeline import make_forgemind_doc_content
 
 
 pytestmark = pytest.mark.offline
@@ -59,9 +59,9 @@ async def _noop_llm(prompt, **kwargs):  # pragma: no cover - never invoked
     return ""
 
 
-def _build_rag(tmp_path: Path) -> LightRAG:
+def _build_rag(tmp_path: Path) -> ForgeMind:
     role_configs = {spec.name: RoleLLMConfig() for spec in ROLES}
-    return LightRAG(
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"reread-{tmp_path.name}",
         llm_model_func=_noop_llm,
@@ -75,7 +75,7 @@ def _build_rag(tmp_path: Path) -> LightRAG:
     )
 
 
-async def _make_ctx(rag: LightRAG) -> _BatchRunContext:
+async def _make_ctx(rag: ForgeMind) -> _BatchRunContext:
     pipeline_status = await get_namespace_data(
         "pipeline_status", workspace=rag.workspace
     )
@@ -123,7 +123,7 @@ def _make_status_doc(doc_id: str, *, content_hash: str) -> DocProcessingStatus:
     )
 
 
-async def _seed_doc_status(rag: LightRAG, doc_id: str, *, process_options: str = ""):
+async def _seed_doc_status(rag: ForgeMind, doc_id: str, *, process_options: str = ""):
     now = datetime.now(timezone.utc).isoformat()
     await rag.doc_status.upsert(
         {
@@ -248,7 +248,7 @@ async def test_parse_worker_flushes_smart_heading_cache_before_handoff(
         ctx.q_analyze.put = _recording_put
         original_cache = rag.llm_response_cache
         rag.llm_response_cache = _CacheSpy()
-        monkeypatch.setattr("lightrag.pipeline.get_parser", lambda *_a, **_k: _Parser())
+        monkeypatch.setattr("forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser())
         await ctx.parse_queues["native"].put(
             (doc_id, _make_status_doc(doc_id, content_hash="hash-smart"))
         )
@@ -307,7 +307,7 @@ async def test_parse_cache_flush_error_does_not_block_handoff(tmp_path, monkeypa
         original_cache = rag.llm_response_cache
         failing_cache = _FailingCache()
         rag.llm_response_cache = failing_cache
-        monkeypatch.setattr("lightrag.pipeline.get_parser", lambda *_a, **_k: _Parser())
+        monkeypatch.setattr("forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser())
         await ctx.parse_queues["native"].put(
             (doc_id, _make_status_doc(doc_id, content_hash="hash-smart-error"))
         )
@@ -371,7 +371,7 @@ async def test_post_parse_cancellation_preserves_smart_heading_cache_ids(
         original_cache = rag.llm_response_cache
         cache_spy = _CacheSpy()
         rag.llm_response_cache = cache_spy
-        monkeypatch.setattr("lightrag.pipeline.get_parser", lambda *_a, **_k: _Parser())
+        monkeypatch.setattr("forgemind.pipeline.get_parser", lambda *_a, **_k: _Parser())
         await ctx.parse_queues["native"].put(
             (doc_id, _make_status_doc(doc_id, content_hash="hash-smart-cancel"))
         )
@@ -397,7 +397,7 @@ async def test_post_parse_cancellation_preserves_smart_heading_cache_ids(
 
 
 async def _drive_process_and_collect_chunks(
-    rag: LightRAG, ctx: _BatchRunContext, doc_id: str
+    rag: ForgeMind, ctx: _BatchRunContext, doc_id: str
 ) -> tuple[dict, str]:
     """Run process_single_document for one doc and return (doc_status_row,
     concatenated chunk content)."""
@@ -460,23 +460,23 @@ async def test_process_reads_raw_body_from_full_docs(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_process_strips_lightrag_marker_on_reread(tmp_path):
-    """For a lightrag-format record, the re-read must strip the ``{{LRdoc}}``
+async def test_process_strips_forgemind_marker_on_reread(tmp_path):
+    """For a forgemind-format record, the re-read must strip the ``{{LRdoc}}``
     marker so chunk content is the bare body — never the prefix."""
     rag = _build_rag(tmp_path)
     await rag.initialize_storages()
     try:
         ctx = await _make_ctx(rag)
         doc_id = "doc-proc-lrdoc"
-        bare_body = "".join(f"Lightrag body line {i}. " for i in range(5))
+        bare_body = "".join(f"Forgemind body line {i}. " for i in range(5))
 
         await rag.full_docs.upsert(
             {
                 doc_id: {
-                    # Stored WITH the marker, as parse persists lightrag docs.
-                    "content": make_lightrag_doc_content(bare_body),
+                    # Stored WITH the marker, as parse persists forgemind docs.
+                    "content": make_forgemind_doc_content(bare_body),
                     "file_path": f"{doc_id}.txt",
-                    "parse_format": FULL_DOCS_FORMAT_LIGHTRAG,
+                    "parse_format": FULL_DOCS_FORMAT_FORGEMIND,
                     "process_options": "!",
                 }
             }

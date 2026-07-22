@@ -4,11 +4,11 @@ The env switch seeds ``smart_heading=true`` at the lowest precedence of the
 ``resolve_parser_directives`` engine-param merge (native + .docx only), so it
 materializes into the persisted ``parse_engine`` at upload time; an explicit
 ``native(smart_heading=false)`` rule/hint overrides it. The startup validator
-fails fast when the switch (or a ``LIGHTRAG_PARSER`` rule) enables
+fails fast when the switch (or a ``FORGEMIND_PARSER`` rule) enables
 smart_heading while the pinned spaCy models are missing.
 
 ``parser_rules=""`` / explicit rules are passed so assertions are independent
-of any ambient ``LIGHTRAG_PARSER``; ``DOCX_SMART_HEADING`` is always set or
+of any ambient ``FORGEMIND_PARSER``; ``DOCX_SMART_HEADING`` is always set or
 deleted explicitly per test.
 """
 
@@ -16,8 +16,8 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser.docx.smart_heading import nlp
-from lightrag.parser.routing import (
+from forgemind.parser.docx.smart_heading import nlp
+from forgemind.parser.routing import (
     ParserRoutingConfigError,
     _validate_smart_heading_max_chars,
     encode_parse_engine,
@@ -179,7 +179,7 @@ def test_startup_check_rule_triggers(monkeypatch) -> None:
     monkeypatch.setattr(
         nlp, "missing_spacy_models", lambda: ["en_core_web_sm", "zh_core_web_sm"]
     )
-    with pytest.raises(nlp.SmartHeadingNLPError, match="lightrag-download-cache"):
+    with pytest.raises(nlp.SmartHeadingNLPError, match="forgemind-download-cache"):
         validate_smart_heading_dependencies(
             parser_rules="docx:native(smart_heading=true)"
         )
@@ -267,7 +267,7 @@ def test_max_chars_below_minimum_raises(monkeypatch, bad) -> None:
 
 def test_max_chars_low_value_warns_not_raises(monkeypatch) -> None:
     """A usable-but-tiny cap (below the title-line width) warns, does not fail."""
-    from lightrag.parser import routing
+    from forgemind.parser import routing
 
     calls: list = []
     monkeypatch.setattr(routing.logger, "warning", lambda *a, **k: calls.append(a))

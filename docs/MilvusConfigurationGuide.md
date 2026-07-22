@@ -2,7 +2,7 @@
 
 ## Overview
 
-Milvus index parameters can be configured through `vector_db_storage_cls_kwargs`, which is the **recommended approach** for framework integration scenarios (e.g., when using RAGAnything or other frameworks built on top of LightRAG).
+Milvus index parameters can be configured through `vector_db_storage_cls_kwargs`, which is the **recommended approach** for framework integration scenarios (e.g., when using RAGAnything or other frameworks built on top of ForgeMind).
 
 ## Why Use vector_db_storage_cls_kwargs?
 
@@ -46,9 +46,9 @@ Configuration is resolved in the following order:
 ### Basic Configuration
 
 ```python
-from lightrag import LightRAG
+from forgemind import ForgeMind
 
-rag = LightRAG(
+rag = ForgeMind(
     working_dir="./demo",
     vector_storage="MilvusVectorDBStorage",
     vector_db_storage_cls_kwargs={
@@ -66,8 +66,8 @@ rag = LightRAG(
 
 ```python
 # In RAGAnything framework code:
-def create_lightrag_instance(user_config):
-    """Create LightRAG instance with user-provided Milvus configuration"""
+def create_forgemind_instance(user_config):
+    """Create ForgeMind instance with user-provided Milvus configuration"""
 
     # User configuration from RAGAnything
     milvus_config = {
@@ -77,8 +77,8 @@ def create_lightrag_instance(user_config):
         # ... other parameters
     }
 
-    # Pass configuration to LightRAG
-    rag = LightRAG(
+    # Pass configuration to ForgeMind
+    rag = ForgeMind(
         working_dir=user_config["working_dir"],
         vector_storage="MilvusVectorDBStorage",
         vector_db_storage_cls_kwargs=milvus_config,
@@ -90,7 +90,7 @@ def create_lightrag_instance(user_config):
 ### Advanced Configuration with HNSW_SQ
 
 ```python
-rag = LightRAG(
+rag = ForgeMind(
     working_dir="./demo",
     vector_storage="MilvusVectorDBStorage",
     vector_db_storage_cls_kwargs={
@@ -111,7 +111,7 @@ rag = LightRAG(
 ### IVF Configuration
 
 ```python
-rag = LightRAG(
+rag = ForgeMind(
     working_dir="./demo",
     vector_storage="MilvusVectorDBStorage",
     vector_db_storage_cls_kwargs={
@@ -187,11 +187,11 @@ See `examples/milvus_kwargs_configuration_demo.py` for a complete working exampl
 **A:** No! When using `vector_db_storage_cls_kwargs`, environment variables are optional. They serve as fallback values.
 
 ### Q: Is this approach recommended for RAGAnything?
-**A:** Yes! This is the **recommended approach** for any framework that builds on top of LightRAG, as it allows clean configuration passing through framework layers.
+**A:** Yes! This is the **recommended approach** for any framework that builds on top of ForgeMind, as it allows clean configuration passing through framework layers.
 
 ## References
 
 - Test Suite: `tests/kg/milvus_impl/test_milvus_kwargs_bridge.py`
-- Implementation: `lightrag/kg/milvus_impl.py` (lines 1237-1272)
+- Implementation: `forgemind/kg/milvus_impl.py` (lines 1237-1272)
 - Example: `examples/milvus_kwargs_configuration_demo.py`
-- MilvusIndexConfig: `lightrag/kg/milvus_impl.py` (lines 75-303)
+- MilvusIndexConfig: `forgemind/kg/milvus_impl.py` (lines 75-303)

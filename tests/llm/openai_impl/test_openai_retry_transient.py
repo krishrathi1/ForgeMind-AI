@@ -13,7 +13,7 @@ import httpx
 import pytest
 from openai import BadRequestError, InternalServerError
 
-from lightrag.llm.openai import (
+from forgemind.llm.openai import (
     TransientBadRequestError,
     openai_complete_if_cache,
     openai_embed,
@@ -79,7 +79,7 @@ async def test_transient_json_parse_400_is_wrapped():
     # Call the undecorated coroutine to exercise the handler exactly once
     # (bypasses the tenacity retry loop and its waits).
     with patch(
-        "lightrag.llm.openai.create_openai_async_client", return_value=fake_client
+        "forgemind.llm.openai.create_openai_async_client", return_value=fake_client
     ):
         with pytest.raises(TransientBadRequestError):
             await openai_complete_if_cache.__wrapped__(
@@ -95,7 +95,7 @@ async def test_genuine_400_fails_fast():
     err = _make_bad_request("Error code: 400 - Invalid value for 'temperature'.")
     fake_client = _make_error_client(err)
     with patch(
-        "lightrag.llm.openai.create_openai_async_client", return_value=fake_client
+        "forgemind.llm.openai.create_openai_async_client", return_value=fake_client
     ):
         with pytest.raises(BadRequestError):
             await openai_complete_if_cache.__wrapped__(

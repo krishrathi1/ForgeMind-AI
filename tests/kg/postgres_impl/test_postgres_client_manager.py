@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from lightrag.kg.postgres_impl import ClientManager
+from forgemind.kg.postgres_impl import ClientManager
 
 
 @pytest.fixture(autouse=True)
@@ -48,7 +48,7 @@ async def test_get_client_reuses_shared_pool_for_same_vector_settings() -> None:
     db.initdb = AsyncMock()
     db.check_tables = AsyncMock()
 
-    with patch("lightrag.kg.postgres_impl.PostgreSQLDB", return_value=db) as db_cls:
+    with patch("forgemind.kg.postgres_impl.PostgreSQLDB", return_value=db) as db_cls:
         first = await ClientManager.get_client("PGVectorStorage")
         second = await ClientManager.get_client("PGVectorStorage")
 
@@ -66,7 +66,7 @@ async def test_get_client_rejects_conflicting_vector_storage_settings() -> None:
     db.initdb = AsyncMock()
     db.check_tables = AsyncMock()
 
-    with patch("lightrag.kg.postgres_impl.PostgreSQLDB", return_value=db):
+    with patch("forgemind.kg.postgres_impl.PostgreSQLDB", return_value=db):
         await ClientManager.get_client("NanoVectorDBStorage")
 
         with pytest.raises(RuntimeError, match="process-wide"):

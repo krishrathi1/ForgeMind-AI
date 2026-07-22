@@ -1,4 +1,4 @@
-# Podman-compatible compose file for LightRAG
+# Podman-compatible compose file for ForgeMind
 #
 # Usage:
 #   podman-compose -f docker-compose.podman.yml up -d
@@ -13,13 +13,13 @@
 #     in your .env binding host configuration
 
 services:
-  lightrag:
-    image: ghcr.io/hkuds/lightrag:latest
+  forgemind:
+    image: ghcr.io/krishrathi1/forgemind-ai:latest
     build:
       context: .
       dockerfile: Dockerfile
       tags:
-        - ghcr.io/hkuds/lightrag:latest
+        - ghcr.io/krishrathi1/forgemind-ai:latest
     ports:
       - "${HOST:-0.0.0.0}:${PORT:-9621}:9621"
     volumes:
@@ -34,7 +34,7 @@ services:
       INPUT_DIR: "/app/data/inputs"
       PROMPT_DIR: "/app/data/prompts"
       # The container must listen on 0.0.0.0 to be reachable via the published port.
-      # SECURITY: set LIGHTRAG_API_KEY (or AUTH_ACCOUNTS with TOKEN_SECRET) in .env
+      # SECURITY: set FORGEMIND_API_KEY (or AUTH_ACCOUNTS with TOKEN_SECRET) in .env
       # so the exposed server is authenticated — without it every endpoint is public.
       HOST: "0.0.0.0"
       PORT: "9621"

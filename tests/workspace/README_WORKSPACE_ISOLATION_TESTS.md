@@ -1,7 +1,7 @@
 # Workspace Isolation Test Suite
 
 ## Overview
-Comprehensive test coverage for LightRAG's workspace isolation feature, ensuring that different workspaces (projects) can coexist independently without data contamination or resource conflicts.
+Comprehensive test coverage for ForgeMind's workspace isolation feature, ensuring that different workspaces (projects) can coexist independently without data contamination or resource conflicts.
 
 ## Test Architecture
 
@@ -49,7 +49,7 @@ Comprehensive test coverage for LightRAG's workspace isolation feature, ensuring
 
 ### 5. End-to-End Integration Tests
 **Test:** 11
-**Purpose:** Validate complete LightRAG workflows maintain isolation
+**Purpose:** Validate complete ForgeMind workflows maintain isolation
 
 - Full document insertion pipeline
 - File system separation
@@ -75,25 +75,25 @@ pytest tests/workspace/test_workspace_isolation.py -v -s
 Enable stress testing with configurable number of workers:
 ```bash
 # Enable stress mode with default 3 workers
-LIGHTRAG_STRESS_TEST=true pytest tests/workspace/test_workspace_isolation.py -v
+FORGEMIND_STRESS_TEST=true pytest tests/workspace/test_workspace_isolation.py -v
 
 # Custom number of workers (e.g., 10)
-LIGHTRAG_STRESS_TEST=true LIGHTRAG_TEST_WORKERS=10 pytest tests/workspace/test_workspace_isolation.py -v
+FORGEMIND_STRESS_TEST=true FORGEMIND_TEST_WORKERS=10 pytest tests/workspace/test_workspace_isolation.py -v
 ```
 
 #### Keep Test Artifacts
 Preserve temporary directories for manual inspection:
 ```bash
 # Keep test artifacts (useful for debugging)
-LIGHTRAG_KEEP_ARTIFACTS=true pytest tests/workspace/test_workspace_isolation.py -v
+FORGEMIND_KEEP_ARTIFACTS=true pytest tests/workspace/test_workspace_isolation.py -v
 ```
 
 #### Combined Example
 ```bash
 # Stress test with 20 workers and keep artifacts
-LIGHTRAG_STRESS_TEST=true \
-LIGHTRAG_TEST_WORKERS=20 \
-LIGHTRAG_KEEP_ARTIFACTS=true \
+FORGEMIND_STRESS_TEST=true \
+FORGEMIND_TEST_WORKERS=20 \
+FORGEMIND_KEEP_ARTIFACTS=true \
 pytest tests/workspace/test_workspace_isolation.py::test_lock_mechanism -v -s
 ```
 
@@ -157,9 +157,9 @@ _assert_no_timeline_overlap(timeline_bad)  # Raises AssertionError
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
-| `LIGHTRAG_STRESS_TEST` | bool | `false` | Enable stress testing mode |
-| `LIGHTRAG_TEST_WORKERS` | int | `3` | Number of parallel workers in stress mode |
-| `LIGHTRAG_KEEP_ARTIFACTS` | bool | `false` | Keep temporary test directories |
+| `FORGEMIND_STRESS_TEST` | bool | `false` | Enable stress testing mode |
+| `FORGEMIND_TEST_WORKERS` | int | `3` | Number of parallel workers in stress mode |
+| `FORGEMIND_KEEP_ARTIFACTS` | bool | `false` | Keep temporary test directories |
 
 ## Performance Benchmarks
 
@@ -170,7 +170,7 @@ _assert_no_timeline_overlap(timeline_bad)  # Raises AssertionError
 - **Total Suite**: < 15s
 
 ### Stress Test Performance
-With `LIGHTRAG_TEST_WORKERS=10`:
+With `FORGEMIND_TEST_WORKERS=10`:
 - **Test 2 (Parallel)**: ~0.05s (10 workers, all concurrent)
 - **Test 2 (Serial)**: ~0.10s (2 workers, serialized)
 
@@ -186,7 +186,7 @@ With `LIGHTRAG_TEST_WORKERS=10`:
 #### Resource Cleanup Errors
 **Symptom:** "Directory not empty" or "Cannot remove directory"
 **Cause:** Concurrent test execution or OS file locking
-**Solution:** Run tests serially (`pytest -n 1`) or use `LIGHTRAG_KEEP_ARTIFACTS=true` to inspect state
+**Solution:** Run tests serially (`pytest -n 1`) or use `FORGEMIND_KEEP_ARTIFACTS=true` to inspect state
 
 #### Lock Timeout Errors
 **Symptom:** "Lock acquisition timeout"
@@ -202,7 +202,7 @@ With `LIGHTRAG_TEST_WORKERS=10`:
 
 2. **Run single test with artifacts:**
    ```bash
-   LIGHTRAG_KEEP_ARTIFACTS=true pytest tests/workspace/test_workspace_isolation.py::test_json_kv_storage_workspace_isolation -v -s
+   FORGEMIND_KEEP_ARTIFACTS=true pytest tests/workspace/test_workspace_isolation.py::test_json_kv_storage_workspace_isolation -v -s
    ```
 
 3. **Check performance metrics:**
@@ -243,7 +243,7 @@ async def test_new_feature():
 
 ## Related Documentation
 
-- [Workspace Isolation Design Doc](../docs/LightRAG_concurrent_explain.md)
+- [Workspace Isolation Design Doc](../docs/ForgeMind_concurrent_explain.md)
 - [Project Intelligence](.clinerules/01-basic.md)
 - [Memory Bank](../.memory-bank/)
 
@@ -254,7 +254,7 @@ async def test_new_feature():
 | shared_storage | ✅ T1, T4 | ✅ T2, T5, T6 | ✅ T3 | ✅ T7 | ✅ T11 |
 | update_flags | ✅ T8 | - | - | - | - |
 | JsonKVStorage | ✅ T10 | - | - | - | ✅ T11 |
-| LightRAG Core | - | - | - | - | ✅ T11 |
+| ForgeMind Core | - | - | - | - | ✅ T11 |
 | Namespace | ✅ T9 | - | ✅ T3 | ✅ T7 | - |
 
 **Legend:** T# = Test number

@@ -32,14 +32,14 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from lightrag import LightRAG, ROLES, RoleLLMConfig
-from lightrag.exceptions import MultimodalAnalysisError
-from lightrag.utils import EmbeddingFunc, Tokenizer
+from forgemind import ForgeMind, ROLES, RoleLLMConfig
+from forgemind.exceptions import MultimodalAnalysisError
+from forgemind.utils import EmbeddingFunc, Tokenizer
 
 
 @pytest.fixture
-def _propagate_lightrag_logger(monkeypatch):
-    monkeypatch.setattr(logging.getLogger("lightrag"), "propagate", True)
+def _propagate_forgemind_logger(monkeypatch):
+    monkeypatch.setattr(logging.getLogger("forgemind"), "propagate", True)
 
 
 pytestmark = pytest.mark.offline
@@ -110,7 +110,7 @@ def _build_rag(
     vlm_process_enable: bool = True,
     vlm_func=None,
     extract_func=None,
-) -> LightRAG:
+) -> ForgeMind:
     role_configs = {}
     for spec in ROLES:
         if spec.name == "vlm" and vlm_func is not None:
@@ -120,7 +120,7 @@ def _build_rag(
         else:
             role_configs[spec.name] = RoleLLMConfig()
     base_func = vlm_func or extract_func
-    return LightRAG(
+    return ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"vlm-pipeline-{tmp_path.name}",
         llm_model_func=base_func,
@@ -169,7 +169,7 @@ def _write_sidecar_fixtures(tmp_path: Path) -> tuple[str, dict, Path]:
 
 @pytest.mark.asyncio
 async def test_vlm_process_enable_false_hard_fails_for_images(
-    tmp_path, caplog, _propagate_lightrag_logger
+    tmp_path, caplog, _propagate_forgemind_logger
 ):
     """With i opted-in but VLM disabled, analyze_multimodal must hard-fail
     the document rather than silently skipping."""
@@ -244,7 +244,7 @@ async def test_vlm_call_carries_image_inputs(tmp_path):
     """Sanity check the call kwargs: image_inputs (not legacy `messages`)
     must be present.  The ``_priority`` argument is consumed by the role
     wrapper before reaching the raw model func, so it is not observable on
-    the mock — see ``priority_limit_async_func_call`` in lightrag.utils."""
+    the mock — see ``priority_limit_async_func_call`` in forgemind.utils."""
     call_log: list[dict] = []
     rag = _build_rag(
         tmp_path, vlm_process_enable=True, vlm_func=_make_vlm_mock(call_log)
@@ -264,7 +264,7 @@ async def test_vlm_call_carries_image_inputs(tmp_path):
         assert kwargs.get("image_inputs") is not None
         assert kwargs.get("response_format") == {"type": "json_object"}
         assert "messages" not in kwargs
-        # _priority is consumed by the wrapper (see lightrag.utils
+        # _priority is consumed by the wrapper (see forgemind.utils
         # priority_limit_async_func_call); not observable on the raw mock.
         assert "_priority" not in kwargs
     finally:
@@ -889,9 +889,9 @@ async def test_analyze_worker_marks_doc_failed_on_multimodal_error(tmp_path):
     letting the document stay stuck in ANALYZING."""
     import asyncio
     from dataclasses import asdict
-    from lightrag.base import DocProcessingStatus, DocStatus
-    from lightrag.pipeline import _BatchRunContext
-    from lightrag.parser.registry import parser_specs_snapshot
+    from forgemind.base import DocProcessingStatus, DocStatus
+    from forgemind.pipeline import _BatchRunContext
+    from forgemind.parser.registry import parser_specs_snapshot
 
     async def vlm_func(prompt, **kwargs):
         return ""
@@ -914,7 +914,7 @@ async def test_analyze_worker_marks_doc_failed_on_multimodal_error(tmp_path):
         await rag.doc_status.upsert({doc_id: asdict(status_doc)})
 
         async def _raise_mm_error(**_kwargs):
-            from lightrag.exceptions import MultimodalAnalysisError
+            from forgemind.exceptions import MultimodalAnalysisError
 
             raise MultimodalAnalysisError("forced failure for test")
 
@@ -969,7 +969,7 @@ async def test_analysis_cache_respects_disabled_flag(tmp_path):
     to sidecar item.llm_cache_list — otherwise document deletion would try
     to clean up cache entries that were never written."""
     call_log: list[dict] = []
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir=str(tmp_path),
         workspace=f"vlm-pipeline-cache-{tmp_path.name}",
         llm_model_func=_make_vlm_mock(call_log),
@@ -1027,7 +1027,7 @@ async def test_oversized_table_content_truncated_to_extract_budget(tmp_path):
     wrap the trimmed body in a ``<table>`` tag, and (c) include the
     truncation marker so the LLM is told the body is incomplete.
     """
-    from lightrag.constants import DEFAULT_MAX_EXTRACT_INPUT_TOKENS
+    from forgemind.constants import DEFAULT_MAX_EXTRACT_INPUT_TOKENS
 
     extract_log: list[dict] = []
     rag = _build_rag(
@@ -1104,7 +1104,7 @@ async def test_oversized_table_content_truncated_to_extract_budget(tmp_path):
 
 @pytest.mark.asyncio
 async def test_max_extract_input_tokens_env_var_lowers_cap_and_logs_warning(
-    tmp_path, caplog, _propagate_lightrag_logger, monkeypatch
+    tmp_path, caplog, _propagate_forgemind_logger, monkeypatch
 ):
     """``MAX_EXTRACT_INPUT_TOKENS`` env var overrides the compile-time
     default, and any truncation emits a WARNING-level log line so
@@ -1155,7 +1155,7 @@ async def test_max_extract_input_tokens_env_var_lowers_cap_and_logs_warning(
             encoding="utf-8",
         )
 
-        with caplog.at_level(logging.WARNING, logger="lightrag.pipeline"):
+        with caplog.at_level(logging.WARNING, logger="forgemind.pipeline"):
             await rag.analyze_multimodal(
                 doc_id="doc-mid",
                 file_path="fixture.pdf",
@@ -1342,16 +1342,16 @@ async def test_content_budget_below_floor_fails_item_without_llm_call(
         await rag.finalize_storages()
 
 
-def test_structurally_starved_config_warns_once(caplog, _propagate_lightrag_logger):
+def test_structurally_starved_config_warns_once(caplog, _propagate_forgemind_logger):
     """``_warn_content_budget_structurally_starved`` emits a single WARNING
     per unique config, and stays silent for a comfortable config."""
-    from lightrag.pipeline import _warn_content_budget_structurally_starved
+    from forgemind.pipeline import _warn_content_budget_structurally_starved
 
     # SURROUNDING caps (2000+2000) + reserve alone overrun a 3000 cap → warn,
     # and only once despite repeated calls (lru_cache on the config tuple).
     _warn_content_budget_structurally_starved.cache_clear()
     caplog.clear()
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         for _ in range(3):
             _warn_content_budget_structurally_starved(
                 max_extract=3000,
@@ -1371,7 +1371,7 @@ def test_structurally_starved_config_warns_once(caplog, _propagate_lightrag_logg
     # A comfortable cap leaves ample room → no warning at all.
     _warn_content_budget_structurally_starved.cache_clear()
     caplog.clear()
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         _warn_content_budget_structurally_starved(
             max_extract=20480,
             leading_cap=2000,
@@ -1384,7 +1384,7 @@ def test_structurally_starved_config_warns_once(caplog, _propagate_lightrag_logg
 
 @pytest.mark.asyncio
 async def test_cap_disabled_skips_starvation_warning_and_analyzes(
-    tmp_path, caplog, _propagate_lightrag_logger, monkeypatch
+    tmp_path, caplog, _propagate_forgemind_logger, monkeypatch
 ):
     """``MAX_EXTRACT_INPUT_TOKENS=0`` opts out of the input cap: enforcement is
     bypassed, so the structural-starvation warning must NOT fire (it would be
@@ -1420,7 +1420,7 @@ async def test_cap_disabled_skips_starvation_warning_and_analyzes(
             encoding="utf-8",
         )
 
-        with caplog.at_level(logging.WARNING, logger="lightrag"):
+        with caplog.at_level(logging.WARNING, logger="forgemind"):
             await rag.analyze_multimodal(
                 doc_id="doc-uncapped",
                 file_path="fixture.pdf",
@@ -1448,7 +1448,7 @@ async def test_cap_disabled_skips_starvation_warning_and_analyzes(
 
 
 def test_table_content_format_label_html_and_json():
-    from lightrag.prompt_multimodal import table_content_format_label
+    from forgemind.prompt_multimodal import table_content_format_label
 
     html_label = table_content_format_label("html")
     assert "HTML" in html_label
@@ -1462,7 +1462,7 @@ def test_table_content_format_label_html_and_json():
 
 @pytest.mark.parametrize("bad", [None, "", "csv", "markdown"])
 def test_table_content_format_label_rejects_unknown(bad):
-    from lightrag.prompt_multimodal import table_content_format_label
+    from forgemind.prompt_multimodal import table_content_format_label
 
     with pytest.raises(ValueError):
         table_content_format_label(bad)
@@ -1549,7 +1549,7 @@ async def test_truncated_vlm_response_not_cached_and_recomputed(tmp_path):
     cache write must be skipped (no entry, no ``llm_cache_list`` write-back)
     so a later run re-invokes the VLM instead of replaying the partial result.
     """
-    from lightrag.utils import TruncatedResponse
+    from forgemind.utils import TruncatedResponse
 
     call_log: list[int] = []
 

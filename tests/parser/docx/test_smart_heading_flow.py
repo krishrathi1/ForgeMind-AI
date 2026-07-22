@@ -6,8 +6,8 @@ import logging
 
 import pytest
 
-from lightrag.parser.docx.parse_document import ParagraphRecord
-from lightrag.parser.docx.smart_heading.heading_flow import (
+from forgemind.parser.docx.parse_document import ParagraphRecord
+from forgemind.parser.docx.smart_heading.heading_flow import (
     HeadingDecision,
     align_numbering_series,
     anchor_outline_levels,
@@ -20,15 +20,15 @@ from lightrag.parser.docx.smart_heading.heading_flow import (
     gate_with_cb1,
     nest_numbered_under_parent,
 )
-from lightrag.parser.docx.smart_heading.style_key import classify_numbering
+from forgemind.parser.docx.smart_heading.style_key import classify_numbering
 
 pytestmark = pytest.mark.offline
 
 
 @pytest.fixture(autouse=True)
-def _propagate_lightrag_logs():
-    """The ``lightrag`` logger sets propagate=False; caplog needs it on."""
-    lg = logging.getLogger("lightrag")
+def _propagate_forgemind_logs():
+    """The ``forgemind`` logger sets propagate=False; caplog needs it on."""
+    lg = logging.getLogger("forgemind")
     old = lg.propagate
     lg.propagate = True
     try:
@@ -105,7 +105,7 @@ def test_outline_strong_body_demotion_is_rule_tagged() -> None:
     """Review C2: an outline paragraph the recognition-time strong-body check
     demotes must leave a rule-tagged demoted decision (not a silent drop), so
     the I2 retention check sees an explicit demotion instead of a violation."""
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         verify_baseline_heading_retention,
     )
 
@@ -165,7 +165,7 @@ def test_outline_nlp_only_multisentence_is_spared_contextually() -> None:
 def test_outline_other_strong_body_reasons_keep_full_force() -> None:
     """The outline guard is exact to multi-sentence: length and terminal
     punctuation remain direct, explicit demotion evidence."""
-    from lightrag.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading import guardrails
 
     length_text = "这是一段确实超过标题长度上限的正文内容" * 8
     terminal_text = "这段正文被误加了物理大纲级别，但仍然以句号结束。"
@@ -450,9 +450,9 @@ def test_source_multisentence_gate_real_spacy_end_to_end(monkeypatch) -> None:
     """
     import json
 
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading import guardrails
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -747,7 +747,7 @@ def test_two_line_centered_title_both_admitted() -> None:
 def test_solo_centered_channel_exclusions() -> None:
     """The solo channel's safety exclusions: a centered 成文日期 (every
     format), a letter-free decoration line, and a caption never enter it."""
-    from lightrag.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading import guardrails
 
     excluded = (
         "二〇二六年七月六日",
@@ -818,7 +818,7 @@ def test_cb1_reestimation_recovers_density(monkeypatch, caplog) -> None:
     assert fs.confidence_high
 
     warnings: dict = {}
-    with caplog.at_level(logging.INFO, logger="lightrag"):
+    with caplog.at_level(logging.INFO, logger="forgemind"):
         result = gate_with_cb1(
             records,
             indices,
@@ -852,7 +852,7 @@ def test_cb1_extreme_sample_trips_breaker(monkeypatch, caplog) -> None:
     fs = document_fs_base(records, indices)
 
     warnings: dict = {}
-    with caplog.at_level(logging.INFO, logger="lightrag"):
+    with caplog.at_level(logging.INFO, logger="forgemind"):
         result = gate_with_cb1(
             records,
             indices,
@@ -946,7 +946,7 @@ def test_cb1_graduated_recovers_same_size_numbered_headings(caplog) -> None:
     MLN). The EnNum root and the mln raw-2 tier survive; CB1 does NOT trip."""
     records = _gbt_shape_records(ennum_root=True)
     warnings: dict = {}
-    with caplog.at_level(logging.INFO, logger="lightrag"):
+    with caplog.at_level(logging.INFO, logger="forgemind"):
         result = _grad_gate(records, warnings)
 
     # No blanket re-estimation / trip / look-ahead recovery — the graduated
@@ -1028,7 +1028,7 @@ def test_cb1_graduated_density_reflects_real_decisions_not_projection() -> None:
 def test_cb1_graduated_ladder_orders_mln_last_and_ennum_root_deferred() -> None:
     """The ladder fixes the demotion order: weakest body-prior first, then MLN
     deepest-raw-level-first, and the EnNum root relocated to the very end."""
-    from lightrag.parser.docx.smart_heading.heading_flow import _cb1_ladder
+    from forgemind.parser.docx.smart_heading.heading_flow import _cb1_ladder
 
     present = {
         "en_single_paren": [],
@@ -1057,7 +1057,7 @@ def test_cb1_graduated_ennum_root_detection() -> None:
     """EnNum is the MLN root only with >= 2 distinct overlapping ordinals AND
     >= half the MLN leading components covered — a lone {1} overlap is too weak.
     """
-    from lightrag.parser.docx.smart_heading.heading_flow import (
+    from forgemind.parser.docx.smart_heading.heading_flow import (
         _cb1_ennum_is_mln_root,
     )
 
@@ -1153,7 +1153,7 @@ def test_cb1_graduated_exhausted_falls_back_to_blanket() -> None:
 def test_cb1_graduated_outline_and_larger_size_exempt() -> None:
     """Outline headings and candidates whose size is above FS_base are never
     demoted by the ladder — only same-size non-outline tiers are."""
-    from lightrag.parser.docx.smart_heading.heading_flow import _cb1_stage_tag
+    from forgemind.parser.docx.smart_heading.heading_flow import _cb1_stage_tag
 
     outline = HeadingDecision(
         record_index=0,
@@ -1206,7 +1206,7 @@ def test_cb1_graduated_flows_through_downstream_leveling() -> None:
 
 def test_cb1_graduated_audit_fields(monkeypatch) -> None:
     """run_smart_heading surfaces the graduated-demotion audit block."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     monkeypatch.setenv("DOCX_SMART_SUBDOC_MIN_TOKENS", "10")
@@ -1474,8 +1474,8 @@ def test_outlined_part_root_survives_end_to_end(monkeypatch) -> None:
     real-doc rerun in verification."""
     import json
 
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -1879,7 +1879,7 @@ def test_caption_veto_spares_outline_paragraphs() -> None:
     """A5 (P3 × I2): an outline paragraph hitting the caption blacklist keeps
     its candidacy (silently dropping it would trip the I2 machine check);
     the caption veto still rejects non-outline paragraphs."""
-    from lightrag.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading import guardrails
 
     records = _body(30)
     records.append(_para("图 1 系统架构", size=12.0, outline_level=1))
@@ -1970,7 +1970,7 @@ def test_llm_grant_rejected_end_to_end_audit(monkeypatch) -> None:
     output-neutral non-headings."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -2022,7 +2022,7 @@ def test_merge_ledger_only_merges_and_counts_once() -> None:
     """The ledger merge shared by the normal path and the CB1 fallback:
     rows ``setdefault`` in (an existing real decision wins) and the
     grant-rejected warning counts once per FINAL gate result."""
-    from lightrag.parser.docx.smart_heading.heading_flow import (
+    from forgemind.parser.docx.smart_heading.heading_flow import (
         GateResult,
         _merge_ledger_only,
     )
@@ -2056,7 +2056,7 @@ def test_title_block_gate_uses_char_weighted_mode_not_mean(monkeypatch) -> None:
     paragraph inflating the weighted mean must not raise the gate."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -2103,8 +2103,8 @@ def test_title_block_multiline_main_title_flattened(monkeypatch) -> None:
     parent_headings."""
     import json
 
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -2150,8 +2150,8 @@ def test_assembler_doc_title_empty_without_title_block() -> None:
     title verdict the assembler records an explicitly EMPTY doc_title (a
     "前言"-style first heading must not masquerade as the document title),
     while first_heading keeps its legacy any-heading semantics."""
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.heading_flow import SmartHeadingResult
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.heading_flow import SmartHeadingResult
 
     records = [_para("前言", outline_level=0), _para("正文一句。")]
     result = SmartHeadingResult(
@@ -2173,9 +2173,9 @@ def test_assembler_toc_retention_keeps_first_lines_as_body() -> None:
 
     The rest collapse to a single '……', and no retained line is
     ever a heading (the toc_indices branch continues before any heading path)."""
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.guardrails import TOC_ELLIPSIS
-    from lightrag.parser.docx.smart_heading.heading_flow import SmartHeadingResult
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.guardrails import TOC_ELLIPSIS
+    from forgemind.parser.docx.smart_heading.heading_flow import SmartHeadingResult
 
     entries = [
         "第一章 绪论……3",
@@ -2236,7 +2236,7 @@ def test_assembler_toc_retention_keeps_first_lines_as_body() -> None:
 
 
 def _run_toc(records, monkeypatch):
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     monkeypatch.setenv("DOCX_SMART_SUBDOC_MIN_TOKENS", "10")
@@ -2305,8 +2305,8 @@ def test_title_block_judge_receives_fs_base(monkeypatch) -> None:
     prompt (the M1212 regression would come back unnoticed)."""
     import json
 
-    from lightrag.parser.docx.smart_heading import title_block as tb
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading import title_block as tb
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -2348,7 +2348,7 @@ def test_title_block_judge_receives_fs_base(monkeypatch) -> None:
 def test_seq_break_knob_splits_distant_series(monkeypatch) -> None:
     """A12 (DOCX_SMART_SEQ_BREAK_PARAS): a long body run between same-key
     members closes the open sequence; the default 0 keeps one series."""
-    from lightrag.parser.docx.smart_heading.heading_flow import (
+    from forgemind.parser.docx.smart_heading.heading_flow import (
         align_numbering_series,
     )
 
@@ -2380,7 +2380,7 @@ def test_run_level_audit_exports_metrics(monkeypatch) -> None:
     """The audit payload includes calls, verdicts, and the decision ledger."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     records = [
@@ -2425,7 +2425,7 @@ def test_run_level_audit_exports_metrics(monkeypatch) -> None:
     assert any(any("title_block" in rule for rule in r["rules"]) for r in rows)
     # Enriched fields present and the plaintext preview is capped. Value
     # assertions live in test_audit_decision_fields_enriched below.
-    from lightrag.parser.docx.smart_heading.heading_flow import _AUDIT_SUMMARY_CHARS
+    from forgemind.parser.docx.smart_heading.heading_flow import _AUDIT_SUMMARY_CHARS
 
     assert all(len(r["summary"]) <= _AUDIT_SUMMARY_CHARS + 3 for r in rows)  # +"..."
     # Every sub-document (fallbacks included) now records its fs_base.
@@ -2435,7 +2435,7 @@ def test_run_level_audit_exports_metrics(monkeypatch) -> None:
 def test_audit_decision_fields_enriched(monkeypatch) -> None:
     """Requirement 2: each decision row carries a plaintext summary, the
     paragraph mode font off the record, and its sub-document fs_base."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     # No title block (llm_judge=None) → the whole doc is one sub-document.
@@ -2461,13 +2461,13 @@ def test_audit_decision_fields_enriched(monkeypatch) -> None:
 def test_run_logs_physical_feature_summary(monkeypatch, caplog) -> None:
     """Requirement 1: a document-level info line (FS_base, paragraph count,
     outline histogram) fires once physical features are extracted."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     records = [_para("第一章 绪论", size=16.0, outline_level=0)]
     records += _body(30, size=12.0)
 
-    with caplog.at_level(logging.INFO, logger="lightrag"):
+    with caplog.at_level(logging.INFO, logger="forgemind"):
         run_smart_heading(
             records,
             llm_judge=None,
@@ -2498,12 +2498,12 @@ def test_table_title_block_end_to_end_assembly(monkeypatch) -> None:
     is lossless)."""
     import json
 
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.parse_document import (
         ParagraphRecord,
         _assemble_blocks_smart,
     )
-    from lightrag.parser.docx.smart_heading import guardrails as g
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading import guardrails as g
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -2581,11 +2581,11 @@ def test_title_block_empty_members_defense() -> None:
     The degenerate lead never becomes a level-1 heading and no stale pin leaks
     to the following body block. (Unreachable via ``run_smart_heading`` — its
     locate-back requires a non-empty window — so it is exercised directly.)"""
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.parse_document import (
         ParagraphRecord,
         _assemble_blocks_smart,
     )
-    from lightrag.parser.docx.smart_heading.heading_flow import SmartHeadingResult
+    from forgemind.parser.docx.smart_heading.heading_flow import SmartHeadingResult
 
     empty_cover = ParagraphRecord(
         kind="table",
@@ -2651,7 +2651,7 @@ def test_cb1_strong_body_lookahead_keeps_cnnum_headings(caplog) -> None:
     assert fs.size_pt == 12.0 and fs.confidence_high
 
     warnings: dict = {}
-    with caplog.at_level(logging.INFO, logger="lightrag"):
+    with caplog.at_level(logging.INFO, logger="forgemind"):
         gate = gate_with_cb1(
             records,
             indices,
@@ -2702,7 +2702,7 @@ def test_cb1_lookahead_propagates_demotion_across_partial_series(caplog) -> None
     fs = document_fs_base(records, indices)
 
     warnings: dict = {}
-    with caplog.at_level(logging.INFO, logger="lightrag"):
+    with caplog.at_level(logging.INFO, logger="forgemind"):
         gate = gate_with_cb1(
             records,
             indices,
@@ -2731,10 +2731,10 @@ def test_early_strong_body_keys_covers_only_chapter_classes() -> None:
     """Chapter classes are strong-body-checked at recognition (per-paragraph,
     no propagation); clause classes are NOT — they defer to the post-merge
     sweep so CB2 can demote a body-in-disguise run as a whole series."""
-    from lightrag.parser.docx.smart_heading.heading_flow import (
+    from forgemind.parser.docx.smart_heading.heading_flow import (
         EARLY_STRONG_BODY_KEYS,
     )
-    from lightrag.parser.docx.smart_heading.style_key import (
+    from forgemind.parser.docx.smart_heading.style_key import (
         CN_CHAPTER,
         CN_CLAUSE,
         EN_CHAPTER,
@@ -2846,7 +2846,7 @@ def test_body_article_series_demoted_via_post_merge_sweep() -> None:
 def test_imprint_candidate_demoted_at_recognition() -> None:
     """An imprint line admitted by a size rule is demoted at recognition time
     (unnumbered → check_now always applies) with the imprint rule id."""
-    from lightrag.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading import guardrails
 
     records = _body(20) + [_para("抄送：各区人民政府", size=16.0)]
     warnings: dict = {}
@@ -2864,7 +2864,7 @@ def test_imprint_candidate_demoted_at_recognition() -> None:
 def test_imprint_outline_demotion_passes_i2() -> None:
     """An OUTLINE imprint line demotes with use_raw_text and an I2-recognized
     rule trail, so the retention check stays green."""
-    from lightrag.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading import guardrails
 
     records = _body(20) + [_para("抄送：各区人民政府", size=12.0, outline_level=1)]
     result = _gate(records, strong_body=guardrails.strong_body_reason)
@@ -2881,7 +2881,7 @@ def test_postmerge_sweep_demotes_imprint_heading() -> None:
     This covers outline/size admission and merges whose joined text newly reads
     as an imprint; unnumbered headings have no series-propagation side effects.
     """
-    from lightrag.parser.docx.smart_heading import guardrails
+    from forgemind.parser.docx.smart_heading import guardrails
 
     d = _decision("抄送：各成员单位", numbered=False)
     demote_strong_body_headings([d], strong_body=guardrails.strong_body_reason)
@@ -2894,10 +2894,10 @@ def test_outline_only_fallback_demotes_imprint() -> None:
     """The sub-document fallback keeps outlineLvl headings EXCEPT imprint
     lines, which get an explicit rule-tagged demotion (a silent skip would be
     an I2 violation). Both fallback call sites share this helper."""
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         verify_baseline_heading_retention,
     )
-    from lightrag.parser.docx.smart_heading.heading_flow import (
+    from forgemind.parser.docx.smart_heading.heading_flow import (
         _outline_only_decisions,
     )
 
@@ -2924,7 +2924,7 @@ def test_cb4_short_subdoc_fallback_wires_imprint(monkeypatch) -> None:
     outline imprint line and counts it — even with an injected stub
     strong_body that does not know imprint (the fallback uses the guardrails
     default marker, not the injected strong_body)."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     monkeypatch.setenv("DOCX_SMART_SUBDOC_MIN_TOKENS", "1000000")
@@ -2956,7 +2956,7 @@ def test_whole_doc_cb4_skip_leaves_imprint_to_baseline(monkeypatch) -> None:
     """Guarantee boundary: below the whole-document CB4 gate smart never runs
     (returns None) — the imprint rules do NOT reach the untouched baseline
     output, by design."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "1000000")
     records = _body(5) + [_para("抄送：各成员单位", size=12.0, outline_level=1)]
@@ -2984,10 +2984,10 @@ def test_imprint_region_demoted_when_multi_line_title_block_follows(
     boundary, so the preceding 抄送…印发 region is force-demoted as before."""
     import json
 
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         verify_baseline_heading_retention,
     )
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     doc1 = _body(20)
@@ -3040,10 +3040,10 @@ def test_imprint_region_demoted_for_later_single_line_cover(monkeypatch) -> None
     "换页+单行"仍不成候选（title_block 层 B8 测试承接原负面语义）。"""
     import json
 
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         verify_baseline_heading_retention,
     )
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     doc1 = _body(20)
@@ -3095,7 +3095,7 @@ def test_imprint_region_demoted_for_later_single_line_cover(monkeypatch) -> None
 def test_imprint_region_veto_only_without_following_title_block(monkeypatch) -> None:
     """No valid title block after the 印发 closer → the region is NOT confirmed:
     veto-only, the outline lines are kept as headings (never force-demoted)."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     doc1 = _body(20)
@@ -3127,7 +3127,7 @@ def test_imprint_region_veto_only_without_following_title_block(monkeypatch) -> 
 def test_imprint_region_below_cb4_gate_untouched(monkeypatch) -> None:
     """Guarantee boundary: below the whole-document CB4 gate run_smart_heading
     returns None — the region / closer rules never reach the baseline output."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "1000000")
     records = _body(5) + [
@@ -3157,12 +3157,12 @@ def test_mixed_cover_assembly_preserves_source_order(monkeypatch) -> None:
     order with no duplication, and I1 passes."""
     import json
 
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.parse_document import (
         ParagraphRecord,
         _assemble_blocks_smart,
     )
-    from lightrag.parser.docx.smart_heading import guardrails as g
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading import guardrails as g
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -3214,12 +3214,12 @@ def test_paragraph_tail_cover_end_to_end(monkeypatch) -> None:
     heading is the paragraph-borne main title, assembly is lossless."""
     import json
 
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.parse_document import (
         ParagraphRecord,
         _assemble_blocks_smart,
     )
-    from lightrag.parser.docx.smart_heading import guardrails as g
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading import guardrails as g
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -3265,8 +3265,8 @@ def test_rejected_mixed_cover_paragraph_regains_heading_path(monkeypatch) -> Non
     heading (not a title block) — bounded loss, mirroring multi-window."""
     import json
 
-    from lightrag.parser.docx.parse_document import ParagraphRecord
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.parse_document import ParagraphRecord
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     monkeypatch.setenv("DOCX_SMART_SUBDOC_MIN_TOKENS", "10")
@@ -3308,7 +3308,7 @@ def test_trailing_document_date_not_absorbed_into_next_cover(monkeypatch) -> Non
     stays body under the previous section; the cover roots at the real title."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     doc1 = _body(20)
@@ -3514,7 +3514,7 @@ def test_gap_close_end_to_end_bold_sections_reach_level_2(monkeypatch) -> None:
     sections must land at L2 (not L3) after the vacated class slot closes."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     records = (
@@ -3662,7 +3662,7 @@ def test_outline_zero_weight_placeholder_demoted() -> None:
     """User ruling: an author-styled (outlineLvl) placeholder paragraph is
     NOT a heading either — it takes an explicit I2 demotion decision, and the
     retention check accepts the ``placeholder_demoted`` tag."""
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         verify_baseline_heading_retention,
     )
 
@@ -3685,7 +3685,7 @@ def test_outline_only_fallback_demotes_placeholder(caplog) -> None:
     """The CB4/CB1 fallback path (_outline_only_decisions) demotes a
     zero-weight outline paragraph instead of reverting it to a heading, and
     counts + logs exactly once (it is a terminal path)."""
-    from lightrag.parser.docx.smart_heading.heading_flow import (
+    from forgemind.parser.docx.smart_heading.heading_flow import (
         _outline_only_decisions,
     )
 
@@ -3694,7 +3694,7 @@ def test_outline_only_fallback_demotes_placeholder(caplog) -> None:
         _para('<drawing id="1" />', size=12.0, outline_level=0, visible_char_count=0),
     ]
     warnings: dict = {}
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         out = _outline_only_decisions(records, range(len(records)), warnings=warnings)
     by_idx = {d.record_index: d for d in out}
     real = by_idx[len(records) - 2]
@@ -3720,7 +3720,7 @@ def test_placeholder_demotion_counted_once_across_cb1(
     outline placeholder exactly once and emit exactly one I2 log line."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
 
@@ -3745,7 +3745,7 @@ def test_placeholder_demotion_counted_once_across_cb1(
         return json.dumps({"is_title_block": False}, ensure_ascii=False)
 
     warnings: dict = {}
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         result = run_smart_heading(
             records,
             llm_judge=_llm,
@@ -3784,7 +3784,7 @@ def test_zero_weight_llm_grant_leaves_rejected_ledger() -> None:
     the full run_smart_heading — the title-block window strips drawing tags
     (no semantic text → not in the LLM index_map) — so the grant is injected
     at the gate layer and the merge layer is exercised directly."""
-    from lightrag.parser.docx.smart_heading.heading_flow import _merge_ledger_only
+    from forgemind.parser.docx.smart_heading.heading_flow import _merge_ledger_only
 
     records = _body(20) + [_para('<drawing id="1" />', size=14.0, visible_char_count=0)]
     idx = len(records) - 1
@@ -3812,7 +3812,7 @@ def test_mid_document_isolated_title_never_reaches_llm(monkeypatch) -> None:
     metadata line must not form any title-block window — zero LLM calls, no
     candidates, no doc_title; the line stands as an ordinary size_strong
     level-1 heading and the document stays ONE sub-document."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     records = (
@@ -3853,7 +3853,7 @@ def test_title_block_candidate_audit_records_verdict_content(monkeypatch) -> Non
     main_title (true verdicts) and the partition strength (false verdicts)."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     records = [
@@ -3911,7 +3911,7 @@ def test_imprint_single_cover_behind_logo_confirms_region(monkeypatch) -> None:
     scan, or the confirmed cover leaves the region undemoted."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     doc1 = _body(20)
@@ -3962,7 +3962,7 @@ def test_logo_led_multi_cover_still_confirms_region(monkeypatch) -> None:
     keeps the 版记 confirmation working (matching starts only would not)."""
     import json
 
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_MIN_TOKENS", "10")
     doc1 = _body(20)
@@ -4016,9 +4016,9 @@ def _assemble_bounded_title(monkeypatch, cap_env: str, main: str, sub):
     """Drive the assembler for a level-0 title block whose composed doc-title is
     (potentially) truncated, plus one child heading, and return
     (doc_heading, blocks, meta)."""
-    from lightrag.parser.docx.parse_document import _assemble_blocks_smart
-    from lightrag.parser.docx.smart_heading.heading_flow import SmartHeadingResult
-    from lightrag.parser.docx.smart_heading.title_block import compose_doc_title
+    from forgemind.parser.docx.parse_document import _assemble_blocks_smart
+    from forgemind.parser.docx.smart_heading.heading_flow import SmartHeadingResult
+    from forgemind.parser.docx.smart_heading.title_block import compose_doc_title
 
     monkeypatch.setenv("DOCX_SMART_HEADING_MAX_CHARS", cap_env)
     doc_heading = compose_doc_title(main, sub)
@@ -4065,8 +4065,8 @@ def _assert_four_way(doc_heading, blocks, meta) -> None:
 def test_merged_doc_title_weighted_truncation_four_way(monkeypatch) -> None:
     """A merged CJK doc title over the default weighted cap truncates with '...'
     and the same value lands at all four sites."""
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
-    from lightrag.parser.docx.smart_heading.guardrails import weighted_char_length
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.parser.docx.smart_heading.guardrails import weighted_char_length
 
     doc_heading, blocks, meta = _assemble_bounded_title(
         monkeypatch,
@@ -4083,7 +4083,7 @@ def test_merged_doc_title_raw_ceiling_above_cap_four_way(monkeypatch) -> None:
     """Even with the env cap set above 200, a long ASCII title is bounded by the
     raw MAX_HEADING_LENGTH ceiling so the H1 truncate_heading stays a no-op and
     the four sites never split (the pre-fix bug)."""
-    from lightrag.constants import MAX_HEADING_LENGTH
+    from forgemind.constants import MAX_HEADING_LENGTH
 
     doc_heading, blocks, meta = _assemble_bounded_title(
         monkeypatch,
@@ -4099,8 +4099,8 @@ def test_merged_doc_title_raw_ceiling_above_cap_four_way(monkeypatch) -> None:
 def test_main_only_long_doc_title_truncated_four_way(monkeypatch) -> None:
     """Unified handling (user ruling): a concatenated main_title with no sub is
     bounded the same way, and stays consistent across the four sites."""
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
-    from lightrag.parser.docx.smart_heading.guardrails import weighted_char_length
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.parser.docx.smart_heading.guardrails import weighted_char_length
 
     doc_heading, blocks, meta = _assemble_bounded_title(
         monkeypatch,
@@ -4117,7 +4117,7 @@ def test_run_smart_heading_rejects_invalid_max_chars_env(monkeypatch) -> None:
     """Parse-time entry check: a structurally invalid DOCX_SMART_HEADING_MAX_CHARS
     hard-fails the parse on EVERY entry point (library / per-file hint), matching
     the API startup check, instead of silently defaulting."""
-    from lightrag.parser.docx.smart_heading.heading_flow import run_smart_heading
+    from forgemind.parser.docx.smart_heading.heading_flow import run_smart_heading
 
     monkeypatch.setenv("DOCX_SMART_HEADING_MAX_CHARS", "2")
     with pytest.raises(ValueError, match="DOCX_SMART_HEADING_MAX_CHARS"):

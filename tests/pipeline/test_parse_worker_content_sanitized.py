@@ -18,11 +18,11 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
-from lightrag.utils_pipeline import strip_lightrag_doc_prefix
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind.utils_pipeline import strip_forgemind_doc_prefix
 
 pytestmark = pytest.mark.offline
 
@@ -54,8 +54,8 @@ def _deterministic_chunking(
     return [{"tokens": 1, "content": f"{content}::chunk1", "chunk_order_index": 0}]
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"parseworker-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,
@@ -103,7 +103,7 @@ def test_legacy_parse_worker_sanitizes_doc_status_and_full_docs(tmp_path, monkey
             assert not any(c in summary for c in "\x1c\x1d\x1f\x00")
 
             full = await rag.full_docs.get_by_id(doc_id)
-            body = strip_lightrag_doc_prefix(full["content"], full.get("parse_format"))
+            body = strip_forgemind_doc_prefix(full["content"], full.get("parse_format"))
             assert body == clean
             # content_length matches the cleaned, persisted body length — not
             # the longer pre-clean extraction.

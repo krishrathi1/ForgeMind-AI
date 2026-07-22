@@ -1,6 +1,6 @@
 # Interactive Setup Guide
 
-Use the interactive setup wizard when you want LightRAG to guide you through the configuration instead of editing `.env` by hand.
+Use the interactive setup wizard when you want ForgeMind to guide you through the configuration instead of editing `.env` by hand.
 
 The wizard is exposed through `make` targets:
 
@@ -17,7 +17,7 @@ You do not need to call the underlying shell script directly.
 
 ## What This Wizard Is For
 
-The setup wizard helps you configure LightRAG in three parts:
+The setup wizard helps you configure ForgeMind in three parts:
 
 - `env-base` sets up the LLM, embedding model, and optional reranker.
 - `env-storage` adds or changes storage backends such as PostgreSQL, Neo4j, Redis, Milvus, Qdrant, MongoDB, or Memgraph.
@@ -32,7 +32,7 @@ You can rerun each step later. The wizard loads your existing `.env` and shows c
 - Use the documented `make env-*` targets rather than invoking the setup script yourself.
 - `make env-base` is the normal starting point because it creates the initial `.env`.
 - `make env-storage` and `make env-server` require an existing `.env`.
-- If you choose any wizard-managed Docker service, the wizard also prepares LightRAG for the Docker startup path.
+- If you choose any wizard-managed Docker service, the wizard also prepares ForgeMind for the Docker startup path.
 
 ## Choose Your Setup Path
 
@@ -49,7 +49,7 @@ Use this quick guide to decide what to run:
 
 ## Scenario 1: First-Time Local Setup
 
-Use this when you want LightRAG running with the least amount of setup and you already have remote model endpoints or API keys.
+Use this when you want ForgeMind running with the least amount of setup and you already have remote model endpoints or API keys.
 
 **Command**
 
@@ -76,7 +76,7 @@ make env-base
 - If you did not enable wizard-managed Docker services:
 
 ```bash
-lightrag-server
+forgemind-server
 ```
 
 - If you enabled wizard-managed Docker services:
@@ -87,7 +87,7 @@ docker compose -f docker-compose.final.yml up -d
 
 ## Scenario 2: Local Setup With Docker-Hosted Embedding or Rerank
 
-Use this when you want LightRAG to run local inference services for embedding and/or reranking through Docker.
+Use this when you want ForgeMind to run local inference services for embedding and/or reranking through Docker.
 
 **Command**
 
@@ -117,7 +117,7 @@ make env-base
 docker compose -f docker-compose.final.yml up -d
 ```
 
-This starts the generated Docker-based LightRAG stack together with the selected local services.
+This starts the generated Docker-based ForgeMind stack together with the selected local services.
 
 ## Scenario 3: Add Storage After The Base Setup
 
@@ -162,7 +162,7 @@ make env-storage
 docker compose -f docker-compose.final.yml up -d
 ```
 
-- If you pointed LightRAG at external databases, make sure those services are reachable before starting LightRAG.
+- If you pointed ForgeMind at external databases, make sure those services are reachable before starting ForgeMind.
 
 ## Scenario 4: Harden A Deployment With Auth And SSL
 
@@ -197,8 +197,8 @@ make env-security-check
 **What to do next**
 
 - Run `make env-security-check`
-- If the stack uses Docker, recreate the LightRAG service with your compose file
-- If the stack runs on the host, restart `lightrag-server`
+- If the stack uses Docker, recreate the ForgeMind service with your compose file
+- If the stack runs on the host, restart `forgemind-server`
 
 For broader deployment guidance, see [DockerDeployment.md](./DockerDeployment.md).
 
@@ -220,7 +220,7 @@ Use this when you want to confirm that the current `.env` is internally consiste
 make env-security-check
 ```
 
-Use this before exposing LightRAG beyond localhost. It reports risky setups such as missing authentication, weak or missing JWT secrets, unsafe whitelist settings, or unresolved sensitive placeholders.
+Use this before exposing ForgeMind beyond localhost. It reports risky setups such as missing authentication, weak or missing JWT secrets, unsafe whitelist settings, or unresolved sensitive placeholders.
 
 ### Create A Standalone Backup
 
@@ -274,7 +274,7 @@ The base `docker-compose.yml` remains the general project compose file. The gene
 
 ```bash
 make env-base
-lightrag-server
+forgemind-server
 ```
 
 ### Remote LLM, local embedding and rerank in Docker

@@ -1,6 +1,6 @@
 """Regression tests for the atomic `write_nx_graph` path in NetworkXStorage.
 
-After the migration to the shared ``lightrag.file_atomic`` helper, two
+After the migration to the shared ``forgemind.file_atomic`` helper, two
 failure modes have distinct tmp-residue semantics:
 
 - Python-level exceptions (``write_fn`` raised, ``os.replace`` raised, ...):
@@ -34,8 +34,8 @@ from unittest.mock import patch
 import networkx as nx
 import pytest
 
-from lightrag.file_atomic import TMP_REAP_AGE_SECONDS, reap_orphan_tmp_files
-from lightrag.kg.networkx_impl import NetworkXStorage
+from forgemind.file_atomic import TMP_REAP_AGE_SECONDS, reap_orphan_tmp_files
+from forgemind.kg.networkx_impl import NetworkXStorage
 
 
 @pytest.mark.offline
@@ -93,7 +93,7 @@ def test_write_nx_graph_crash_preserves_prior_snapshot(tmp_path):
     v2 = nx.Graph()
     v2.add_node("v2-node")
     with patch(
-        "lightrag.file_atomic.os.replace",
+        "forgemind.file_atomic.os.replace",
         side_effect=OSError("simulated crash"),
     ):
         with pytest.raises(OSError, match="simulated crash"):

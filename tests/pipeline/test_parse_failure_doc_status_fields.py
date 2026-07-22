@@ -31,12 +31,12 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.constants import FULL_DOCS_FORMAT_PENDING_PARSE
-from lightrag.parser import registry
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
-from lightrag.utils_pipeline import doc_status_parse_failure_fields
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.constants import FULL_DOCS_FORMAT_PENDING_PARSE
+from forgemind.parser import registry
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind.utils_pipeline import doc_status_parse_failure_fields
 
 pytestmark = pytest.mark.offline
 
@@ -164,8 +164,8 @@ def _deterministic_chunking(
     ]
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"parsefail-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,
@@ -443,10 +443,10 @@ async def test_parse_worker_logs_when_failed_upsert_itself_fails(
 
         monkeypatch.setattr(rag, "_upsert_doc_status_transition", _flaky_upsert)
 
-        # lightrag logger has propagate=False; enable it so caplog captures.
-        lightrag_logger = logging.getLogger("lightrag")
-        monkeypatch.setattr(lightrag_logger, "propagate", True)
-        with caplog.at_level(logging.ERROR, logger="lightrag"):
+        # forgemind logger has propagate=False; enable it so caplog captures.
+        forgemind_logger = logging.getLogger("forgemind")
+        monkeypatch.setattr(forgemind_logger, "propagate", True)
+        with caplog.at_level(logging.ERROR, logger="forgemind"):
             await rag.apipeline_process_enqueue_documents()
 
         assert any(

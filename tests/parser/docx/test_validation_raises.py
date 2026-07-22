@@ -1,7 +1,7 @@
 """Native DOCX content-limit validation must *raise*, never ``sys.exit``.
 
 The DOCX parser runs in-process inside the gunicorn/uvicorn worker (via
-``LightRAG.parse_native`` → ``extract_docx_blocks``). A ``sys.exit`` there
+``ForgeMind.parse_native`` → ``extract_docx_blocks``). A ``sys.exit`` there
 raises ``SystemExit`` (a ``BaseException``), which slips past the pipeline's
 per-document ``except Exception`` handler and tears down the whole worker —
 gunicorn then reports ``WORKER TIMEOUT`` and kills it with SIGABRT (code 134),
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser.docx.parse_document import (
+from forgemind.parser.docx.parse_document import (
     DocxContentError,
     MAX_HEADING_LENGTH,
     validate_heading_length,

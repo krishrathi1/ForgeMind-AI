@@ -25,7 +25,7 @@ from urllib.parse import quote
 
 import pytest
 
-from lightrag.parser.external.docling.client import (
+from forgemind.parser.external.docling.client import (
     CONVERT_PATH,
     POLL_PATH,
     RESULT_PATH,
@@ -208,11 +208,11 @@ def _install_fake_httpx(monkeypatch: pytest.MonkeyPatch) -> None:
     """Replace ``httpx.AsyncClient`` and ``httpx.Timeout`` references in
     the docling client module with no-arg fakes."""
     monkeypatch.setattr(
-        "lightrag.parser.external.docling.client.httpx.AsyncClient",
+        "forgemind.parser.external.docling.client.httpx.AsyncClient",
         _FakeAsyncClient,
     )
     monkeypatch.setattr(
-        "lightrag.parser.external.docling.client.httpx.Timeout",
+        "forgemind.parser.external.docling.client.httpx.Timeout",
         lambda *a, **kw: None,
     )
 
@@ -555,7 +555,7 @@ async def test_docling_client_json_envelope_is_parseable_by_ir_builder(
     """End-to-end guard for #2996: a materialized JSON envelope must feed the
     IR builder and yield non-empty blocks (storing the wrapper would produce
     zero blocks and fail ``validate_ir``)."""
-    from lightrag.parser.external.docling.ir_builder import DoclingIRBuilder
+    from forgemind.parser.external.docling.ir_builder import DoclingIRBuilder
 
     envelope = {
         "task_id": "task-abc",

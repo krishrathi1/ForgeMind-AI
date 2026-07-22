@@ -16,13 +16,13 @@ import asyncio
 from contextlib import asynccontextmanager
 
 import pytest
-import lightrag.operate as operate_module
+import forgemind.operate as operate_module
 
-from lightrag.operate import (
+from forgemind.operate import (
     collect_kg_merge_candidates,
     rebuild_knowledge_from_chunks,
 )
-from lightrag.utils import wait_tasks_with_drain
+from forgemind.utils import wait_tasks_with_drain
 
 
 @pytest.fixture(autouse=True)
@@ -172,7 +172,7 @@ async def test_drain_cancellation_between_wait_and_pending_cancel(monkeypatch):
     cooperative yield while collecting done results, with writers still
     pending after FIRST_EXCEPTION — must still cancel and drain those
     writers before ``CancelledError`` propagates."""
-    import lightrag.utils as utils_module
+    import forgemind.utils as utils_module
 
     yield_entered = asyncio.Event()
 

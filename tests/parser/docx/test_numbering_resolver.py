@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from lxml import etree
 
-from lightrag.parser.docx.numbering_resolver import NumberingResolver
+from forgemind.parser.docx.numbering_resolver import NumberingResolver
 
 W = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 

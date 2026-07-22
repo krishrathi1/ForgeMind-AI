@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 from unittest.mock import MagicMock, patch
 
-from lightrag.kg.milvus_impl import MILVUS_MAX_VARCHAR_BYTES, MilvusVectorDBStorage
+from forgemind.kg.milvus_impl import MILVUS_MAX_VARCHAR_BYTES, MilvusVectorDBStorage
 
 pytestmark = pytest.mark.offline
 
@@ -73,7 +73,7 @@ def patch_namespace_lock():
             cache[key] = lock
         return lock
 
-    with patch("lightrag.kg.milvus_impl.get_namespace_lock", side_effect=factory):
+    with patch("forgemind.kg.milvus_impl.get_namespace_lock", side_effect=factory):
         yield cache
 
 

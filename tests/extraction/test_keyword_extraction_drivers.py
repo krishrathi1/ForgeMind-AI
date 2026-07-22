@@ -3,9 +3,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from lightrag.llm.lmdeploy import lmdeploy_model_if_cache
-from lightrag.llm.lollms import lollms_model_complete, lollms_model_if_cache
-from lightrag.llm.ollama import _ollama_model_if_cache, ollama_model_complete
+from forgemind.llm.lmdeploy import lmdeploy_model_if_cache
+from forgemind.llm.lollms import lollms_model_complete, lollms_model_if_cache
+from forgemind.llm.ollama import _ollama_model_if_cache, ollama_model_complete
 
 
 @pytest.mark.offline
@@ -14,7 +14,7 @@ async def test_ollama_response_format_forwards_to_inner():
     hashing_kv = SimpleNamespace(global_config={"llm_model_name": "ollama-model"})
 
     with patch(
-        "lightrag.llm.ollama._ollama_model_if_cache",
+        "forgemind.llm.ollama._ollama_model_if_cache",
         AsyncMock(return_value="{}"),
     ) as mocked_complete:
         await ollama_model_complete(
@@ -42,7 +42,7 @@ async def test_ollama_legacy_keyword_extraction_emits_deprecation_warning():
             captured_kwargs.update(kwargs)
             return {"message": {"content": "{}"}}
 
-    with patch("lightrag.llm.ollama.ollama.AsyncClient", FakeAsyncClient):
+    with patch("forgemind.llm.ollama.ollama.AsyncClient", FakeAsyncClient):
         with pytest.warns(DeprecationWarning):
             await _ollama_model_if_cache(
                 model="ollama-model",
@@ -62,7 +62,7 @@ async def test_ollama_complete_forwards_legacy_flag_downstream():
     hashing_kv = SimpleNamespace(global_config={"llm_model_name": "ollama-model"})
 
     with patch(
-        "lightrag.llm.ollama._ollama_model_if_cache",
+        "forgemind.llm.ollama._ollama_model_if_cache",
         AsyncMock(return_value="{}"),
     ) as mocked_complete:
         await ollama_model_complete(
@@ -87,7 +87,7 @@ async def test_ollama_translates_json_object_response_format_to_native_format():
             captured_kwargs.update(kwargs)
             return {"message": {"content": "{}"}}
 
-    with patch("lightrag.llm.ollama.ollama.AsyncClient", FakeAsyncClient):
+    with patch("forgemind.llm.ollama.ollama.AsyncClient", FakeAsyncClient):
         result = await _ollama_model_if_cache(
             model="ollama-model",
             prompt="hello",
@@ -117,7 +117,7 @@ async def test_ollama_unwraps_openai_json_schema_response_format():
             captured_kwargs.update(kwargs)
             return {"message": {"content": "{}"}}
 
-    with patch("lightrag.llm.ollama.ollama.AsyncClient", FakeAsyncClient):
+    with patch("forgemind.llm.ollama.ollama.AsyncClient", FakeAsyncClient):
         result = await _ollama_model_if_cache(
             model="ollama-model",
             prompt="hello",
@@ -165,7 +165,7 @@ async def test_lollms_if_cache_strips_response_format_before_request():
             captured_requests.append(json)
             return FakeResponse()
 
-    with patch("lightrag.llm.lollms.aiohttp.ClientSession", FakeSession):
+    with patch("forgemind.llm.lollms.aiohttp.ClientSession", FakeSession):
         result = await lollms_model_if_cache(
             model="lollms-model",
             prompt="hello",
@@ -203,7 +203,7 @@ async def test_lollms_if_cache_emits_deprecation_warning():
         def post(self, url, json):
             return FakeResponse()
 
-    with patch("lightrag.llm.lollms.aiohttp.ClientSession", FakeSession):
+    with patch("forgemind.llm.lollms.aiohttp.ClientSession", FakeSession):
         with pytest.warns(DeprecationWarning):
             await lollms_model_if_cache(
                 model="lollms-model",
@@ -218,7 +218,7 @@ async def test_lollms_complete_forwards_legacy_flag_downstream():
     hashing_kv = SimpleNamespace(global_config={"llm_model_name": "lollms-model"})
 
     with patch(
-        "lightrag.llm.lollms.lollms_model_if_cache",
+        "forgemind.llm.lollms.lollms_model_if_cache",
         AsyncMock(return_value="{}"),
     ) as mocked_complete:
         await lollms_model_complete(
@@ -247,7 +247,7 @@ async def test_lmdeploy_strips_response_format_before_generation_config(monkeypa
         yield SimpleNamespace(response="{}")
 
     monkeypatch.setattr(
-        "lightrag.llm.lmdeploy.initialize_lmdeploy_pipeline",
+        "forgemind.llm.lmdeploy.initialize_lmdeploy_pipeline",
         lambda **_kwargs: SimpleNamespace(generate=fake_generate),
     )
 

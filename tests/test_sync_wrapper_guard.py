@@ -1,12 +1,12 @@
 """Regression tests for the synchronous-wrapper event-loop guard.
 
-``LightRAG``'s synchronous wrappers (``insert``, ``query``,
-``delete_by_entity`` …) all delegate to :func:`lightrag.lightrag._run_sync`,
+``ForgeMind``'s synchronous wrappers (``insert``, ``query``,
+``delete_by_entity`` …) all delegate to :func:`forgemind.forgemind._run_sync`,
 which drives the matching ``a*`` coroutine via ``loop.run_until_complete()``.
 
 That call is only valid when (a) no event loop is already running on the
 current thread, and (b) the loop it drives is the same one the instance's
-storages were initialized on (``LightRAG._owning_loop``).  Two misuse modes
+storages were initialized on (``ForgeMind._owning_loop``).  Two misuse modes
 break this:
 
 * Called from within a running loop it raises ``RuntimeError: This event loop
@@ -14,7 +14,7 @@ break this:
 * Driven from a different — but still alive — loop, e.g.
   ``loop.run_in_executor(None, rag.insert, …)`` runs the wrapper on a pool
   thread that spins up a fresh loop while the app's loop keeps running — binds
-  the shared ``asyncio.Lock`` objects in ``lightrag.kg.shared_storage`` to the
+  the shared ``asyncio.Lock`` objects in ``forgemind.kg.shared_storage`` to the
   wrong loop (``<Lock> is bound to a different event loop`` / a stall).
 
 The cross-loop check only fires while ``owning_loop`` is still open.  A *closed*
@@ -27,7 +27,7 @@ Both misuse modes have the same fix: use the ``a*`` coroutine directly.
 about to drive against ``owning_loop``, raising one clear, actionable error for
 each.  These tests pin that behaviour (and guard against regressing back to the
 misleading "deadlock" wording / un-awaited-coroutine leak). See
-HKUDS/LightRAG #1968.
+krishrathi1/ForgeMind-AI #1968.
 """
 
 import asyncio
@@ -35,7 +35,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from lightrag.lightrag import _run_sync
+from forgemind.forgemind import _run_sync
 
 
 @pytest.mark.offline

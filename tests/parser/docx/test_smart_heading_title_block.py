@@ -11,9 +11,9 @@ import json
 
 import pytest
 
-from lightrag.parser.docx.parse_document import ParagraphRecord
-from lightrag.parser.docx.smart_heading import guardrails
-from lightrag.parser.docx.smart_heading.title_block import (
+from forgemind.parser.docx.parse_document import ParagraphRecord
+from forgemind.parser.docx.smart_heading import guardrails
+from forgemind.parser.docx.smart_heading.title_block import (
     TitleBlockCandidate,
     TitleBlockLLMError,
     compose_doc_title,
@@ -347,7 +347,7 @@ def test_title_verdict_multiline_fields_flattened(monkeypatch) -> None:
     heading stack (and thence every descendant's parent_headings). CJK
     boundaries join without a space, others with one; locate-back still
     passes (_canon strips ALL whitespace)."""
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
 
     # compose_doc_title reads the (configurable) length cap live; pin it so the
     # exact-value assertion below is deterministic regardless of ambient env.
@@ -379,7 +379,7 @@ def test_title_verdict_multiline_fields_flattened(monkeypatch) -> None:
 
 
 def test_compose_doc_title_joins_with_double_space(monkeypatch) -> None:
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
 
     # Pin the live length cap so these exact-value assertions do not truncate
     # under a small (but legal) ambient DOCX_SMART_HEADING_MAX_CHARS.
@@ -395,7 +395,7 @@ def test_compose_doc_title_joins_with_double_space(monkeypatch) -> None:
 def test_compose_doc_title_bounds_length(monkeypatch) -> None:
     """Both the merged and the main-only paths are bounded to the strong-body
     weighted cap (unified handling, user ruling)."""
-    from lightrag.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
+    from forgemind.constants import DEFAULT_DOCX_SMART_HEADING_MAX_CHARS
 
     monkeypatch.setenv(
         "DOCX_SMART_HEADING_MAX_CHARS", str(DEFAULT_DOCX_SMART_HEADING_MAX_CHARS)
@@ -934,7 +934,7 @@ def test_dominance_ignores_headings_beyond_flank_window(monkeypatch) -> None:
     compared against; with a small K the distant big heading is ignored and
     the window (no near neighbour) passes on the fallback. The window sits at
     the document head so the mid-document position gate stays out of play."""
-    import lightrag.parser.docx.smart_heading.title_block as tb
+    import forgemind.parser.docx.smart_heading.title_block as tb
 
     monkeypatch.setattr(tb, "_FLANK_WINDOW", 1)
     records = [
@@ -1261,7 +1261,7 @@ def test_table_window_separators_isolate_each_frame() -> None:
     separator, so the title frame stands alone (the M1212 fix). Indices stay
     global/contiguous over emitted cells; separators carry no index and never
     enter the canon."""
-    from lightrag.parser.docx.smart_heading.title_block import (
+    from forgemind.parser.docx.smart_heading.title_block import (
         _TABLE_REGION_SEPARATOR,
         _render_table_window,
     )
@@ -1298,7 +1298,7 @@ def test_table_window_pure_image_gap_yields_one_separator() -> None:
     """table → pure-<drawing/> paragraph → table: the image renders nothing,
     yet the two text tables keep EXACTLY ONE boundary (pending-boundary state
     machine, not a naive adjacent-region check that would drop it)."""
-    from lightrag.parser.docx.smart_heading.title_block import (
+    from forgemind.parser.docx.smart_heading.title_block import (
         _TABLE_REGION_SEPARATOR,
         _render_table_window,
     )
@@ -1326,7 +1326,7 @@ def test_table_window_consecutive_paras_share_one_region() -> None:
     """A run of consecutive absorbed paragraphs is ONE frame (inter-table text
     flow): only the table↔paragraph transition opens a boundary, so no
     separator falls between the two paragraphs."""
-    from lightrag.parser.docx.smart_heading.title_block import (
+    from forgemind.parser.docx.smart_heading.title_block import (
         _TABLE_REGION_SEPARATOR,
         _render_table_window,
     )
@@ -1352,7 +1352,7 @@ def test_table_window_consecutive_paras_share_one_region() -> None:
 def test_table_window_single_table_no_separator_no_note() -> None:
     """A single-table window carries neither a separator nor the layout note —
     it reads exactly as before the region change."""
-    from lightrag.parser.docx.smart_heading.title_block import (
+    from forgemind.parser.docx.smart_heading.title_block import (
         _TABLE_LAYOUT_NOTE,
         _TABLE_REGION_SEPARATOR,
         _render_table_window,
@@ -1376,7 +1376,7 @@ def test_table_window_single_table_no_separator_no_note() -> None:
 def test_table_window_layout_note_only_when_separated() -> None:
     """The frame-layout note precedes the font-size legend, and only when the
     window actually carries a separator."""
-    from lightrag.parser.docx.smart_heading.title_block import _TABLE_LAYOUT_NOTE
+    from forgemind.parser.docx.smart_heading.title_block import _TABLE_LAYOUT_NOTE
 
     records = [
         _table([[("档 号", 12.0, False)]]),
@@ -1399,7 +1399,7 @@ def test_table_window_truncation_at_boundary_drops_separator_whole() -> None:
     """A cap hit at a region boundary drops the separator AND its following
     line together — never a dangling separator; the index count stays equal to
     the emitted-cell count and the canon is separator-free."""
-    from lightrag.parser.docx.smart_heading.title_block import (
+    from forgemind.parser.docx.smart_heading.title_block import (
         _TABLE_REGION_SEPARATOR,
         _render_table_window,
     )
@@ -1524,7 +1524,7 @@ def test_prompt_front_matter_negative_list() -> None:
     更 改 记 录 line) to false, while the field constraint keeps every
     verdict intact. The needles cover the listed names, the Chinese
     whitespace-insensitivity note, and the substring-acceptable escape."""
-    from lightrag.parser.docx.smart_heading.title_block import (
+    from forgemind.parser.docx.smart_heading.title_block import (
         _SYSTEM_PROMPT,
         _USER_TEMPLATE,
     )
@@ -2025,7 +2025,7 @@ def test_imprint_region_start_marker_is_middle_content() -> None:
 def test_imprint_region_closer_is_yinfa_jiguan() -> None:
     """印发机关 is a CLOSER (not an anchor): it ends a 抄送-opened region — the
     old space-class anchor knob (DOCX_SMART_IMPRINT_SPACE_PREFIXES) is gone."""
-    from lightrag.parser.docx.smart_heading.guardrails import imprint_marker_reason
+    from forgemind.parser.docx.smart_heading.guardrails import imprint_marker_reason
 
     records = [
         _para("抄送：各区", size=12.0),  # 0 anchor
@@ -2284,12 +2284,12 @@ def test_leading_break_title_keeps_subtitle_in_window(tmp_path) -> None:
     from docx.oxml.ns import qn
     from docx.shared import Pt
 
-    from lightrag.parser.docx.numbering_resolver import NumberingResolver
-    from lightrag.parser.docx.parse_document import (
+    from forgemind.parser.docx.numbering_resolver import NumberingResolver
+    from forgemind.parser.docx.parse_document import (
         _read_document_records,
         parse_styles_outline_levels,
     )
-    from lightrag.parser.docx.smart_heading.features import parse_styles_attributes
+    from forgemind.parser.docx.smart_heading.features import parse_styles_attributes
 
     def _build(trailing_break: bool):
         doc = Document()

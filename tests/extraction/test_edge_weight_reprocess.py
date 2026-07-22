@@ -20,10 +20,10 @@ import asyncio
 
 import pytest
 
-import lightrag.operate as operate
-from lightrag.operate import _merge_edges_then_upsert
-from lightrag.constants import GRAPH_FIELD_SEP
-from lightrag.utils import make_relation_chunk_key
+import forgemind.operate as operate
+from forgemind.operate import _merge_edges_then_upsert
+from forgemind.constants import GRAPH_FIELD_SEP
+from forgemind.utils import make_relation_chunk_key
 
 
 class _FakeTokenizer:
@@ -308,7 +308,7 @@ def _node_dp(name: str, desc: str, src: str, ts: int = 1) -> dict:
 
 
 async def _orchestrate(chunk_results, g, stores, cfg, doc_id="d"):
-    from lightrag.operate import merge_nodes_and_edges
+    from forgemind.operate import merge_nodes_and_edges
 
     await merge_nodes_and_edges(
         chunk_results,
@@ -370,7 +370,7 @@ def _node_frag_count(g, name: str) -> int:
 async def test_orchestrator_reprocess_same_doc_does_not_accumulate():
     """Merging the SAME extracted doc twice (a reprocess/resume) must not grow
     entity descriptions or edge weight through the real orchestrator."""
-    from lightrag.kg.shared_storage import initialize_share_data
+    from forgemind.kg.shared_storage import initialize_share_data
 
     initialize_share_data()
     g = _MemGraph()
@@ -387,7 +387,7 @@ async def test_orchestrator_reprocess_same_doc_does_not_accumulate():
 async def test_orchestrator_distinct_docs_accumulate():
     """Two DISTINCT docs (distinct sources + descriptions) legitimately grow the
     entity description to two fragments and the edge weight to two."""
-    from lightrag.kg.shared_storage import initialize_share_data
+    from forgemind.kg.shared_storage import initialize_share_data
 
     initialize_share_data()
     g = _MemGraph()
@@ -408,7 +408,7 @@ async def test_orchestrator_distinct_docs_accumulate():
 async def test_orchestrator_reprocess_after_distinct_docs_is_stable():
     """After two distinct docs (c1, c2), reprocessing c1 again must not grow the
     description or weight past two."""
-    from lightrag.kg.shared_storage import initialize_share_data
+    from forgemind.kg.shared_storage import initialize_share_data
 
     initialize_share_data()
     g = _MemGraph()

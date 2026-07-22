@@ -7,7 +7,7 @@ through vector_db_storage_cls_kwargs and that backward compatibility is maintain
 
 import pytest
 from unittest.mock import patch, MagicMock
-from lightrag.kg.milvus_impl import MilvusVectorDBStorage
+from forgemind.kg.milvus_impl import MilvusVectorDBStorage
 
 
 @pytest.mark.offline
@@ -190,8 +190,8 @@ class TestMilvusKwargsParameterBridge:
         """Test configuration passing through frameworks like RAGAnything
 
         This test validates the use case where a framework (like RAGAnything)
-        sits on top of LightRAG and needs to pass Milvus index configuration
-        through to LightRAG without modifying environment variables.
+        sits on top of ForgeMind and needs to pass Milvus index configuration
+        through to ForgeMind without modifying environment variables.
 
         The framework can pass all index config parameters via
         vector_db_storage_cls_kwargs, and they will be properly extracted
@@ -200,7 +200,7 @@ class TestMilvusKwargsParameterBridge:
         mock_embedding_func = MagicMock()
         mock_embedding_func.embedding_dim = 128
 
-        # Simulate RAGAnything framework passing configuration to LightRAG
+        # Simulate RAGAnything framework passing configuration to ForgeMind
         # All index configuration parameters are passed through kwargs
         framework_config = {
             "embedding_batch_num": 100,

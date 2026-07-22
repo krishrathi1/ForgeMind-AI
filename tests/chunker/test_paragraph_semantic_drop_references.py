@@ -16,13 +16,13 @@ import logging
 
 import pytest
 
-from lightrag.chunker.paragraph_semantic import (
+from forgemind.chunker.paragraph_semantic import (
     _format_dropped_headings,
     _is_reference_heading,
     chunking_by_paragraph_semantic,
 )
-from lightrag.constants import DEFAULT_P_REFERENCES_HEADINGS
-from lightrag.utils import Tokenizer, TokenizerInterface, logger as _lightrag_logger
+from forgemind.constants import DEFAULT_P_REFERENCES_HEADINGS
+from forgemind.utils import Tokenizer, TokenizerInterface, logger as _forgemind_logger
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -267,12 +267,12 @@ def test_drop_references_emits_info_log(tmp_path, caplog):
     ]
     blocks_path = _write_blocks_jsonl(tmp_path, rows)
 
-    # The lightrag logger sets propagate=False, so caplog can't see it by
+    # The forgemind logger sets propagate=False, so caplog can't see it by
     # default — enable propagation for the duration of the call.
-    original_propagate = _lightrag_logger.propagate
-    _lightrag_logger.propagate = True
+    original_propagate = _forgemind_logger.propagate
+    _forgemind_logger.propagate = True
     try:
-        with caplog.at_level(logging.INFO, logger=_lightrag_logger.name):
+        with caplog.at_level(logging.INFO, logger=_forgemind_logger.name):
             chunking_by_paragraph_semantic(
                 tokenizer,
                 "",
@@ -282,7 +282,7 @@ def test_drop_references_emits_info_log(tmp_path, caplog):
                 doc_id="doc-xyz",
             )
     finally:
-        _lightrag_logger.propagate = original_propagate
+        _forgemind_logger.propagate = original_propagate
 
     info_msgs = [r.getMessage() for r in caplog.records if r.levelno == logging.INFO]
     # Log names the dropped heading and attributes it to the doc_id.

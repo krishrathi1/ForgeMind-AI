@@ -1,4 +1,4 @@
-"""Unit tests for ``lightrag.parser.markdown.extract`` (pure extraction).
+"""Unit tests for ``forgemind.parser.markdown.extract`` (pure extraction).
 
 Locks in the supported-subset contract: ATX heading splitting, fenced-code
 suppression, pipe / HTML table recognition with headers, block-level ``$$``
@@ -8,7 +8,7 @@ resolver.
 
 from __future__ import annotations
 
-from lightrag.parser.markdown.extract import (
+from forgemind.parser.markdown.extract import (
     PREFACE_HEADING,
     ResolvedImage,
     extract_markdown,

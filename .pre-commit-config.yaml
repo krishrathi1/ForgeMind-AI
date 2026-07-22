@@ -3,21 +3,21 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
-        exclude: ^lightrag/api/webui/
+        exclude: ^forgemind/api/webui/
       - id: end-of-file-fixer
-        exclude: ^lightrag/api/webui/
+        exclude: ^forgemind/api/webui/
       - id: requirements-txt-fixer
-        exclude: ^lightrag/api/webui/
+        exclude: ^forgemind/api/webui/
 
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.17
     hooks:
       - id: ruff-format
-        exclude: ^lightrag/api/webui/
+        exclude: ^forgemind/api/webui/
       - id: ruff
         args: [--fix, --ignore=E402]
-        exclude: ^lightrag/api/webui/
+        exclude: ^forgemind/api/webui/
 
 
   - repo: https://github.com/mgedmin/check-manifest
@@ -25,4 +25,4 @@ repos:
     hooks:
       - id: check-manifest
         stages: [manual]
-        exclude: ^lightrag/api/webui/
+        exclude: ^forgemind/api/webui/

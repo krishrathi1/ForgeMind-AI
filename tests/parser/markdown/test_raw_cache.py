@@ -12,8 +12,8 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.parser.markdown import parser as md_parser
-from lightrag.parser.markdown.parser import NativeMarkdownParser
+from forgemind.parser.markdown import parser as md_parser
+from forgemind.parser.markdown.parser import NativeMarkdownParser
 
 # A 1x1 transparent PNG.
 _PNG_BYTES = (
@@ -28,7 +28,7 @@ _MD = f"# H\n\n![x]({_URL})\n"
 @pytest.fixture(autouse=True)
 def _enable_download(monkeypatch):
     monkeypatch.setenv("NATIVE_MD_IMAGE_DOWNLOAD_ENABLED", "true")
-    monkeypatch.delenv("LIGHTRAG_FORCE_REPARSE_NATIVE", raising=False)
+    monkeypatch.delenv("FORGEMIND_FORCE_REPARSE_NATIVE", raising=False)
     monkeypatch.delenv("NATIVE_MD_IMAGE_MAX_BYTES", raising=False)
     monkeypatch.delenv("NATIVE_MD_IMAGE_MAX_SVG_PIXELS", raising=False)
     monkeypatch.delenv("NATIVE_MD_IMAGE_ALLOWED_NON_PUBLIC_CIDRS", raising=False)
@@ -159,7 +159,7 @@ def test_force_reparse_discards_cache(tmp_path, monkeypatch):
     src, parsed = _make_doc(tmp_path)
     _extract(p, src, parsed)
     assert counter["n"] == 1
-    monkeypatch.setenv("LIGHTRAG_FORCE_REPARSE_NATIVE", "true")
+    monkeypatch.setenv("FORGEMIND_FORCE_REPARSE_NATIVE", "true")
     _wipe_parsed(parsed)
     _extract(p, src, parsed)
     assert counter["n"] == 2

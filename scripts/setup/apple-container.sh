@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# apple-container.sh — Run the LightRAG storage stack on Apple's native
+# apple-container.sh — Run the ForgeMind storage stack on Apple's native
 # `container` CLI (https://github.com/apple/container) instead of Docker Compose.
 #
 # Apple `container` (1.0.0) has no Compose support: no `depends_on`, no
@@ -22,7 +22,7 @@
 #   milvus        milvusdb/milvus:v2.6.11  (standalone, CPU)   (vector)
 #   milvus-etcd   quay.io/coreos/etcd:v3.5.25                  (milvus metadata)
 #   milvus-minio  minio/minio:RELEASE.2025-09-07T16-13-09Z     (milvus object store)
-#   lightrag      ghcr.io/hkuds/lightrag:latest                (API server + WebUI)
+#   forgemind      ghcr.io/krishrathi1/forgemind-ai:latest                (API server + WebUI)
 #
 # LLM + embeddings are reached over normal outbound HTTPS (e.g. OpenAI); no GPU
 # and no vLLM services are involved, so this runs on a CPU-only Apple Silicon Mac.
@@ -33,7 +33,7 @@
 # cannot work on older releases.
 #
 # Usage:
-#   scripts/setup/apple-container.sh up [--no-lightrag]
+#   scripts/setup/apple-container.sh up [--no-forgemind]
 #   scripts/setup/apple-container.sh down [--purge]
 #   scripts/setup/apple-container.sh status
 #   scripts/setup/apple-container.sh logs <service> [--follow]
@@ -56,11 +56,11 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # --------------------------------------------------------------------------- #
 # Configuration (override via environment before invoking the script)
 # --------------------------------------------------------------------------- #
-NETWORK="${LIGHTRAG_AC_NETWORK:-lightrag}"
+NETWORK="${FORGEMIND_AC_NETWORK:-forgemind}"
 # All stack containers are namespaced with this prefix so the script never
 # touches (or reuses) a same-named container from another project.
-CONTAINER_PREFIX="${LIGHTRAG_AC_PREFIX:-lightrag-}"
-ENV_SOURCE="${LIGHTRAG_AC_ENV_FILE:-$REPO_ROOT/.env}"
+CONTAINER_PREFIX="${FORGEMIND_AC_PREFIX:-forgemind-}"
+ENV_SOURCE="${FORGEMIND_AC_ENV_FILE:-$REPO_ROOT/.env}"
 ENV_GENERATED="$REPO_ROOT/.apple-container.env"
 PLATFORM="linux/arm64"
 
@@ -69,16 +69,16 @@ PLATFORM="linux/arm64"
 # templates' gzdaniel/postgres-for-rag:pg18-age-pgvector, which is amd64-only and
 # has no arm64 manifest. The AGE graph extension it adds is not needed here
 # (graph storage is Neo4j, vector storage is Milvus).
-IMG_PG="${LIGHTRAG_AC_IMG_PG:-pgvector/pgvector:pg18}"
-IMG_NEO4J="${LIGHTRAG_AC_IMG_NEO4J:-neo4j:5-community}"
-IMG_MILVUS="${LIGHTRAG_AC_IMG_MILVUS:-milvusdb/milvus:v2.6.11}"
-IMG_ETCD="${LIGHTRAG_AC_IMG_ETCD:-quay.io/coreos/etcd:v3.5.25}"
-IMG_MINIO="${LIGHTRAG_AC_IMG_MINIO:-minio/minio:RELEASE.2025-09-07T16-13-09Z}"
-IMG_LIGHTRAG="${LIGHTRAG_AC_IMG_LIGHTRAG:-ghcr.io/hkuds/lightrag:latest}"
+IMG_PG="${FORGEMIND_AC_IMG_PG:-pgvector/pgvector:pg18}"
+IMG_NEO4J="${FORGEMIND_AC_IMG_NEO4J:-neo4j:5-community}"
+IMG_MILVUS="${FORGEMIND_AC_IMG_MILVUS:-milvusdb/milvus:v2.6.11}"
+IMG_ETCD="${FORGEMIND_AC_IMG_ETCD:-quay.io/coreos/etcd:v3.5.25}"
+IMG_MINIO="${FORGEMIND_AC_IMG_MINIO:-minio/minio:RELEASE.2025-09-07T16-13-09Z}"
+IMG_FORGEMIND="${FORGEMIND_AC_IMG_FORGEMIND:-ghcr.io/krishrathi1/forgemind-ai:latest}"
 
 # Memory budgets (per-container VM). Milvus and Neo4j are heavy.
-MEM_LIGHT="${LIGHTRAG_AC_MEM_LIGHT:-2G}"
-MEM_HEAVY="${LIGHTRAG_AC_MEM_HEAVY:-6G}"
+MEM_LIGHT="${FORGEMIND_AC_MEM_LIGHT:-2G}"
+MEM_HEAVY="${FORGEMIND_AC_MEM_HEAVY:-6G}"
 
 # read_env_value <key> — value of KEY= from ENV_SOURCE (last occurrence, one
 # layer of surrounding quotes stripped), or empty. Always succeeds.
@@ -94,27 +94,27 @@ read_env_value() {
 # Credentials / database names. Precedence: explicit shell override > the value
 # already in the source .env > dev default. Reading the .env value keeps
 # start_postgres (which creates the database) consistent with the generated
-# env-file that the lightrag container connects with.
+# env-file that the forgemind container connects with.
 PG_USER="${POSTGRES_USER:-$(read_env_value POSTGRES_USER)}";                          PG_USER="${PG_USER:-rag}"
 PG_PASSWORD="${POSTGRES_PASSWORD:-$(read_env_value POSTGRES_PASSWORD)}";              PG_PASSWORD="${PG_PASSWORD:-rag}"
 PG_DB="${POSTGRES_DB:-$(read_env_value POSTGRES_DATABASE)}";                          PG_DB="${PG_DB:-rag}"
 NEO4J_USER="${NEO4J_USERNAME:-$(read_env_value NEO4J_USERNAME)}";                     NEO4J_USER="${NEO4J_USER:-neo4j}"
-NEO4J_PASS="${NEO4J_PASSWORD:-$(read_env_value NEO4J_PASSWORD)}";                     NEO4J_PASS="${NEO4J_PASS:-lightragdev}"
+NEO4J_PASS="${NEO4J_PASSWORD:-$(read_env_value NEO4J_PASSWORD)}";                     NEO4J_PASS="${NEO4J_PASS:-forgeminddev}"
 MINIO_USER="${MINIO_ACCESS_KEY_ID:-$(read_env_value MINIO_ACCESS_KEY_ID)}";           MINIO_USER="${MINIO_USER:-minioadmin}"
 MINIO_PASS="${MINIO_SECRET_ACCESS_KEY:-$(read_env_value MINIO_SECRET_ACCESS_KEY)}";   MINIO_PASS="${MINIO_PASS:-minioadmin}"
-# LightRAG's MilvusVectorDBStorage requires MILVUS_DB_NAME in addition to MILVUS_URI.
-MILVUS_DB="${MILVUS_DB_NAME:-$(read_env_value MILVUS_DB_NAME)}";                      MILVUS_DB="${MILVUS_DB:-lightrag}"
+# ForgeMind's MilvusVectorDBStorage requires MILVUS_DB_NAME in addition to MILVUS_URI.
+MILVUS_DB="${MILVUS_DB_NAME:-$(read_env_value MILVUS_DB_NAME)}";                      MILVUS_DB="${MILVUS_DB:-forgemind}"
 
-SERVICES=(postgres neo4j milvus-etcd milvus-minio milvus lightrag)
+SERVICES=(postgres neo4j milvus-etcd milvus-minio milvus forgemind)
 # Volume base names; the full name is VOLUME_PREFIX + base (see vname), so two
 # stacks configured with different prefixes never share their databases' storage.
-VOLUME_NAMES=(pg neo4j milvus etcd minio lightrag)
-VOLUME_PREFIX="${LIGHTRAG_AC_VOLUME_PREFIX:-${CONTAINER_PREFIX%-}_}"
+VOLUME_NAMES=(pg neo4j milvus etcd minio forgemind)
+VOLUME_PREFIX="${FORGEMIND_AC_VOLUME_PREFIX:-${CONTAINER_PREFIX%-}_}"
 
 # Dependency addresses, resolved at `up` time (see cmd_up).
 ETCD_ADDR=""; MINIO_ADDR=""; PG_ADDR=""; NEO4J_ADDR=""; MILVUS_ADDR=""
 
-NO_LIGHTRAG="no"
+NO_FORGEMIND="no"
 PURGE="no"
 LOGS_FOLLOW="no"
 DEBUG="${DEBUG:-false}"
@@ -247,12 +247,12 @@ tcp_ready() {
   container exec "$c" sh -c "cat /proc/net/tcp /proc/net/tcp6 2>/dev/null | grep -q ':${hex} '"
 }
 
-lightrag_health() {
+forgemind_health() {
   curl -fsS --max-time 4 "http://127.0.0.1:9621/health" >/dev/null 2>&1
 }
 
 # --------------------------------------------------------------------------- #
-# Generated env-file for the lightrag container
+# Generated env-file for the forgemind container
 # --------------------------------------------------------------------------- #
 # Copies the user's host .env, then forces the storage backends and connection
 # endpoints to the in-network service IPs. The user's .env is never modified (it
@@ -289,10 +289,10 @@ generate_env_file() {
   _set_kv "$ENV_GENERATED" INPUT_DIR "/app/data/inputs"
 
   # Storage backends → external services.
-  _set_kv "$ENV_GENERATED" LIGHTRAG_KV_STORAGE "PGKVStorage"
-  _set_kv "$ENV_GENERATED" LIGHTRAG_DOC_STATUS_STORAGE "PGDocStatusStorage"
-  _set_kv "$ENV_GENERATED" LIGHTRAG_GRAPH_STORAGE "Neo4JStorage"
-  _set_kv "$ENV_GENERATED" LIGHTRAG_VECTOR_STORAGE "MilvusVectorDBStorage"
+  _set_kv "$ENV_GENERATED" FORGEMIND_KV_STORAGE "PGKVStorage"
+  _set_kv "$ENV_GENERATED" FORGEMIND_DOC_STATUS_STORAGE "PGDocStatusStorage"
+  _set_kv "$ENV_GENERATED" FORGEMIND_GRAPH_STORAGE "Neo4JStorage"
+  _set_kv "$ENV_GENERATED" FORGEMIND_VECTOR_STORAGE "MilvusVectorDBStorage"
 
   # Postgres (KV + doc status).
   _set_kv "$ENV_GENERATED" POSTGRES_HOST "$PG_ADDR"
@@ -380,13 +380,13 @@ start_milvus() {
     milvus run standalone
 }
 
-start_lightrag() {
+start_forgemind() {
   generate_env_file
-  run_service lightrag -- -m "$MEM_LIGHT" \
+  run_service forgemind -- -m "$MEM_LIGHT" \
     --env-file "$ENV_GENERATED" \
-    --mount "type=volume,source=$(vname lightrag),target=/app/data" \
+    --mount "type=volume,source=$(vname forgemind),target=/app/data" \
     -p 127.0.0.1:9621:9621 \
-    "$IMG_LIGHTRAG"
+    "$IMG_FORGEMIND"
 }
 
 # --------------------------------------------------------------------------- #
@@ -417,7 +417,7 @@ cmd_up() {
   start_milvus
   wait_for milvus 180 tcp_ready "$(cname milvus)" 19530
 
-  if [[ "$NO_LIGHTRAG" == "yes" ]]; then
+  if [[ "$NO_FORGEMIND" == "yes" ]]; then
     PG_ADDR="$(container_ip "$(cname postgres)")"; NEO4J_ADDR="$(container_ip "$(cname neo4j)")"; MILVUS_ADDR="$(container_ip "$(cname milvus)")"
     log_success "Storage stack is up. In-network endpoints (set these in your .env):"
     echo "  POSTGRES_HOST=$PG_ADDR  NEO4J_URI=neo4j://${NEO4J_ADDR}:7687  MILVUS_URI=http://${MILVUS_ADDR}:19530"
@@ -425,15 +425,15 @@ cmd_up() {
     return 0
   fi
 
-  # Discover storage IPs and start LightRAG wired to them.
+  # Discover storage IPs and start ForgeMind wired to them.
   PG_ADDR="$(container_ip "$(cname postgres)")"
   NEO4J_ADDR="$(container_ip "$(cname neo4j)")"
   MILVUS_ADDR="$(container_ip "$(cname milvus)")"
   [[ -n "$PG_ADDR" && -n "$NEO4J_ADDR" && -n "$MILVUS_ADDR" ]] || { format_error "Could not resolve storage IPs."; exit 1; }
 
-  log_step "Starting LightRAG server..."
-  start_lightrag
-  wait_for lightrag 120 lightrag_health
+  log_step "Starting ForgeMind server..."
+  start_forgemind
+  wait_for forgemind 120 forgemind_health
 
   log_success "Stack is up."
   echo "  WebUI : http://127.0.0.1:9621/webui"
@@ -506,7 +506,7 @@ cmd_restart() {
 cmd_pull() {
   preflight
   local img
-  for img in "$IMG_PG" "$IMG_NEO4J" "$IMG_MILVUS" "$IMG_ETCD" "$IMG_MINIO" "$IMG_LIGHTRAG"; do
+  for img in "$IMG_PG" "$IMG_NEO4J" "$IMG_MILVUS" "$IMG_ETCD" "$IMG_MINIO" "$IMG_FORGEMIND"; do
     log_info "pulling $img ($PLATFORM)"
     container image pull --platform "$PLATFORM" "$img"
   done
@@ -517,14 +517,14 @@ print_help() {
   local env_src_rel="${ENV_SOURCE#"$REPO_ROOT"/}"
   local env_gen_rel="${ENV_GENERATED#"$REPO_ROOT"/}"
   cat <<EOF
-${COLOR_BOLD}apple-container.sh${COLOR_RESET} — LightRAG storage stack on Apple's 'container' CLI
+${COLOR_BOLD}apple-container.sh${COLOR_RESET} — ForgeMind storage stack on Apple's 'container' CLI
 
 USAGE:
   scripts/setup/apple-container.sh <command> [options]
 
 COMMANDS:
-  up [--no-lightrag]     Create network/volumes and start the stack (in order,
-                         with health waits). --no-lightrag starts databases only.
+  up [--no-forgemind]     Create network/volumes and start the stack (in order,
+                         with health waits). --no-forgemind starts databases only.
   down [--purge]         Stop and remove containers. --purge also deletes volumes
                          (destroys all stored data) and the generated env-file.
   status                 Show containers, volumes and networks.
@@ -542,7 +542,7 @@ are wired by the IP that 'container' assigns on the shared network.
 NOTES:
   * Data is stored in named volumes (host bind mounts are unsupported for these
     database images on Apple container). 'down' keeps data unless --purge.
-  * Only the LightRAG server publishes a host port (127.0.0.1:9621). The
+  * Only the ForgeMind server publishes a host port (127.0.0.1:9621). The
     databases are NOT published (avoids clashing with a host Postgres on 5432);
     reach them from the host directly on their container IP (see 'status').
   * The user's ${env_src_rel} is never modified; a generated
@@ -563,7 +563,7 @@ main() {
   local positional=""
   while [[ $# -gt 0 ]]; do
     case "$1" in
-      --no-lightrag) NO_LIGHTRAG="yes" ;;
+      --no-forgemind) NO_FORGEMIND="yes" ;;
       --purge)       PURGE="yes" ;;
       --follow|-f)   LOGS_FOLLOW="yes" ;;
       --debug)       DEBUG="true" ;;

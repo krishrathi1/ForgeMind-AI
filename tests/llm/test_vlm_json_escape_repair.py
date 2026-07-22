@@ -19,14 +19,14 @@ import logging
 
 import pytest
 
-from lightrag.utils import repair_vlm_json_escape_damage
+from forgemind.utils import repair_vlm_json_escape_damage
 
 
 @pytest.fixture
-def _propagate_lightrag_logger(monkeypatch):
-    """``lightrag.utils.logger`` sets ``propagate = False``; restore
+def _propagate_forgemind_logger(monkeypatch):
+    """``forgemind.utils.logger`` sets ``propagate = False``; restore
     propagation locally so ``caplog`` can capture WARNING records."""
-    monkeypatch.setattr(logging.getLogger("lightrag"), "propagate", True)
+    monkeypatch.setattr(logging.getLogger("forgemind"), "propagate", True)
 
 
 @pytest.mark.offline
@@ -62,14 +62,14 @@ def test_clean_text_is_unchanged_and_idempotent():
 
 @pytest.mark.offline
 def test_whitespace_class_damage_is_logged_not_rewritten(
-    caplog, _propagate_lightrag_logger
+    caplog, _propagate_forgemind_logger
 ):
     """Tab + "imes" (destroyed ``\\times``) is ambiguous with legitimate
     whitespace: detection must warn but never modify the text."""
     # NOTE: "\t" in this source literal IS a real tab — exactly what a
     # destroyed "\times" looks like post-parse: tab + "imes" + boundary.
     damaged = "area is $a \times b$"
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         result = repair_vlm_json_escape_damage(damaged, context="table/t1")
     assert result == damaged
     assert any(
@@ -80,11 +80,11 @@ def test_whitespace_class_damage_is_logged_not_rewritten(
 
 
 @pytest.mark.offline
-def test_legitimate_whitespace_is_not_flagged(caplog, _propagate_lightrag_logger):
+def test_legitimate_whitespace_is_not_flagged(caplog, _propagate_forgemind_logger):
     """Whitespace followed by ordinary words (no whitelist residue with a
     word boundary) must not trigger the detection warning."""
     legit = "col1\tauthor list\nablation studies follow\nexists in the table"
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         result = repair_vlm_json_escape_damage(legit)
     assert result == legit
     assert not caplog.records
@@ -114,7 +114,7 @@ def test_mixed_escaping_real_world_response():
 def test_prompts_require_double_escaped_backslashes():
     """All three modality prompts must instruct double-escaping; the
     equation prompt had this rule first, image/table were aligned to it."""
-    from lightrag.prompt_multimodal import MULTIMODAL_PROMPTS
+    from forgemind.prompt_multimodal import MULTIMODAL_PROMPTS
 
     for key in ("image_analysis", "table_analysis", "equation_analysis"):
         template = MULTIMODAL_PROMPTS[key]
@@ -129,7 +129,7 @@ def test_extraction_system_prompt_requires_double_escaped_backslashes():
     round and the gleaning round (same system prompt is passed to the
     gleaning call), so the escaping rule lives there — the user prompts
     deliberately carry no copy."""
-    from lightrag.prompt import PROMPTS
+    from forgemind.prompt import PROMPTS
 
     template = PROMPTS["entity_extraction_json_system_prompt"]
     assert "escape backslashes" in template and "double-escaped" in template, (
@@ -145,12 +145,12 @@ async def test_extraction_json_result_repairs_latex_escape_damage():
     single-escaped LaTeX must yield entity/relation descriptions carrying
     the intact command — covers initial extraction, gleaning, and rebuild,
     which all parse through _process_json_extraction_result."""
-    from lightrag.operate import _process_json_extraction_result
+    from forgemind.operate import _process_json_extraction_result
 
     raw_response = (
-        '{"entities": [{"name": "LightRAG", "type": "Other", '
+        '{"entities": [{"name": "ForgeMind", "type": "Other", '
         '"description": "成本为 $\\frac{610}{C}$ 次调用"}], '
-        '"relationships": [{"source": "LightRAG", "target": "GraphRAG", '
+        '"relationships": [{"source": "ForgeMind", "target": "GraphRAG", '
         '"keywords": "cost", '
         '"description": "比较 $\\frac{a}{b}$ 与 $\\\\times$ 系数"}]}'
     )
@@ -159,7 +159,7 @@ async def test_extraction_json_result_repairs_latex_escape_damage():
         raw_response, chunk_key="chunk-test", timestamp=0
     )
 
-    (entity_list,) = [nodes[k] for k in nodes if k == "LightRAG"]
+    (entity_list,) = [nodes[k] for k in nodes if k == "ForgeMind"]
     assert "\\frac{610}{C}" in entity_list[0]["description"]
     assert "\x0c" not in entity_list[0]["description"]
 

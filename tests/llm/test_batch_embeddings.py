@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 import numpy as np
 import pytest
 
-from lightrag.base import QueryParam
+from forgemind.base import QueryParam
 
 
 def _make_mock_embedding_func(dim=1536):
@@ -49,7 +49,7 @@ def _make_mock_graph():
 @pytest.mark.asyncio
 async def test_hybrid_mode_batches_embeddings():
     """In hybrid mode with both keywords, embedding_func should be called exactly once."""
-    from lightrag.operate import _perform_kg_search
+    from forgemind.operate import _perform_kg_search
 
     embed_func = _make_mock_embedding_func()
     text_chunks_db = _make_mock_kv_storage(embed_func)
@@ -83,7 +83,7 @@ async def test_hybrid_mode_batches_embeddings():
 @pytest.mark.asyncio
 async def test_hybrid_mode_passes_embeddings_to_vdbs():
     """Pre-computed embeddings should be forwarded to entities and relationships VDB queries."""
-    from lightrag.operate import _perform_kg_search
+    from forgemind.operate import _perform_kg_search
 
     embed_func = _make_mock_embedding_func()
     text_chunks_db = _make_mock_kv_storage(embed_func)
@@ -129,7 +129,7 @@ async def test_hybrid_mode_passes_embeddings_to_vdbs():
 @pytest.mark.asyncio
 async def test_local_mode_skips_hl_keywords():
     """In local mode, should only embed query + ll_keywords (skip hl_keywords)."""
-    from lightrag.operate import _perform_kg_search
+    from forgemind.operate import _perform_kg_search
 
     embed_func = _make_mock_embedding_func()
     text_chunks_db = _make_mock_kv_storage(embed_func)
@@ -160,7 +160,7 @@ async def test_local_mode_skips_hl_keywords():
 @pytest.mark.asyncio
 async def test_global_mode_skips_ll_keywords():
     """In global mode, should only embed query + hl_keywords (skip ll_keywords)."""
-    from lightrag.operate import _perform_kg_search
+    from forgemind.operate import _perform_kg_search
 
     embed_func = _make_mock_embedding_func()
     text_chunks_db = _make_mock_kv_storage(embed_func)
@@ -191,7 +191,7 @@ async def test_global_mode_skips_ll_keywords():
 @pytest.mark.asyncio
 async def test_embedding_failure_falls_back_gracefully():
     """If batch embedding fails, VDB queries should still work (fallback to individual calls)."""
-    from lightrag.operate import _perform_kg_search
+    from forgemind.operate import _perform_kg_search
 
     embed_func = AsyncMock(side_effect=RuntimeError("API error"))
     text_chunks_db = _make_mock_kv_storage(embed_func)

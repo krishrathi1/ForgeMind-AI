@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from lightrag.parser.markdown.extract import (
+from forgemind.parser.markdown.extract import (
     drawing_marker,
     equation_marker,
     table_marker,
 )
-from lightrag.parser.markdown.ir_builder import NativeMarkdownIRBuilder
+from forgemind.parser.markdown.ir_builder import NativeMarkdownIRBuilder
 
 
 def _normalize(blocks, meta, *, document_name="doc.md"):

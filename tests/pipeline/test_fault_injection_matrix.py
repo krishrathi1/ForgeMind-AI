@@ -1,7 +1,7 @@
 """Fault-injection matrix with restart simulation (issue #3400, Phase 5).
 
 For each persistence boundary in the ingestion saga, inject a failure, then
-simulate a process restart (finalize storages, build a FRESH LightRAG over
+simulate a process restart (finalize storages, build a FRESH ForgeMind over
 the same working dir/workspace), retry, and assert convergence:
 
 - the document ends PROCESSED only after a clean run;
@@ -21,10 +21,10 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.tools.kg_integrity_repair import audit_kg_integrity
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.tools.kg_integrity_repair import audit_kg_integrity
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
 
 pytestmark = pytest.mark.offline
 
@@ -56,7 +56,7 @@ def _deterministic_chunking(
     return [{"tokens": 1, "content": f"{content}::chunk1", "chunk_order_index": 0}]
 
 
-def _wire_fake_extraction(rag: LightRAG) -> None:
+def _wire_fake_extraction(rag: ForgeMind) -> None:
     """Deterministic extraction (instance-level): one ALICE entity per chunk."""
 
     async def fake_extract(chunks, *args, **kwargs):
@@ -84,8 +84,8 @@ def _wire_fake_extraction(rag: LightRAG) -> None:
     rag._process_extract_entities = fake_extract
 
 
-async def _build_rag(tmp_path, workspace: str) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path, workspace: str) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=workspace,
         llm_model_func=_dummy_llm,
@@ -106,7 +106,7 @@ def _status_text(row: dict | None) -> str:
     return raw.value if isinstance(raw, DocStatus) else str(raw or "<missing>")
 
 
-async def _assert_converged(rag: LightRAG, doc_id: str) -> None:
+async def _assert_converged(rag: ForgeMind, doc_id: str) -> None:
     row = await rag.doc_status.get_by_id(doc_id)
     assert _status_text(row) == DocStatus.PROCESSED.value
 
@@ -228,7 +228,7 @@ async def test_custom_chunk_failure_then_restart_resume_converges(
 ):
     """Custom-chunk saga across a restart: merge fails, journal survives the
     restart, the same SDK call on a FRESH instance resumes and commits."""
-    import lightrag.lightrag as lightrag_module
+    import forgemind.forgemind as forgemind_module
 
     workspace = f"fim-cc-{uuid4().hex[:8]}"
 
@@ -239,7 +239,7 @@ async def test_custom_chunk_failure_then_restart_resume_converges(
         async def merge_boom(**kwargs):
             raise RuntimeError("merge boom")
 
-        monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", merge_boom)
+        monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", merge_boom)
         with pytest.raises(RuntimeError, match="merge boom"):
             await rag1.ainsert_custom_chunks("base", ["bob is there"], doc_id="doc-1")
     finally:
@@ -271,7 +271,7 @@ async def test_custom_chunk_failure_then_restart_rollback_converges(
 ):
     """Same failure, the other recovery choice: scan rollback on a fresh
     instance restores the committed base state."""
-    import lightrag.lightrag as lightrag_module
+    import forgemind.forgemind as forgemind_module
 
     workspace = f"fim-rb-{uuid4().hex[:8]}"
 
@@ -282,7 +282,7 @@ async def test_custom_chunk_failure_then_restart_rollback_converges(
         async def merge_boom(**kwargs):
             raise RuntimeError("merge boom")
 
-        monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", merge_boom)
+        monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", merge_boom)
         with pytest.raises(RuntimeError, match="merge boom"):
             await rag1.ainsert_custom_chunks("base", ["bob is there"], doc_id="doc-1")
     finally:
@@ -333,7 +333,7 @@ async def test_audit_tool_detects_and_repairs_missing_anchor(tmp_path):
         await rag.finalize_storages()
 
 
-def _wire_fake_extraction_with_relation(rag: LightRAG) -> None:
+def _wire_fake_extraction_with_relation(rag: ForgeMind) -> None:
     """Test-local extraction override: ALICE, BOB, and an edge between them
     per chunk.
 

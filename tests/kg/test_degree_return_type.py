@@ -5,7 +5,7 @@ Every graph storage backend must return ``int`` from ``node_degree`` and
 The expected default for missing entries is ``0``.
 
 These tests exercise the *real* methods on ``PGGraphStorage`` and
-``NetworkXStorage`` (from ``lightrag/kg/``) with mocked backing stores
+``NetworkXStorage`` (from ``forgemind/kg/``) with mocked backing stores
 so they run without a database or heavy import dependencies.
 """
 
@@ -14,8 +14,8 @@ from unittest.mock import AsyncMock
 import networkx as nx
 import pytest
 
-from lightrag.kg.postgres_impl import PGGraphStorage
-from lightrag.kg.networkx_impl import NetworkXStorage
+from forgemind.kg.postgres_impl import PGGraphStorage
+from forgemind.kg.networkx_impl import NetworkXStorage
 
 
 # ---------------------------------------------------------------------------

@@ -22,7 +22,7 @@ from unittest.mock import AsyncMock
 import networkx as nx
 import pytest
 
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class DummyTokenizer(TokenizerInterface):
@@ -62,7 +62,7 @@ _EXPECTED_CLEAN = "Clean textwithcontrolchars\tand\nnewlines"
 async def test_summarize_descriptions_strips_control_chars():
     """The LLM summary path must remove XML-incompatible control characters
     while preserving legal whitespace."""
-    from lightrag.operate import _summarize_descriptions
+    from forgemind.operate import _summarize_descriptions
 
     global_config = _make_global_config(_DIRTY_SUMMARY)
 
@@ -87,7 +87,7 @@ async def test_single_description_early_return_is_sanitized():
     """The ``len(description_list) == 1`` early return skips the LLM
     entirely — this is exactly the path a dirty multimodal entity
     description (chunk content reused verbatim) takes on first insert."""
-    from lightrag.operate import _handle_entity_relation_summary
+    from forgemind.operate import _handle_entity_relation_summary
 
     description, llm_was_used = await _handle_entity_relation_summary(
         "Entity",
@@ -108,7 +108,7 @@ async def test_single_description_early_return_is_sanitized():
 async def test_join_without_llm_is_sanitized():
     """The no-LLM join outcome must also sanitize: descriptions read back
     from pre-existing (dirty) graph nodes re-enter the merge here."""
-    from lightrag.operate import _handle_entity_relation_summary
+    from forgemind.operate import _handle_entity_relation_summary
 
     tokenizer = Tokenizer("dummy", DummyTokenizer())
     global_config = {
@@ -136,7 +136,7 @@ async def test_join_without_llm_is_sanitized():
 async def test_summarized_description_is_graphml_writable(tmp_path):
     """End-to-end guard: a node whose description came from the summary path
     must serialize to GraphML without the original ValueError."""
-    from lightrag.operate import _summarize_descriptions
+    from forgemind.operate import _summarize_descriptions
 
     global_config = _make_global_config(_DIRTY_SUMMARY)
 

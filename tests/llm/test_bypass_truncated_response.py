@@ -1,8 +1,8 @@
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import QueryParam
-from lightrag.utils import TruncatedResponse
+from forgemind import ForgeMind
+from forgemind.base import QueryParam
+from forgemind.utils import TruncatedResponse
 
 
 class _FakeRAG:
@@ -34,7 +34,7 @@ async def test_bypass_truncated_response_is_not_misclassified_as_streaming():
     """
     rag = _FakeRAG(_make_llm(TruncatedResponse("partial answer")))
 
-    result = await LightRAG.aquery_llm(
+    result = await ForgeMind.aquery_llm(
         rag, "question", param=QueryParam(mode="bypass", stream=False)
     )
 
@@ -49,7 +49,7 @@ async def test_bypass_truncated_response_is_not_misclassified_as_streaming():
 async def test_bypass_plain_string_stays_non_streaming():
     rag = _FakeRAG(_make_llm("complete answer"))
 
-    result = await LightRAG.aquery_llm(
+    result = await ForgeMind.aquery_llm(
         rag, "question", param=QueryParam(mode="bypass", stream=False)
     )
 
@@ -67,7 +67,7 @@ async def test_bypass_iterator_stays_streaming():
     iterator = _chunks()
     rag = _FakeRAG(_make_llm(iterator))
 
-    result = await LightRAG.aquery_llm(
+    result = await ForgeMind.aquery_llm(
         rag, "question", param=QueryParam(mode="bypass", stream=True)
     )
 

@@ -127,7 +127,7 @@ updates:
   #   - Patch updates: Grouped by category
   # ============================================================
   - package-ecosystem: "bun"
-    directory: "/lightrag_webui"
+    directory: "/forgemind_webui"
     schedule:
       interval: "weekly"
       day: "friday"

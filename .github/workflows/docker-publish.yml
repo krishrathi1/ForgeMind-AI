@@ -70,7 +70,7 @@ jobs:
         run: |
           python scripts/release/set_version.py --core-version "${{ steps.get_tag.outputs.package_version }}"
           echo "Updated version definitions with ${{ steps.get_tag.outputs.package_version }}"
-          grep '__version__ = ' lightrag/_version.py
+          grep '__version__ = ' forgemind/_version.py
 
       - name: Extract metadata for Docker
         id: meta

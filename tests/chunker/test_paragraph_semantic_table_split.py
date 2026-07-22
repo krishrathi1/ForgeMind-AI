@@ -5,7 +5,7 @@ import logging
 
 import pytest
 
-from lightrag.chunker.paragraph_semantic import (
+from forgemind.chunker.paragraph_semantic import (
     _detect_table_format,
     _expand_block_with_table_splits,
     _merge_small_blocks,
@@ -16,7 +16,7 @@ from lightrag.chunker.paragraph_semantic import (
     _split_table_text,
     chunking_by_paragraph_semantic,
 )
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -34,11 +34,11 @@ def _make_tokenizer() -> Tokenizer:
 
 
 @pytest.fixture
-def _propagate_lightrag_logger(monkeypatch):
-    # The ``lightrag`` logger sets ``propagate=False`` (see lightrag.utils), so
+def _propagate_forgemind_logger(monkeypatch):
+    # The ``forgemind`` logger sets ``propagate=False`` (see forgemind.utils), so
     # caplog's root handler captures nothing by default. Flip it on for the
     # duration of a test that asserts on the degrade warning.
-    monkeypatch.setattr(logging.getLogger("lightrag"), "propagate", True)
+    monkeypatch.setattr(logging.getLogger("forgemind"), "propagate", True)
 
 
 @pytest.mark.offline
@@ -844,7 +844,7 @@ def _slice_starts_with_header(chunk) -> bool:
 
 @pytest.mark.offline
 def test_extract_table_id_variants():
-    from lightrag.table_markup import extract_table_id
+    from forgemind.table_markup import extract_table_id
 
     assert extract_table_id('id="tb-1" format="json"') == "tb-1"
     assert extract_table_id("format='html' id='tb-h'") == "tb-h"
@@ -860,7 +860,7 @@ def test_extract_table_id_variants():
 
 @pytest.mark.offline
 def test_inject_header_into_table_slice_json_and_html():
-    from lightrag.chunker.paragraph_semantic import _inject_header_into_table_slice
+    from forgemind.chunker.paragraph_semantic import _inject_header_into_table_slice
 
     # JSON: header rows are prepended to the row array, attrs (incl. id) kept.
     json_slice = '<table id="tb-1" format="json">[["a", "b"]]</table>'
@@ -892,7 +892,7 @@ def test_inject_header_raises_on_cross_format():
     """A header whose format disagrees with the slice's content format means the
     sidecar header does not belong to this table — inject must raise, not
     silently emit a malformed slice."""
-    from lightrag.chunker.paragraph_semantic import _inject_header_into_table_slice
+    from forgemind.chunker.paragraph_semantic import _inject_header_into_table_slice
 
     json_slice = '<table id="tb-1" format="json">[["a", "b"]]</table>'
     html_slice = (
@@ -910,7 +910,7 @@ def test_inject_header_raises_on_cross_format():
 
 @pytest.mark.offline
 def test_inject_header_skips_html_slice_that_already_has_thead():
-    from lightrag.chunker.paragraph_semantic import _inject_header_into_table_slice
+    from forgemind.chunker.paragraph_semantic import _inject_header_into_table_slice
 
     # HTML: a slice that already carries a <thead> is left untouched rather
     # than gaining a second one.
@@ -999,7 +999,7 @@ def test_split_table_text_multi_row_header_pinned_not_duplicated():
     # A multi-row header is pinned out of the split body, so every slice gets
     # the full header exactly once — never a cut remnant duplicated into a
     # later slice (e.g. [H1, H2, H2, ...]).
-    from lightrag.table_markup import TABLE_TAG_RE
+    from forgemind.table_markup import TABLE_TAG_RE
 
     tokenizer = _make_tokenizer()
     h1 = ["H1", "h1"]
@@ -1033,7 +1033,7 @@ def test_split_table_text_preserves_data_row_equal_to_header():
     # preserved, not mistaken for a header remnant and dropped. Pinning the
     # header out of the body guarantees this: the body is split as pure data
     # and the header is prepended verbatim.
-    from lightrag.table_markup import TABLE_TAG_RE
+    from forgemind.table_markup import TABLE_TAG_RE
 
     tokenizer = _make_tokenizer()
     header_row = ["Label", "Value"]
@@ -1076,7 +1076,7 @@ def test_split_table_text_resplits_reducible_slice_to_keep_header():
     # accepted whole and then silently left header-less. Here the splitter
     # emits two 2-row chunks at 119 tokens (target_max=120, effective cap=106),
     # which must be re-split so every non-first slice keeps its header.
-    from lightrag.table_markup import TABLE_TAG_RE
+    from forgemind.table_markup import TABLE_TAG_RE
 
     tokenizer = _make_tokenizer()
     header_row = ["HH", "HH"]
@@ -1138,7 +1138,7 @@ def test_split_table_text_budgets_header_before_splitting():
 
 @pytest.mark.offline
 def test_split_table_text_degrades_when_header_would_exceed_cap(
-    caplog, _propagate_lightrag_logger
+    caplog, _propagate_forgemind_logger
 ):
     # Cap edge: a single-row slice whose wrapped <table> sits just under
     # target_max yet leaves no room for the header it would need. Rather than
@@ -1154,7 +1154,7 @@ def test_split_table_text_degrades_when_header_would_exceed_cap(
     rows = [["HHHHHHHHHH", "KKKKKKKKKK"], ["s", "y"], ["x" * 140, "y"]]
     table_text = f'<table id="tb-1" format="json">{json.dumps(rows)}</table>'
 
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         pieces = _split_table_text(
             table_text,
             tokenizer=tokenizer,
@@ -1180,7 +1180,7 @@ def test_split_table_text_degrades_when_header_would_exceed_cap(
 
 @pytest.mark.offline
 def test_split_table_text_pinned_header_oversized_row_preserves_header(
-    caplog, _propagate_lightrag_logger
+    caplog, _propagate_forgemind_logger
 ):
     # Codex P2 regression: a pinned-header JSON table whose data portion holds a
     # single row larger than target_max. The old code character-split the
@@ -1195,7 +1195,7 @@ def test_split_table_text_pinned_header_oversized_row_preserves_header(
     rows = [["HEADERCOL_A", "HEADERCOL_B"], ["x" * 2000, "y"]]
     table_text = f'<table id="tb-7" format="json">{json.dumps(rows)}</table>'
 
-    with caplog.at_level(logging.WARNING, logger="lightrag"):
+    with caplog.at_level(logging.WARNING, logger="forgemind"):
         pieces = _split_table_text(
             table_text,
             tokenizer=tokenizer,

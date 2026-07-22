@@ -10,14 +10,14 @@ import json
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
 
-from lightrag.kg.qdrant_impl import QdrantVectorDBStorage
-from lightrag.kg.postgres_impl import PGVectorStorage
-from lightrag.exceptions import DataMigrationError
+from forgemind.kg.qdrant_impl import QdrantVectorDBStorage
+from forgemind.kg.postgres_impl import PGVectorStorage
+from forgemind.exceptions import DataMigrationError
 
 
 # Note: Tests should use proper table names that have DDL templates
-# Valid base tables: LIGHTRAG_VDB_CHUNKS, LIGHTRAG_VDB_ENTITIES, LIGHTRAG_VDB_RELATIONSHIPS,
-#                    LIGHTRAG_DOC_CHUNKS, LIGHTRAG_DOC_FULL_DOCS, LIGHTRAG_DOC_TEXT_CHUNKS
+# Valid base tables: FORGEMIND_VDB_CHUNKS, FORGEMIND_VDB_ENTITIES, FORGEMIND_VDB_RELATIONSHIPS,
+#                    FORGEMIND_DOC_CHUNKS, FORGEMIND_DOC_FULL_DOCS, FORGEMIND_DOC_TEXT_CHUNKS
 
 
 class TestQdrantDimensionMismatch:
@@ -42,10 +42,10 @@ class TestQdrantDimensionMismatch:
         # Setup collection existence checks
         def collection_exists_side_effect(name):
             if (
-                name == "lightrag_vdb_chunks"
+                name == "forgemind_vdb_chunks"
             ):  # legacy (matches _find_legacy_collection pattern)
                 return True
-            elif name == "lightrag_chunks_model_3072d":  # new
+            elif name == "forgemind_chunks_model_3072d":  # new
                 return False
             return False
 
@@ -55,15 +55,15 @@ class TestQdrantDimensionMismatch:
 
         # Patch _find_legacy_collection to return the legacy collection name
         with patch(
-            "lightrag.kg.qdrant_impl._find_legacy_collection",
-            return_value="lightrag_vdb_chunks",
+            "forgemind.kg.qdrant_impl._find_legacy_collection",
+            return_value="forgemind_vdb_chunks",
         ):
             # Call setup_collection with 3072d (different from legacy 1536d)
             # Should raise DataMigrationError due to dimension mismatch
             with pytest.raises(DataMigrationError) as exc_info:
                 QdrantVectorDBStorage.setup_collection(
                     client,
-                    "lightrag_chunks_model_3072d",
+                    "forgemind_chunks_model_3072d",
                     namespace="chunks",
                     workspace="test",
                     vectors_config=models.VectorParams(
@@ -102,9 +102,9 @@ class TestQdrantDimensionMismatch:
         legacy_collection_info.config.params.vectors.size = 1536
 
         def collection_exists_side_effect(name):
-            if name == "lightrag_chunks":  # legacy
+            if name == "forgemind_chunks":  # legacy
                 return True
-            elif name == "lightrag_chunks_model_1536d":  # new
+            elif name == "forgemind_chunks_model_1536d":  # new
                 return False
             return False
 
@@ -125,9 +125,9 @@ class TestQdrantDimensionMismatch:
         # After migration: new collection has 1 record (matching migrated data)
         def count_side_effect(collection_name, **kwargs):
             result = MagicMock()
-            if collection_name == "lightrag_chunks":  # legacy
+            if collection_name == "forgemind_chunks":  # legacy
                 result.count = 1  # Legacy has 1 record
-            elif collection_name == "lightrag_chunks_model_1536d":  # new
+            elif collection_name == "forgemind_chunks_model_1536d":  # new
                 # Return 0 before migration, 1 after migration
                 result.count = 1 if migration_done["value"] else 0
             else:
@@ -145,13 +145,13 @@ class TestQdrantDimensionMismatch:
 
         # Mock _find_legacy_collection to return the legacy collection name
         with patch(
-            "lightrag.kg.qdrant_impl._find_legacy_collection",
-            return_value="lightrag_chunks",
+            "forgemind.kg.qdrant_impl._find_legacy_collection",
+            return_value="forgemind_chunks",
         ):
             # Call setup_collection with matching 1536d
             QdrantVectorDBStorage.setup_collection(
                 client,
-                "lightrag_chunks_model_1536d",
+                "forgemind_chunks_model_1536d",
                 namespace="chunks",
                 workspace="test",
                 vectors_config=models.VectorParams(
@@ -185,9 +185,9 @@ class TestPostgresDimensionMismatch:
 
         # Mock check_table_exists
         async def mock_check_table_exists(table_name):
-            if table_name == "LIGHTRAG_DOC_CHUNKS":  # legacy
+            if table_name == "FORGEMIND_DOC_CHUNKS":  # legacy
                 return True
-            elif table_name == "LIGHTRAG_DOC_CHUNKS_model_3072d":  # new
+            elif table_name == "FORGEMIND_DOC_CHUNKS_model_3072d":  # new
                 return False
             return False
 
@@ -211,9 +211,9 @@ class TestPostgresDimensionMismatch:
         with pytest.raises(DataMigrationError) as exc_info:
             await PGVectorStorage.setup_table(
                 db,
-                "LIGHTRAG_DOC_CHUNKS_model_3072d",
-                legacy_table_name="LIGHTRAG_DOC_CHUNKS",
-                base_table="LIGHTRAG_DOC_CHUNKS",
+                "FORGEMIND_DOC_CHUNKS_model_3072d",
+                legacy_table_name="FORGEMIND_DOC_CHUNKS",
+                base_table="FORGEMIND_DOC_CHUNKS",
                 embedding_dim=3072,
                 workspace="test",
             )
@@ -232,9 +232,9 @@ class TestPostgresDimensionMismatch:
 
         # Mock check_table_exists
         async def mock_check_table_exists(table_name):
-            if table_name == "LIGHTRAG_DOC_CHUNKS":  # legacy
+            if table_name == "FORGEMIND_DOC_CHUNKS":  # legacy
                 return True
-            elif table_name == "LIGHTRAG_DOC_CHUNKS_model_3072d":  # new
+            elif table_name == "FORGEMIND_DOC_CHUNKS_model_3072d":  # new
                 return False
             return False
 
@@ -243,9 +243,9 @@ class TestPostgresDimensionMismatch:
         # Mock table existence and dimension checks
         async def query_side_effect(query, params, **kwargs):
             if "information_schema.tables" in query:
-                if params[0] == "LIGHTRAG_DOC_CHUNKS":  # legacy
+                if params[0] == "FORGEMIND_DOC_CHUNKS":  # legacy
                     return {"exists": True}
-                elif params[0] == "LIGHTRAG_DOC_CHUNKS_model_3072d":  # new
+                elif params[0] == "FORGEMIND_DOC_CHUNKS_model_3072d":  # new
                     return {"exists": False}
             elif "COUNT(*)" in query:
                 return {"count": 100}  # Legacy has data
@@ -263,9 +263,9 @@ class TestPostgresDimensionMismatch:
         with pytest.raises(DataMigrationError) as exc_info:
             await PGVectorStorage.setup_table(
                 db,
-                "LIGHTRAG_DOC_CHUNKS_model_3072d",
-                legacy_table_name="LIGHTRAG_DOC_CHUNKS",
-                base_table="LIGHTRAG_DOC_CHUNKS",
+                "FORGEMIND_DOC_CHUNKS_model_3072d",
+                legacy_table_name="FORGEMIND_DOC_CHUNKS",
+                base_table="FORGEMIND_DOC_CHUNKS",
                 embedding_dim=3072,
                 workspace="test",
             )
@@ -301,9 +301,9 @@ class TestPostgresDimensionMismatch:
 
         # Mock check_table_exists
         async def mock_check_table_exists(table_name):
-            if table_name == "LIGHTRAG_DOC_CHUNKS":  # legacy exists
+            if table_name == "FORGEMIND_DOC_CHUNKS":  # legacy exists
                 return True
-            elif table_name == "LIGHTRAG_DOC_CHUNKS_model_1536d":  # new doesn't exist
+            elif table_name == "FORGEMIND_DOC_CHUNKS_model_1536d":  # new doesn't exist
                 return False
             return False
 
@@ -314,13 +314,13 @@ class TestPostgresDimensionMismatch:
             query_upper = query.upper()
 
             if "information_schema.tables" in query:
-                if params[0] == "LIGHTRAG_DOC_CHUNKS":  # legacy
+                if params[0] == "FORGEMIND_DOC_CHUNKS":  # legacy
                     return {"exists": True}
-                elif params[0] == "LIGHTRAG_DOC_CHUNKS_model_1536d":  # new
+                elif params[0] == "FORGEMIND_DOC_CHUNKS_model_1536d":  # new
                     return {"exists": False}
             elif "COUNT(*)" in query_upper:
                 # Return different counts based on table name in query and migration state
-                if "LIGHTRAG_DOC_CHUNKS_MODEL_1536D" in query_upper:
+                if "FORGEMIND_DOC_CHUNKS_MODEL_1536D" in query_upper:
                     # After migration: return migrated count, before: return 0
                     return {
                         "count": len(mock_records) if migration_done["value"] else 0
@@ -366,9 +366,9 @@ class TestPostgresDimensionMismatch:
         # Call setup_table with matching 1536d
         await PGVectorStorage.setup_table(
             db,
-            "LIGHTRAG_DOC_CHUNKS_model_1536d",
-            legacy_table_name="LIGHTRAG_DOC_CHUNKS",
-            base_table="LIGHTRAG_DOC_CHUNKS",
+            "FORGEMIND_DOC_CHUNKS_model_1536d",
+            legacy_table_name="FORGEMIND_DOC_CHUNKS",
+            base_table="FORGEMIND_DOC_CHUNKS",
             embedding_dim=1536,
             workspace="test",
         )

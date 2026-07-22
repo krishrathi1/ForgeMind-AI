@@ -19,7 +19,7 @@ All tests mock ``PGGraphStorage._query`` and inspect the SQL it receives.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from lightrag.kg.postgres_impl import PGGraphStorage
+from forgemind.kg.postgres_impl import PGGraphStorage
 
 
 # ---------------------------------------------------------------------------

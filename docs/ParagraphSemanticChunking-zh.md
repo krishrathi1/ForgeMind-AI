@@ -222,7 +222,7 @@ P chunker 直接读取 `.blocks.jsonl`，每个 content 行作为后续 TableRow
 - **保住硬上限**：子块来自 AnchorSplit、本在 `target_max` 内，但前缀拼入父标题行后可能超限。由于下游无人会重切超限块（LevelMerge 只阻止其继续变大），绑定后超限的块在此重切：**先剥离开头的标题行**，正文按**完整 `target_max`** 切分（使后续不含前缀的正文片保持完整预算），再把标题前缀拼回**第一个正文片**。仅当第一个正文片大到放不下前缀时，才单独对它用缩减后的上限再切——因此大前缀不会把整个子节切得过碎。这样标题始终随真实正文，绝不会被单独切成一个 heading-only 孤块（否则 LevelMerge 又会把它向后吸走），且每个产出片段仍 ≤ `target_max`。（退化情形：当前缀本身已吃满上限——极长标题或极小 `chunk_token_size`——无法保持完整，则整块直接切分、对超长标题行做字符级切分;此时 cap 优先于保持标题完整。）
 - **不额外回填前块**：由于 `keep="left"` 保留父块的 `level`，绑定后的整体只是个普通小块（并非锁定独立）。是否并回前块 `2.3` 完全沿用 LevelMerge 既有规则——前块仍 < `target_ideal` 时走同级合并，或整体小于 `small_tail_threshold` 时走尾部吸收（即便前块已饱和也能被吸入），二者都以重测后的真实 token ≤ `target_max` 为界。本前置步骤只保证标题**不脱离其子内容**，并不把整体锁为独立块——因此在尺寸允许时让 `2.3 + 2.4 + 2.4.1` 同块正是期望的防过碎行为。
 
-> 边界歧义：正文行若真以 `#␠` 开头会被误判为标题行——这是 `lightrag/parser/_markdown.py` 已记录并接受的同一启发式歧义，实际语料中概率极低。
+> 边界歧义：正文行若真以 `#␠` 开头会被误判为标题行——这是 `forgemind/parser/_markdown.py` 已记录并接受的同一启发式歧义，实际语料中概率极低。
 
 ### 3.6 层级感知合并——细碎条款聚到理想大小、不跨主题污染 〔LevelMerge〕
 
@@ -311,14 +311,14 @@ P chunker 直接读取 `.blocks.jsonl`，每个 content 行作为后续 TableRow
 | 参数 | 来源 | 说明 |
 |---|---|---|
 | `content` | `full_docs[doc_id].content` | 拼接后的合并文本，用于 sidecar 缺失时降级 |
-| `blocks_path` | `full_docs[doc_id].lightrag_document_path` | `.blocks.jsonl` 路径，是 P 策略的主输入 |
+| `blocks_path` | `full_docs[doc_id].forgemind_document_path` | `.blocks.jsonl` 路径，是 P 策略的主输入 |
 | `.tables.json`（隐式） | 由 `blocks_path` 推导（`<base>.blocks.jsonl` → `<base>.tables.json`） | HeaderRecovery（§3.3.3）的表头数据源；缺失时静默跳过表头注入 |
 | `chunk_token_size` | `chunk_options.chunk_token_size` / `CHUNK_P_SIZE` | 目标硬上限 N，默认 `2000` |
 | `chunk_overlap_token_size` | `CHUNK_P_OVERLAP_SIZE` / `chunk_overlap_token_size` | 同一内容行内长正文 fallback 与表格桥接预算的上限，默认 `100` |
 | `drop_references` | hint `drop_references`（别名 `drop_rf`）/ `CHUNK_P_DROP_REFERENCES` | 是否在分块前丢弃文末参考文献块，默认 `False`；**入队冻结进 `chunk_options`，并记录到 `doc_status.metadata['chunk_opts']`**（开启时记为 `drop_rf=True`） |
 | `references_tail_n` | `CHUNK_P_REFERENCES_TAIL_N` | 参考文献块只在文末最后 N 个内容块内才被丢弃（安全窗口），默认 `2`；**运行时实时读 env，不快照、不进 metadata** |
 | `references_headings` | `CHUNK_P_REFERENCES_HEADINGS`（竖线分隔） | 参考文献标题前缀，默认 `References\|Bibliography\|参考文献`；英文按单词边界、大小写不敏感匹配，`参考文献` 按前缀匹配；**运行时实时读 env，不快照、不进 metadata** |
-| `tokenizer` | LightRAG 已解析好的 tokenizer | 所有 token 计数与文本 overlap 截取的基准 |
+| `tokenizer` | ForgeMind 已解析好的 tokenizer | 所有 token 计数与文本 overlap 截取的基准 |
 
 P 策略**不接收** `split_by_character` / `split_by_character_only`，因为正常路径由标题和段落结构驱动。
 
@@ -379,15 +379,15 @@ parser 保证「一条标题下的正文作为一个基础块」（native 经按
 |---|---|---|
 | `CHUNK_P_SIZE` | `2000`（未设时使用 `DEFAULT_CHUNK_P_SIZE`，**不**沿用 `CHUNK_SIZE`） | P 专用 `chunk_token_size`；段落语义合并需要比全局默认更大的上限，因此独立默认而非回退到 `CHUNK_SIZE` |
 | `CHUNK_P_OVERLAP_SIZE` | 未设（沿用 `CHUNK_OVERLAP_SIZE`） | P 专用 overlap；只影响同一内容行内长正文 fallback 和表格桥接预算，**不**让表格行级切片互相重叠 |
-| `CHUNK_OVERLAP_SIZE` / `LightRAG(chunk_overlap_token_size=…)` | `100` | 未设 P 专用 overlap 时的全局兜底 |
+| `CHUNK_OVERLAP_SIZE` / `ForgeMind(chunk_overlap_token_size=…)` | `100` | 未设 P 专用 overlap 时的全局兜底 |
 
 配置语法、优先级链、`addon_params["chunker"]` 运行时改值等详见 [FileProcessingConfiguration-zh.md](FileProcessingConfiguration-zh.md) §3。
 
-`P` 是与引擎正交的 chunking 选项（`后缀:引擎-选项`），可与任何产出 sidecar 的引擎组合。启用 P 的典型 `LIGHTRAG_PARSER` 写法：
+`P` 是与引擎正交的 chunking 选项（`后缀:引擎-选项`），可与任何产出 sidecar 的引擎组合。启用 P 的典型 `FORGEMIND_PARSER` 写法：
 
 ```bash
 # docx 用 native，pdf 用 mineru，其余支持格式用 docling，都启用 P；不支持的格式回退 legacy-R
-LIGHTRAG_PARSER=docx:native-teP,pdf:mineru-iteP,*:docling-iteP,*:legacy-R
+FORGEMIND_PARSER=docx:native-teP,pdf:mineru-iteP,*:docling-iteP,*:legacy-R
 CHUNK_P_SIZE=2000
 CHUNK_P_OVERLAP_SIZE=100
 ```
@@ -425,7 +425,7 @@ ls -l INPUT/__parsed__/<doc>.<ext>.parsed/<doc>.blocks.jsonl
 
 若文件不存在或为空，P 策略会整体降级为 R，不会获得 P 的任何收益。常见原因：
 
-- 未给该格式配置能产出 sidecar 的引擎（如 `LIGHTRAG_PARSER=docx:native-...` / `pdf:mineru-...` / `*:docling-...`），实际走了 `legacy` 路径。
+- 未给该格式配置能产出 sidecar 的引擎（如 `FORGEMIND_PARSER=docx:native-...` / `pdf:mineru-...` / `*:docling-...`），实际走了 `legacy` 路径。
 - 解析失败（看 `pipeline_status` 错误条目）。
 - 该格式不被所选引擎支持（如 native 仅支持 docx；换用 mineru / docling 覆盖更多格式）。
 
@@ -468,8 +468,8 @@ jq '.[] | {heading, level, tokens, parent_headings}' \
 按以下顺序排查：
 
 1. `full_docs[doc_id].process_options` 是否包含 `P`？
-2. `full_docs[doc_id].parse_format` 是否为 `lightrag`？若为 `raw`，说明走的是 legacy 路径，P 会自动降级到 R。
-3. `lightrag_document_path` 指向的 `.blocks.jsonl` 是否存在、是否非空？
+2. `full_docs[doc_id].parse_format` 是否为 `forgemind`？若为 `raw`，说明走的是 legacy 路径，P 会自动降级到 R。
+3. `forgemind_document_path` 指向的 `.blocks.jsonl` 是否存在、是否非空？
 4. 日志中是否有 `paragraph_semantic ... fallback to recursive_character` 字样？
 
 #### 7.4.2 表格被切散、前后说明分离（§3.2 / §3.3 未生效）

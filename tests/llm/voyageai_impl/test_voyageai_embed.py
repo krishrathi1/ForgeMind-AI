@@ -1,4 +1,4 @@
-"""Unit tests for lightrag.llm.voyageai.
+"""Unit tests for forgemind.llm.voyageai.
 
 These tests mock voyageai.AsyncClient so they run fully offline.
 """
@@ -38,7 +38,7 @@ def patched_async_client(fake_voyage_response):
     fake_client.embed = fake_embed
 
     with patch(
-        "lightrag.llm.voyageai.voyageai.AsyncClient", return_value=fake_client
+        "forgemind.llm.voyageai.voyageai.AsyncClient", return_value=fake_client
     ) as m:
         yield captured, m
 
@@ -47,7 +47,7 @@ def patched_async_client(fake_voyage_response):
 async def test_voyageai_embed_passes_model(patched_async_client):
     """The function should forward the model parameter to the SDK."""
     captured, _ = patched_async_client
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     out = await voyageai_embed.func(
         texts=["hello", "world"], model="voyage-3-lite", api_key="fake"
@@ -68,7 +68,7 @@ async def test_voyageai_embed_accepts_legacy_voyage_api_key(
     monkeypatch.delenv("VOYAGEAI_API_KEY", raising=False)
     monkeypatch.setenv("VOYAGE_API_KEY", "key-from-legacy-name")
 
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     await voyageai_embed.func(texts=["x"], model="voyage-3")
     assert len(captured) == 1
@@ -83,7 +83,7 @@ async def test_voyageai_embed_accepts_voyageai_api_key(
     monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
     monkeypatch.setenv("VOYAGEAI_API_KEY", "key-from-new-name")
 
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     await voyageai_embed.func(texts=["x"], model="voyage-3")
     assert len(captured) == 1
@@ -95,7 +95,7 @@ async def test_voyageai_embed_raises_when_no_api_key(monkeypatch):
     monkeypatch.delenv("VOYAGE_API_KEY", raising=False)
     monkeypatch.delenv("VOYAGEAI_API_KEY", raising=False)
 
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     with pytest.raises(ValueError, match="VOYAGE_API_KEY"):
         await voyageai_embed.func(texts=["x"])
@@ -105,7 +105,7 @@ async def test_voyageai_embed_raises_when_no_api_key(monkeypatch):
 async def test_voyageai_embed_forwards_input_type(patched_async_client):
     """input_type kwarg must reach the SDK so callers can drive query/document selection."""
     captured, _ = patched_async_client
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     await voyageai_embed.func(texts=["q"], api_key="fake", input_type="query")
     await voyageai_embed.func(texts=["d"], api_key="fake", input_type="document")
@@ -115,9 +115,9 @@ async def test_voyageai_embed_forwards_input_type(patched_async_client):
 
 @pytest.mark.asyncio
 async def test_voyageai_embed_maps_context_to_input_type(patched_async_client):
-    """LightRAG query/document context should drive VoyageAI's input_type."""
+    """ForgeMind query/document context should drive VoyageAI's input_type."""
     captured, _ = patched_async_client
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     await voyageai_embed.func(texts=["q"], api_key="fake", context="query")
     await voyageai_embed.func(texts=["d"], api_key="fake", context="document")
@@ -131,7 +131,7 @@ async def test_voyageai_embed_explicit_input_type_overrides_context(
 ):
     """Explicit input_type must keep direct callers backward compatible."""
     captured, _ = patched_async_client
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     await voyageai_embed.func(
         texts=["x"], api_key="fake", input_type="document", context="query"
@@ -140,7 +140,7 @@ async def test_voyageai_embed_explicit_input_type_overrides_context(
 
 
 def test_voyageai_embed_declares_asymmetric_support():
-    from lightrag.llm.voyageai import voyageai_embed
+    from forgemind.llm.voyageai import voyageai_embed
 
     assert voyageai_embed.supports_asymmetric is True
 
@@ -149,7 +149,7 @@ def test_anthropic_embed_deprecation_shim():
     """``anthropic_embed`` must remain importable and emit DeprecationWarning."""
     import warnings
 
-    from lightrag.llm.anthropic import anthropic_embed  # must not ImportError
+    from forgemind.llm.anthropic import anthropic_embed  # must not ImportError
 
     with warnings.catch_warnings(record=True) as caught:
         warnings.simplefilter("always")

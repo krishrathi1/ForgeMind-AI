@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser.docx.smart_heading.style_key import (
+from forgemind.parser.docx.smart_heading.style_key import (
     ALLOW_EMPTY_TITLE,
     CN_CHAPTER,
     CN_CLAUSE,

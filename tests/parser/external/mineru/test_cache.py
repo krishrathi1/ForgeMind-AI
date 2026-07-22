@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.parser.external.mineru import (
+from forgemind.parser.external.mineru import (
     Manifest,
     ManifestFile,
     clear_dir_contents,
@@ -26,8 +26,8 @@ from lightrag.parser.external.mineru import (
     is_bundle_valid,
     raw_dir_for_parsed_dir,
 )
-from lightrag.parser.external.mineru.cache import current_mineru_options_signature
-from lightrag.parser.external.mineru.manifest import write_manifest
+from forgemind.parser.external.mineru.cache import current_mineru_options_signature
+from forgemind.parser.external.mineru.manifest import write_manifest
 
 
 # ---------------------------------------------------------------------------
@@ -450,7 +450,7 @@ def test_manifest_round_trip_via_disk(tmp_path: Path) -> None:
         options_signature="sha256:opts",
     )
     write_manifest(raw, m)
-    from lightrag.parser.external.mineru.manifest import load_manifest
+    from forgemind.parser.external.mineru.manifest import load_manifest
 
     loaded = load_manifest(raw)
     assert loaded is not None

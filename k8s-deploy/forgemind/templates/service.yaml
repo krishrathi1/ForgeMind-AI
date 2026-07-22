@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "forgemind.fullname" . }}
+  labels:
+    {{- include "forgemind.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.env.PORT }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "forgemind.selectorLabels" . | nindent 4 }}

@@ -28,10 +28,10 @@ def test_validate_env_file_rejects_missing_ssl_files(tmp_path: Path) -> None:
                 "SSL=true",
                 "SSL_CERTFILE=/missing/cert.pem",
                 "SSL_KEYFILE=/missing/key.pem",
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
             ]
         )
         + "\n",
@@ -72,11 +72,11 @@ def test_validate_env_file_rejects_container_ssl_paths_for_host_target(
                 "SSL=true",
                 "SSL_CERTFILE=/app/data/certs/cert.pem",
                 "SSL_KEYFILE=/app/data/certs/key.pem",
-                "LIGHTRAG_RUNTIME_TARGET=host",
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_RUNTIME_TARGET=host",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
             ]
         )
         + "\n",
@@ -106,7 +106,7 @@ validate_env_file
 def test_validate_env_file_rejects_container_ssl_paths_for_default_host_target(
     tmp_path: Path,
 ) -> None:
-    """Omitting LIGHTRAG_RUNTIME_TARGET defaults to host; container paths must still be rejected."""
+    """Omitting FORGEMIND_RUNTIME_TARGET defaults to host; container paths must still be rejected."""
     (tmp_path / "data" / "certs").mkdir(parents=True)
     (tmp_path / "data" / "certs" / "cert.pem").write_text("cert", encoding="utf-8")
     (tmp_path / "data" / "certs" / "key.pem").write_text("key", encoding="utf-8")
@@ -117,10 +117,10 @@ def test_validate_env_file_rejects_container_ssl_paths_for_default_host_target(
                 "SSL=true",
                 "SSL_CERTFILE=/app/data/certs/cert.pem",
                 "SSL_KEYFILE=/app/data/certs/key.pem",
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
             ]
         )
         + "\n",
@@ -161,11 +161,11 @@ def test_validate_env_file_accepts_container_ssl_paths_for_compose_target(
                 "SSL=true",
                 "SSL_CERTFILE=/app/data/certs/cert.pem",
                 "SSL_KEYFILE=/app/data/certs/key.pem",
-                "LIGHTRAG_RUNTIME_TARGET=compose",
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_RUNTIME_TARGET=compose",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
             ]
         )
         + "\n",
@@ -198,7 +198,7 @@ source "{REPO_ROOT}/scripts/setup/setup.sh"
 reset_state
 
 ENV_VALUES[TOKEN_SECRET]='${{JWT_SECRET}}'
-ENV_VALUES[LIGHTRAG_API_KEY]='plain$token'
+ENV_VALUES[FORGEMIND_API_KEY]='plain$token'
 ENV_VALUES[WEBUI_DESCRIPTION]='${{ALLOWED_MACRO}}'
 
 if validate_sensitive_env_literals; then
@@ -220,10 +220,10 @@ def test_validate_env_file_allows_predictable_auth_passwords_and_leaves_them_to_
         [
             "AUTH_ACCOUNTS=admin:Passw0rd!",
             "TOKEN_SECRET=jwt-secret",
-            "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+            "FORGEMIND_KV_STORAGE=JsonKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
         ],
     )
     write_text_lines(tmp_path / "env.example", ["LLM_BINDING=openai"])
@@ -347,7 +347,7 @@ def test_validate_env_file_handles_supported_and_unsupported_uri_schemes(
     cases = {
         "invalid-neo4j-scheme": (
             [
-                "LIGHTRAG_GRAPH_STORAGE=Neo4JStorage",
+                "FORGEMIND_GRAPH_STORAGE=Neo4JStorage",
                 "NEO4J_URI=http://localhost:7687",
                 "NEO4J_USERNAME=neo4j",
                 "NEO4J_PASSWORD=secret",
@@ -356,12 +356,12 @@ def test_validate_env_file_handles_supported_and_unsupported_uri_schemes(
             "Invalid NEO4J_URI",
         ),
         "invalid-redis-scheme": (
-            ["LIGHTRAG_KV_STORAGE=RedisKVStorage", "REDIS_URI=tcp://localhost:6379"],
+            ["FORGEMIND_KV_STORAGE=RedisKVStorage", "REDIS_URI=tcp://localhost:6379"],
             "no",
             "Invalid REDIS_URI",
         ),
         "valid-rediss-scheme": (
-            ["LIGHTRAG_KV_STORAGE=RedisKVStorage", "REDIS_URI=rediss://localhost:6380"],
+            ["FORGEMIND_KV_STORAGE=RedisKVStorage", "REDIS_URI=rediss://localhost:6380"],
             "yes",
             "",
         ),
@@ -372,10 +372,10 @@ def test_validate_env_file_handles_supported_and_unsupported_uri_schemes(
         write_text_lines(
             case_dir / ".env",
             [
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
                 *extra_lines,
             ],
         )
@@ -409,15 +409,15 @@ fi
 
 
 def test_validate_env_file_rejects_invalid_runtime_target(tmp_path: Path) -> None:
-    """validate_env_file should reject unsupported LIGHTRAG_RUNTIME_TARGET values."""
+    """validate_env_file should reject unsupported FORGEMIND_RUNTIME_TARGET values."""
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_RUNTIME_TARGET=laptop",
-            "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+            "FORGEMIND_RUNTIME_TARGET=laptop",
+            "FORGEMIND_KV_STORAGE=JsonKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
         ],
     )
     write_text_lines(tmp_path / "env.example", ["LLM_BINDING=openai"])
@@ -444,7 +444,7 @@ fi
     )
     values = parse_lines(result.stdout)
     assert values["VALID"] == "no"
-    assert "Invalid LIGHTRAG_RUNTIME_TARGET" in result.stderr
+    assert "Invalid FORGEMIND_RUNTIME_TARGET" in result.stderr
 
 
 def test_validate_required_variables_requires_opensearch_basic_auth() -> None:
@@ -454,13 +454,13 @@ set -euo pipefail
 source "{REPO_ROOT}/scripts/setup/setup.sh"
 reset_state
 
-ENV_VALUES[LIGHTRAG_KV_STORAGE]="OpenSearchKVStorage"
-ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]="OpenSearchVectorDBStorage"
-ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]="OpenSearchGraphStorage"
-ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]="OpenSearchDocStatusStorage"
+ENV_VALUES[FORGEMIND_KV_STORAGE]="OpenSearchKVStorage"
+ENV_VALUES[FORGEMIND_VECTOR_STORAGE]="OpenSearchVectorDBStorage"
+ENV_VALUES[FORGEMIND_GRAPH_STORAGE]="OpenSearchGraphStorage"
+ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]="OpenSearchDocStatusStorage"
 ENV_VALUES[OPENSEARCH_HOSTS]="localhost:9200"
 
-if validate_required_variables   "${{ENV_VALUES[LIGHTRAG_KV_STORAGE]}}"   "${{ENV_VALUES[LIGHTRAG_VECTOR_STORAGE]}}"   "${{ENV_VALUES[LIGHTRAG_GRAPH_STORAGE]}}"   "${{ENV_VALUES[LIGHTRAG_DOC_STATUS_STORAGE]}}"; then
+if validate_required_variables   "${{ENV_VALUES[FORGEMIND_KV_STORAGE]}}"   "${{ENV_VALUES[FORGEMIND_VECTOR_STORAGE]}}"   "${{ENV_VALUES[FORGEMIND_GRAPH_STORAGE]}}"   "${{ENV_VALUES[FORGEMIND_DOC_STATUS_STORAGE]}}"; then
   printf 'VALID=yes\\n'
 else
   printf 'VALID=no\\n'
@@ -476,10 +476,10 @@ def test_validate_env_file_rejects_invalid_opensearch_index_settings(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+            "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
             "OPENSEARCH_HOSTS=localhost:9200",
             "OPENSEARCH_USER=admin",
             "OPENSEARCH_PASSWORD=StrongPass1!",
@@ -521,10 +521,10 @@ def test_validate_env_file_rejects_blank_opensearch_index_settings(
     write_text_lines(
         tmp_path / ".env",
         [
-            "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-            "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-            "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-            "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+            "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+            "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+            "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+            "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
             "OPENSEARCH_HOSTS=localhost:9200",
             "OPENSEARCH_USER=admin",
             "OPENSEARCH_PASSWORD=StrongPass1!",
@@ -567,10 +567,10 @@ def test_validate_env_file_rejects_mongo_vector_storage_without_atlas_capable_ur
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
                 "MONGO_URI=mongodb://localhost:27017",
             ]
         )
@@ -613,13 +613,13 @@ def test_validate_env_file_allows_mongo_vector_storage_with_wizard_managed_atlas
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker",
-                "LIGHTRAG_KV_STORAGE=MongoKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=MongoGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=MongoDocStatusStorage",
+                "FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker",
+                "FORGEMIND_KV_STORAGE=MongoKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=MongoGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=MongoDocStatusStorage",
                 "MONGO_URI=mongodb://localhost:27017/?directConnection=true",
-                "MONGO_DATABASE=LightRAG",
+                "MONGO_DATABASE=ForgeMind",
             ]
         )
         + "\n",
@@ -660,12 +660,12 @@ def test_validate_env_file_allows_external_atlas_local_for_mongo_vector_storage(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=MongoKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=MongoGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=MongoDocStatusStorage",
-                "MONGO_URI=mongodb://atlas-local.example.com:27017/LightRAG?replicaSet=rs0&directConnection=true",
-                "MONGO_DATABASE=LightRAG",
+                "FORGEMIND_KV_STORAGE=MongoKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=MongoGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=MongoDocStatusStorage",
+                "MONGO_URI=mongodb://atlas-local.example.com:27017/ForgeMind?replicaSet=rs0&directConnection=true",
+                "MONGO_DATABASE=ForgeMind",
             ]
         )
         + "\n",
@@ -706,13 +706,13 @@ def test_validate_env_file_rejects_remote_mongo_uri_with_docker_marker(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker",
-                "LIGHTRAG_KV_STORAGE=MongoKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=MongoGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=MongoDocStatusStorage",
+                "FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker",
+                "FORGEMIND_KV_STORAGE=MongoKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=MongoGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=MongoDocStatusStorage",
                 "MONGO_URI=mongodb://mongo.example.com:27017/?directConnection=true",
-                "MONGO_DATABASE=LightRAG",
+                "MONGO_DATABASE=ForgeMind",
             ]
         )
         + "\n",
@@ -757,13 +757,13 @@ def test_validate_env_file_rejects_stale_local_mongo_uri_without_direct_connecti
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker",
-                "LIGHTRAG_KV_STORAGE=MongoKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=MongoGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=MongoDocStatusStorage",
+                "FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker",
+                "FORGEMIND_KV_STORAGE=MongoKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=MongoGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=MongoDocStatusStorage",
                 "MONGO_URI=mongodb://localhost:27017/",
-                "MONGO_DATABASE=LightRAG",
+                "MONGO_DATABASE=ForgeMind",
             ]
         )
         + "\n",
@@ -808,13 +808,13 @@ def test_validate_env_file_rejects_wrong_local_mongo_port_with_docker_marker(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_SETUP_MONGODB_DEPLOYMENT=docker",
-                "LIGHTRAG_KV_STORAGE=MongoKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=MongoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=MongoGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=MongoDocStatusStorage",
+                "FORGEMIND_SETUP_MONGODB_DEPLOYMENT=docker",
+                "FORGEMIND_KV_STORAGE=MongoKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=MongoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=MongoGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=MongoDocStatusStorage",
                 "MONGO_URI=mongodb://localhost:9999/?directConnection=true",
-                "MONGO_DATABASE=LightRAG",
+                "MONGO_DATABASE=ForgeMind",
             ]
         )
         + "\n",
@@ -857,10 +857,10 @@ def test_validate_env_file_rejects_empty_opensearch_hosts(tmp_path: Path) -> Non
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
                 "OPENSEARCH_HOSTS=",
             ]
         )
@@ -903,10 +903,10 @@ def test_validate_env_file_rejects_whitespace_only_opensearch_hosts(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
                 "OPENSEARCH_HOSTS=   ,   ",
                 "OPENSEARCH_USER=admin",
                 "OPENSEARCH_PASSWORD=StrongPass1!",
@@ -951,11 +951,11 @@ def test_validate_env_file_rejects_docker_opensearch_without_password(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
-                "LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT=docker",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT=docker",
                 "OPENSEARCH_HOSTS=localhost:9200",
                 "OPENSEARCH_USER=admin",
             ]
@@ -1002,11 +1002,11 @@ def test_validate_env_file_rejects_weak_docker_opensearch_password(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
-                "LIGHTRAG_SETUP_OPENSEARCH_DEPLOYMENT=docker",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_SETUP_OPENSEARCH_DEPLOYMENT=docker",
                 "OPENSEARCH_HOSTS=localhost:9200",
                 "OPENSEARCH_USER=admin",
                 "OPENSEARCH_PASSWORD=weakpass",
@@ -1051,10 +1051,10 @@ def test_validate_env_file_rejects_weak_host_opensearch_password(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
                 "OPENSEARCH_HOSTS=localhost:9200",
                 "OPENSEARCH_USER=admin",
                 "OPENSEARCH_PASSWORD=weakpass",
@@ -1099,10 +1099,10 @@ def test_validate_env_file_rejects_unauthenticated_host_opensearch(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
                 "OPENSEARCH_HOSTS=localhost:9200",
             ]
         )
@@ -1144,10 +1144,10 @@ def test_validate_env_file_rejects_partial_host_opensearch_auth(tmp_path: Path) 
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
                 "OPENSEARCH_HOSTS=localhost:9200",
                 "OPENSEARCH_USER=admin",
             ]
@@ -1191,10 +1191,10 @@ def test_validate_env_file_rejects_opensearch_hosts_with_uri_scheme(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=OpenSearchKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=OpenSearchVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=OpenSearchGraphStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=OpenSearchKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=OpenSearchVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=OpenSearchGraphStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=OpenSearchDocStatusStorage",
                 "OPENSEARCH_HOSTS=https://localhost:9200",
                 "OPENSEARCH_USER=admin",
                 "OPENSEARCH_PASSWORD=StrongPass1!",
@@ -1241,10 +1241,10 @@ def test_validate_env_file_ignores_invalid_unused_storage_settings(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
                 "NEO4J_URI=http://localhost:7687",
                 "MONGO_URI=not-a-mongo-uri",
                 "REDIS_URI=tcp://localhost:6379",
@@ -1299,10 +1299,10 @@ def test_validate_env_file_allows_empty_opensearch_hosts_when_unused(
     env_file.write_text(
         "\n".join(
             [
-                "LIGHTRAG_KV_STORAGE=JsonKVStorage",
-                "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage",
-                "LIGHTRAG_GRAPH_STORAGE=NetworkXStorage",
-                "LIGHTRAG_DOC_STATUS_STORAGE=JsonDocStatusStorage",
+                "FORGEMIND_KV_STORAGE=JsonKVStorage",
+                "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage",
+                "FORGEMIND_GRAPH_STORAGE=NetworkXStorage",
+                "FORGEMIND_DOC_STATUS_STORAGE=JsonDocStatusStorage",
                 "OPENSEARCH_HOSTS=",
             ]
         )

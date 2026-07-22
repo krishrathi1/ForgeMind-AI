@@ -12,8 +12,8 @@ pytest.importorskip(
     reason="opensearchpy is required for OpenSearch tool tests",
 )
 
-from lightrag.tools.clean_llm_query_cache import CleanupStats, CleanupTool
-from lightrag.tools.migrate_llm_cache import MigrationTool
+from forgemind.tools.clean_llm_query_cache import CleanupStats, CleanupTool
+from forgemind.tools.migrate_llm_cache import MigrationTool
 
 pytestmark = pytest.mark.offline
 

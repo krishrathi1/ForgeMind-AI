@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.constants import DEFAULT_R_SEPARATORS
-from lightrag.parser.routing import default_chunker_config
+from forgemind.constants import DEFAULT_R_SEPARATORS
+from forgemind.parser.routing import default_chunker_config
 
 
 @pytest.mark.offline

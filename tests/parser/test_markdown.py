@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.parser._markdown import (
+from forgemind.parser._markdown import (
     render_heading_line,
     strip_heading_markdown_prefix,
 )

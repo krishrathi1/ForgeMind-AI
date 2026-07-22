@@ -29,7 +29,7 @@ from pydantic import ValidationError
 
 _original_argv = sys.argv[:]
 sys.argv = [sys.argv[0]]
-_dr = importlib.import_module("lightrag.api.routers.document_routes")
+_dr = importlib.import_module("forgemind.api.routers.document_routes")
 sys.argv = _original_argv
 
 TextChunkingConfig = _dr.TextChunkingConfig
@@ -37,13 +37,13 @@ InsertTextRequest = _dr.InsertTextRequest
 _resolve_text_chunking = _dr._resolve_text_chunking
 create_document_routes = _dr.create_document_routes
 
-from lightrag.constants import (  # noqa: E402
+from forgemind.constants import (  # noqa: E402
     PROCESS_OPTION_CHUNK_FIXED,
     PROCESS_OPTION_CHUNK_PARAGRAH,
     PROCESS_OPTION_CHUNK_RECURSIVE,
     PROCESS_OPTION_CHUNK_VECTOR,
 )
-from lightrag.parser.routing import default_chunker_config  # noqa: E402
+from forgemind.parser.routing import default_chunker_config  # noqa: E402
 
 pytestmark = pytest.mark.offline
 

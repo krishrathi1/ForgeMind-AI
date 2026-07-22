@@ -31,14 +31,14 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-import lightrag.pipeline as pipeline_module
-from lightrag import LightRAG
-from lightrag.base import DocProcessingStatus, DocStatus
-from lightrag.exceptions import PipelineCancelledException
-from lightrag.kg.shared_storage import get_namespace_data, get_namespace_lock
-from lightrag.pipeline import _BatchRunContext
-from lightrag.parser.registry import parser_specs_snapshot
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+import forgemind.pipeline as pipeline_module
+from forgemind import ForgeMind
+from forgemind.base import DocProcessingStatus, DocStatus
+from forgemind.exceptions import PipelineCancelledException
+from forgemind.kg.shared_storage import get_namespace_data, get_namespace_lock
+from forgemind.pipeline import _BatchRunContext
+from forgemind.parser.registry import parser_specs_snapshot
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
 
 pytestmark = pytest.mark.offline
 
@@ -79,8 +79,8 @@ def _status_to_text(status: object) -> str:
     return str(status).replace("DocStatus.", "").lower()
 
 
-async def _build_rag(tmp_path, *, max_parallel_insert: int = 1) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path, *, max_parallel_insert: int = 1) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"abort-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,
@@ -331,7 +331,7 @@ async def test_cascade_guard_prevents_processed_after_sibling_abort(
 # ===========================================================================
 
 
-async def _make_ctx(rag: LightRAG) -> tuple[_BatchRunContext, dict, Any]:
+async def _make_ctx(rag: ForgeMind) -> tuple[_BatchRunContext, dict, Any]:
     pipeline_status = await get_namespace_data(
         "pipeline_status", workspace=rag.workspace
     )

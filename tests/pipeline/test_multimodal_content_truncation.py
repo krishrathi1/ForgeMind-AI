@@ -9,8 +9,8 @@ import re
 
 import pytest
 
-from lightrag.multimodal_context import trim_content_to_budget
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.multimodal_context import trim_content_to_budget
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CharTokenizer(TokenizerInterface):

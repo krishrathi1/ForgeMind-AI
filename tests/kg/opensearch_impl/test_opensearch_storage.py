@@ -23,7 +23,7 @@ from opensearchpy.exceptions import (  # type: ignore
     OpenSearchException,
     ConflictError,
 )
-from lightrag.kg.opensearch_impl import (
+from forgemind.kg.opensearch_impl import (
     OpenSearchKVStorage,
     OpenSearchDocStatusStorage,
     OpenSearchGraphStorage,
@@ -43,13 +43,13 @@ from lightrag.kg.opensearch_impl import (
     DEFAULT_OPENSEARCH_UPSERT_MAX_RECORDS_PER_BATCH,
     DEFAULT_OPENSEARCH_DELETE_MAX_RECORDS_PER_BATCH,
 )
-from lightrag.base import DocStatus, DocProcessingStatus
+from forgemind.base import DocStatus, DocProcessingStatus
 
 pytestmark = pytest.mark.offline
 
 
 # ---------------------------------------------------------------------------
-# Mock the shared storage lock so tests don't need full LightRAG init
+# Mock the shared storage lock so tests don't need full ForgeMind init
 # ---------------------------------------------------------------------------
 
 
@@ -70,7 +70,7 @@ def _missing_index_error() -> NotFoundError:
 def patch_data_init_lock():
     """Patch get_data_init_lock globally so initialize() works without shared storage."""
     with patch(
-        "lightrag.kg.opensearch_impl.get_data_init_lock", side_effect=_mock_lock_factory
+        "forgemind.kg.opensearch_impl.get_data_init_lock", side_effect=_mock_lock_factory
     ):
         yield
 
@@ -95,7 +95,7 @@ def patch_namespace_lock():
             cache[key] = lock
         return lock
 
-    with patch("lightrag.kg.opensearch_impl.get_namespace_lock", side_effect=factory):
+    with patch("forgemind.kg.opensearch_impl.get_namespace_lock", side_effect=factory):
         yield
 
 
@@ -105,7 +105,7 @@ def patch_shard_doc_supported():
 
     Tests covering the < 3.3.0 fallback should override this with their own patch.
     """
-    with patch("lightrag.kg.opensearch_impl._shard_doc_supported", True):
+    with patch("forgemind.kg.opensearch_impl._shard_doc_supported", True):
         yield
 
 
@@ -288,7 +288,7 @@ class TestBulkBatchLimits:
             "OPENSEARCH_DELETE_MAX_RECORDS_PER_BATCH": "0",
         }
         with patch.dict("os.environ", env, clear=True):
-            with patch("lightrag.kg.opensearch_impl.logger") as mock_logger:
+            with patch("forgemind.kg.opensearch_impl.logger") as mock_logger:
                 payload, upserts, deletes = _resolve_bulk_batch_limits()
         assert (payload, upserts, deletes) == (0, -1, 0)
         # one warning per disabled dimension
@@ -298,7 +298,7 @@ class TestBulkBatchLimits:
     @pytest.mark.asyncio
     async def test_run_chunked_empty_short_circuits(self):
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+            "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
         ) as mock_bulk:
             success, failed = await _run_chunked_async_bulk(
                 AsyncMock(),
@@ -315,7 +315,7 @@ class TestBulkBatchLimits:
     async def test_run_chunked_forwards_limits(self):
         actions = [{"_op_type": "index", "_id": str(i)} for i in range(3)]
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+            "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
         ) as mock_bulk:
             mock_bulk.return_value = (3, [])
             await _run_chunked_async_bulk(
@@ -337,7 +337,7 @@ class TestBulkBatchLimits:
     async def test_run_chunked_non_positive_uses_sentinels(self):
         actions = [{"_op_type": "index", "_id": str(i)} for i in range(3)]
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+            "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
         ) as mock_bulk:
             mock_bulk.return_value = (3, [])
             await _run_chunked_async_bulk(
@@ -377,7 +377,7 @@ class TestClientManager:
     @pytest.mark.asyncio
     async def test_singleton_and_refcount(self):
         ClientManager._instances = {"client": None, "ref_count": 0}
-        with patch("lightrag.kg.opensearch_impl.AsyncOpenSearch") as mock_cls:
+        with patch("forgemind.kg.opensearch_impl.AsyncOpenSearch") as mock_cls:
             mock_cls.return_value = self._stub_client()
             c1 = await ClientManager.get_client()
             c2 = await ClientManager.get_client()
@@ -392,7 +392,7 @@ class TestClientManager:
     @pytest.mark.asyncio
     async def test_close_called_on_last_release(self):
         ClientManager._instances = {"client": None, "ref_count": 0}
-        with patch("lightrag.kg.opensearch_impl.AsyncOpenSearch") as mock_cls:
+        with patch("forgemind.kg.opensearch_impl.AsyncOpenSearch") as mock_cls:
             inner = self._stub_client()
             mock_cls.return_value = inner
             c = await ClientManager.get_client()
@@ -425,7 +425,7 @@ class TestMirroredIdVerification:
                 }
             }
         )
-        with patch("lightrag.kg.opensearch_impl._shard_doc_supported", False):
+        with patch("forgemind.kg.opensearch_impl._shard_doc_supported", False):
             await _verify_mirrored_id_mapping(mock_client, "my_index")
 
     @pytest.mark.asyncio
@@ -438,7 +438,7 @@ class TestMirroredIdVerification:
                 }
             }
         )
-        with patch("lightrag.kg.opensearch_impl._shard_doc_supported", False):
+        with patch("forgemind.kg.opensearch_impl._shard_doc_supported", False):
             with pytest.raises(RuntimeError, match="__mirrored_id"):
                 await _verify_mirrored_id_mapping(mock_client, "my_index")
 
@@ -448,7 +448,7 @@ class TestMirroredIdVerification:
         mock_client.indices.get_mapping = AsyncMock(
             side_effect=OpenSearchException("transport error")
         )
-        with patch("lightrag.kg.opensearch_impl._shard_doc_supported", False):
+        with patch("forgemind.kg.opensearch_impl._shard_doc_supported", False):
             await _verify_mirrored_id_mapping(mock_client, "my_index")
 
 
@@ -508,7 +508,7 @@ class TestKVStorage:
         )
         with (
             patch.object(ClientManager, "get_client", return_value=mock_client),
-            patch("lightrag.kg.opensearch_impl._shard_doc_supported", False),
+            patch("forgemind.kg.opensearch_impl._shard_doc_supported", False),
         ):
             s = self._make(global_config, embed_func)
             with pytest.raises(RuntimeError, match="__mirrored_id"):
@@ -588,7 +588,7 @@ class TestKVStorage:
         """The flush (during index_done_callback) must not request per-op refresh."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -605,7 +605,7 @@ class TestKVStorage:
         """Buffered docs carry create_time / update_time set eagerly during upsert."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -633,7 +633,7 @@ class TestKVStorage:
         """delete() buffers tombstones; the bulk delete fires on flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -664,7 +664,7 @@ class TestKVStorage:
         )
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -684,7 +684,7 @@ class TestKVStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -823,7 +823,7 @@ class TestKVStorageBatching:
         """Many small upsert() calls collapse to one async_bulk on flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (5, [])
                 s = self._make(global_config, embed_func)
@@ -844,7 +844,7 @@ class TestKVStorageBatching:
         """Upserting the same id twice keeps only the latest payload."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -867,7 +867,7 @@ class TestKVStorageBatching:
         """
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -888,7 +888,7 @@ class TestKVStorageBatching:
         """An upsert after a buffered delete removes the tombstone."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -912,7 +912,7 @@ class TestKVStorageBatching:
         """
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1058,7 +1058,7 @@ class TestKVStorageBatching:
         """finalize() flushes the buffer before releasing the client."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1085,7 +1085,7 @@ class TestKVStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     # 503 is retryable; flush keeps it in the buffer.
@@ -1115,7 +1115,7 @@ class TestKVStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     mock_bulk.side_effect = OpenSearchException("connection reset")
@@ -1143,7 +1143,7 @@ class TestKVStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     mock_bulk.side_effect = asyncio.CancelledError()
@@ -1176,7 +1176,7 @@ class TestKVStorageBatching:
 
         mock_client.indices.delete = AsyncMock(side_effect=watch_indices_delete)
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("lightrag.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"k1": {"content": "x"}})
@@ -1209,7 +1209,7 @@ class TestKVStorageBatching:
         """Transient (5xx) per-doc failures stay buffered for the next flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (
                     1,
@@ -1233,7 +1233,7 @@ class TestKVStorageBatching:
         flush and poison direct callers); the retryable op stays for retry."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (
                     0,
@@ -1277,7 +1277,7 @@ class TestKVStorageBatching:
             return (len(actions), [])
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("lightrag.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"k1": {"content": "first"}})
@@ -1314,7 +1314,7 @@ class TestKVStorageBatching:
         """
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1404,7 +1404,7 @@ class TestDocStatusStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1419,7 +1419,7 @@ class TestDocStatusStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (
                     0,
@@ -1948,7 +1948,7 @@ class TestDocStatusStorage:
         )
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -1968,7 +1968,7 @@ class TestDocStatusStorage:
     ):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -2313,7 +2313,7 @@ class TestGraphStorage:
                 return (len(bulk_calls[-1]), [])
 
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
                 new=AsyncMock(side_effect=capture_bulk),
             ):
                 await s.upsert_edges_batch(
@@ -2377,7 +2377,7 @@ class TestGraphStorage:
             return (len(bulk_calls[-1]), [])
 
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk",
+            "forgemind.kg.opensearch_impl.helpers.async_bulk",
             new=AsyncMock(side_effect=capture_bulk),
         ):
             await s._migrate_edges_to_canonical_id_if_needed()
@@ -2446,7 +2446,7 @@ class TestGraphStorage:
 
         # First async_bulk call is the create phase, second is the delete phase.
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk",
+            "forgemind.kg.opensearch_impl.helpers.async_bulk",
             new=AsyncMock(side_effect=[(1, create_errors), (1, delete_errors)]),
         ):
             if expect_raise:
@@ -2500,7 +2500,7 @@ class TestGraphStorage:
             return (len(acts), [])
 
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk",
+            "forgemind.kg.opensearch_impl.helpers.async_bulk",
             new=AsyncMock(side_effect=capture_bulk),
         ):
             with pytest.raises(RuntimeError):
@@ -2580,7 +2580,7 @@ class TestGraphStorage:
             return (len(acts), [])
 
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk",
+            "forgemind.kg.opensearch_impl.helpers.async_bulk",
             new=AsyncMock(side_effect=capture_bulk),
         ):
             await s._migrate_edges_to_canonical_id_if_needed()
@@ -2764,7 +2764,7 @@ class TestGraphStorage:
             return (len(acts), [])
 
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk",
+            "forgemind.kg.opensearch_impl.helpers.async_bulk",
             new=AsyncMock(side_effect=capture_bulk),
         ):
             await s._migrate_edges_to_canonical_id_if_needed()
@@ -2838,7 +2838,7 @@ class TestGraphStorage:
             return (len(acts), [])
 
         with patch(
-            "lightrag.kg.opensearch_impl.helpers.async_bulk",
+            "forgemind.kg.opensearch_impl.helpers.async_bulk",
             new=AsyncMock(side_effect=capture_bulk),
         ):
             await s._migrate_edges_to_canonical_id_if_needed()
@@ -2915,12 +2915,12 @@ class TestGraphStorage:
 
         fake_logger = MagicMock()
         with (
-            patch("lightrag.kg.opensearch_impl._EDGE_MIGRATION_PROGRESS_INTERVAL", 2),
+            patch("forgemind.kg.opensearch_impl._EDGE_MIGRATION_PROGRESS_INTERVAL", 2),
             patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
                 new=AsyncMock(return_value=(0, [])),
             ),
-            patch("lightrag.kg.opensearch_impl.logger", fake_logger),
+            patch("forgemind.kg.opensearch_impl.logger", fake_logger),
         ):
             await s._migrate_edges_to_canonical_id_if_needed()
 
@@ -3028,7 +3028,7 @@ class TestGraphStorage:
     async def test_remove_nodes(self, global_config, embed_func, mock_client):
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -3791,7 +3791,7 @@ class TestVectorStorage:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -3984,7 +3984,7 @@ class TestVectorStorage:
         """delete() buffers ids; the actual bulk delete fires on flush."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (2, [])
                 s = self._make(global_config, embed_func)
@@ -4132,7 +4132,7 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (5, [])
                 s = self._make(global_config, embed_func)
@@ -4158,7 +4158,7 @@ class TestVectorStorageBatching:
         config = {**global_config, "embedding_batch_num": 2}
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (5, [])
                 s = self._make(config, embed_func)
@@ -4181,7 +4181,7 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4202,7 +4202,7 @@ class TestVectorStorageBatching:
         """A delete after a buffered upsert removes the upsert from the buffer."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4223,7 +4223,7 @@ class TestVectorStorageBatching:
         """An upsert after a buffered delete removes the tombstone."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4321,7 +4321,7 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4340,7 +4340,7 @@ class TestVectorStorageBatching:
         """finalize() flushes buffered writes before releasing the client."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4366,7 +4366,7 @@ class TestVectorStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     mock_bulk.return_value = (
@@ -4394,7 +4394,7 @@ class TestVectorStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     mock_bulk.side_effect = OpenSearchException("connection reset")
@@ -4421,7 +4421,7 @@ class TestVectorStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     mock_bulk.side_effect = asyncio.CancelledError()
@@ -4440,7 +4440,7 @@ class TestVectorStorageBatching:
         """drop() throws away pending writes; nothing is flushed to a deleted index."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 s = self._make(global_config, embed_func)
                 await s.initialize()
@@ -4459,7 +4459,7 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 # First flush: v1 succeeds, v2 fails with 503 (retryable).
                 mock_bulk.side_effect = [
@@ -4497,7 +4497,7 @@ class TestVectorStorageBatching:
         embed_func = CountingEmbeddingFunc(fail_times=1)
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4526,7 +4526,7 @@ class TestVectorStorageBatching:
                 ClientManager, "release_client", new_callable=AsyncMock
             ) as mock_release:
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     s = self._make(global_config, embed_func)
@@ -4547,7 +4547,7 @@ class TestVectorStorageBatching:
         """Pending docs whose src_id/tgt_id match the entity are dropped before delete_by_query."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4572,7 +4572,7 @@ class TestVectorStorageBatching:
                 mock_client.delete_by_query.assert_awaited_once()
 
     def test_extract_bulk_failed_ids_classifies_by_status(self):
-        from lightrag.kg.opensearch_impl import _extract_bulk_failed_ids
+        from forgemind.kg.opensearch_impl import _extract_bulk_failed_ids
 
         # No failures -> empty containers.
         retryable, non_retryable = _extract_bulk_failed_ids(None)
@@ -4627,7 +4627,7 @@ class TestVectorStorageBatching:
         assert by_id["n-404"].error == "not found"
 
     def test_extract_bulk_failed_ids_truncates_long_errors(self):
-        from lightrag.kg.opensearch_impl import (
+        from forgemind.kg.opensearch_impl import (
             _extract_bulk_failed_ids,
             _BULK_ERROR_SUMMARY_MAX_LEN,
         )
@@ -4658,7 +4658,7 @@ class TestVectorStorageBatching:
         on every later flush), while the retryable op stays for retry."""
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 # v1 fails permanently (400 mapping error); v2 fails
                 # transiently (503).
@@ -4714,7 +4714,7 @@ class TestVectorStorageBatching:
             return (len(actions), [])
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("lightrag.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"v1": {"content": "first"}})
@@ -4772,7 +4772,7 @@ class TestVectorStorageBatching:
             )
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("lightrag.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"v1": {"content": "first"}})
@@ -4890,7 +4890,7 @@ class TestVectorStorageBatching:
         ]
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
                 new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.return_value = (0, failed)
@@ -4926,7 +4926,7 @@ class TestVectorStorageBatching:
         )
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -4965,7 +4965,7 @@ class TestVectorStorageBatching:
         mock_client.delete_by_query = AsyncMock(side_effect=watch_delete_by_query)
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("lightrag.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert(
@@ -5016,7 +5016,7 @@ class TestVectorStorageBatching:
         mock_client.indices.delete = AsyncMock(side_effect=watch_indices_delete)
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
-            with patch("lightrag.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
+            with patch("forgemind.kg.opensearch_impl.helpers.async_bulk", new=slow_bulk):
                 s = self._make(global_config, embed_func)
                 await s.initialize()
                 await s.upsert({"v1": {"content": "x"}})
@@ -5059,7 +5059,7 @@ class TestVectorStorageBatching:
 
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
+                "forgemind.kg.opensearch_impl.helpers.async_bulk", new_callable=AsyncMock
             ) as mock_bulk:
                 mock_bulk.return_value = (1, [])
                 s = self._make(global_config, embed_func)
@@ -5113,7 +5113,7 @@ class TestEmbeddingBatchNumDiagnosis:
     ``merge_nodes_and_edges`` upserts entities/relations ONE id at a time:
     ``_merge_nodes_then_upsert`` calls ``entity_vdb.upsert({single})`` and
     ``_merge_edges_then_upsert`` calls ``relationships_vdb.upsert({single})``
-    (lightrag/operate.py). ``EMBEDDING_BATCH_NUM`` only slices the items
+    (forgemind/operate.py). ``EMBEDDING_BATCH_NUM`` only slices the items
     *within one embedding pass* (``contents[i:i+batch]``). So the call count
     is governed by how many items reach a single embedding pass, not by the
     batch size -- raising the batch size only helps once >= 2 items are
@@ -5153,7 +5153,7 @@ class TestEmbeddingBatchNumDiagnosis:
         mock_client = _make_client()
         with patch.object(ClientManager, "get_client", return_value=mock_client):
             with patch(
-                "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                "forgemind.kg.opensearch_impl.helpers.async_bulk",
                 new_callable=AsyncMock,
             ) as mock_bulk:
                 mock_bulk.side_effect = self._fake_bulk
@@ -5223,7 +5223,7 @@ class TestEmbeddingBatchNumDiagnosis:
             mock_client = _make_client()
             with patch.object(ClientManager, "get_client", return_value=mock_client):
                 with patch(
-                    "lightrag.kg.opensearch_impl.helpers.async_bulk",
+                    "forgemind.kg.opensearch_impl.helpers.async_bulk",
                     new_callable=AsyncMock,
                 ) as mock_bulk:
                     mock_bulk.side_effect = self._fake_bulk

@@ -13,7 +13,7 @@ pytest.importorskip(
     reason="pymongo is required for Mongo ClientManager tests",
 )
 
-from lightrag.kg.mongo_impl import ClientManager
+from forgemind.kg.mongo_impl import ClientManager
 
 
 class TestClientManagerLifecycle:

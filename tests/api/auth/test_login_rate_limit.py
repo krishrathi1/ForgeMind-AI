@@ -2,8 +2,8 @@
 
 from types import SimpleNamespace
 
-import lightrag.api.login_rate_limit as lrl_module
-from lightrag.api.login_rate_limit import (
+import forgemind.api.login_rate_limit as lrl_module
+from forgemind.api.login_rate_limit import (
     _PENDING_RETRY_AFTER_SECONDS,
     LoginRateLimiter,
     _safe_log_value,

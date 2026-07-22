@@ -8,7 +8,7 @@ import asyncio
 
 import pytest
 
-from lightrag.kg.shared_storage import (
+from forgemind.kg.shared_storage import (
     _join_resistant,
     drain_reserved_background_tasks,
     start_reserved_background_task,

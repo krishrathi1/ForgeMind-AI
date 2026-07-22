@@ -1,9 +1,9 @@
-"""Regression tests for :func:`lightrag.utils.cosine_similarity`."""
+"""Regression tests for :func:`forgemind.utils.cosine_similarity`."""
 
 import numpy as np
 import pytest
 
-from lightrag.utils import cosine_similarity
+from forgemind.utils import cosine_similarity
 
 pytestmark = pytest.mark.offline
 

@@ -4,12 +4,12 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from lightrag.llm.openai import (
+from forgemind.llm.openai import (
     InvalidResponseError,
     azure_openai_complete_if_cache,
     openai_complete_if_cache,
 )
-from lightrag.utils import is_truncated_response
+from forgemind.utils import is_truncated_response
 
 
 def _make_completion(
@@ -100,7 +100,7 @@ async def test_length_finish_reason_returns_raw_content():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         result = await openai_complete_if_cache(
@@ -128,7 +128,7 @@ async def test_length_finish_reason_marks_result_truncated():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         result = await openai_complete_if_cache(
@@ -150,7 +150,7 @@ async def test_stop_finish_reason_is_not_marked_truncated():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         result = await openai_complete_if_cache(
@@ -178,7 +178,7 @@ async def test_azure_length_finish_reason_marks_result_truncated():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         result = await azure_openai_complete_if_cache(
@@ -200,7 +200,7 @@ async def test_json_object_response_format_forwarded_to_create():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         result = await openai_complete_if_cache(
@@ -224,7 +224,7 @@ async def test_legacy_entity_extraction_emits_deprecation_warning():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         with pytest.warns(DeprecationWarning):
@@ -247,7 +247,7 @@ async def test_legacy_keyword_extraction_emits_deprecation_warning():
     fake_client = _make_fake_client(completion)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         with pytest.warns(DeprecationWarning):
@@ -273,7 +273,7 @@ async def test_typed_response_format_is_rejected():
         pass
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         with pytest.raises(TypeError, match="typed/Pydantic"):
@@ -299,7 +299,7 @@ async def test_streaming_structured_output_disables_cot():
     fake_client = _make_fake_client(fake_stream)
 
     with patch(
-        "lightrag.llm.openai.create_openai_async_client",
+        "forgemind.llm.openai.create_openai_async_client",
         return_value=fake_client,
     ):
         stream = await openai_complete_if_cache(
@@ -336,13 +336,13 @@ async def test_empty_content_reasoning_only_diagnostics(caplog):
     )
     fake_client = _make_fake_client(completion)
 
-    lightrag_logger = logging.getLogger("lightrag")
-    caplog.set_level(logging.ERROR, logger="lightrag")
-    original_propagate = lightrag_logger.propagate
-    lightrag_logger.propagate = True
+    forgemind_logger = logging.getLogger("forgemind")
+    caplog.set_level(logging.ERROR, logger="forgemind")
+    original_propagate = forgemind_logger.propagate
+    forgemind_logger.propagate = True
     try:
         with patch(
-            "lightrag.llm.openai.create_openai_async_client",
+            "forgemind.llm.openai.create_openai_async_client",
             return_value=fake_client,
         ):
             # Call the undecorated coroutine to exercise the handler exactly
@@ -354,7 +354,7 @@ async def test_empty_content_reasoning_only_diagnostics(caplog):
                     response_format={"type": "json_object"},
                 )
     finally:
-        lightrag_logger.propagate = original_propagate
+        forgemind_logger.propagate = original_propagate
 
     message = str(excinfo.value)
     assert "finish_reason=stop" in message
@@ -376,13 +376,13 @@ async def test_empty_content_length_truncation_diagnostics(caplog):
     completion = _make_completion("", finish_reason="length")
     fake_client = _make_fake_client(completion)
 
-    lightrag_logger = logging.getLogger("lightrag")
-    caplog.set_level(logging.ERROR, logger="lightrag")
-    original_propagate = lightrag_logger.propagate
-    lightrag_logger.propagate = True
+    forgemind_logger = logging.getLogger("forgemind")
+    caplog.set_level(logging.ERROR, logger="forgemind")
+    original_propagate = forgemind_logger.propagate
+    forgemind_logger.propagate = True
     try:
         with patch(
-            "lightrag.llm.openai.create_openai_async_client",
+            "forgemind.llm.openai.create_openai_async_client",
             return_value=fake_client,
         ):
             with pytest.raises(InvalidResponseError) as excinfo:
@@ -392,7 +392,7 @@ async def test_empty_content_length_truncation_diagnostics(caplog):
                     response_format={"type": "json_object"},
                 )
     finally:
-        lightrag_logger.propagate = original_propagate
+        forgemind_logger.propagate = original_propagate
 
     message = str(excinfo.value)
     assert "finish_reason=length" in message

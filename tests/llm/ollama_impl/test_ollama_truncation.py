@@ -5,8 +5,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from lightrag.llm.ollama import _ollama_model_if_cache
-from lightrag.utils import is_truncated_response
+from forgemind.llm.ollama import _ollama_model_if_cache
+from forgemind.utils import is_truncated_response
 
 pytestmark = pytest.mark.offline
 
@@ -30,7 +30,7 @@ async def test_ollama_length_done_reason_marks_result_truncated():
         {"message": {"content": raw_json}, "done_reason": "length"}
     )
 
-    with patch("lightrag.llm.ollama.ollama.AsyncClient", return_value=fake_client):
+    with patch("forgemind.llm.ollama.ollama.AsyncClient", return_value=fake_client):
         result = await _ollama_model_if_cache(model="test-model", prompt="Extract")
 
     assert result == raw_json
@@ -44,7 +44,7 @@ async def test_ollama_stop_done_reason_is_not_marked_truncated():
         {"message": {"content": raw_json}, "done_reason": "stop"}
     )
 
-    with patch("lightrag.llm.ollama.ollama.AsyncClient", return_value=fake_client):
+    with patch("forgemind.llm.ollama.ollama.AsyncClient", return_value=fake_client):
         result = await _ollama_model_if_cache(model="test-model", prompt="Extract")
 
     assert result == raw_json
@@ -56,7 +56,7 @@ async def test_ollama_missing_done_reason_is_not_marked_truncated():
     """Older servers may omit done_reason; degrade to cache-everything."""
     fake_client = _make_fake_client({"message": {"content": "answer"}})
 
-    with patch("lightrag.llm.ollama.ollama.AsyncClient", return_value=fake_client):
+    with patch("forgemind.llm.ollama.ollama.AsyncClient", return_value=fake_client):
         result = await _ollama_model_if_cache(model="test-model", prompt="Q")
 
     assert result == "answer"

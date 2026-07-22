@@ -49,10 +49,10 @@ help:
 	@printf "  Compose file output: docker-compose.final.yml\n"
 	@printf "\n"
 	@printf "$(COLOR_BOLD)Apple container stack (macOS 26, Apple Silicon; no Docker)$(COLOR_RESET)\n"
-	@printf "  $(COLOR_GREEN)make apple-up$(COLOR_RESET)                Start Postgres/Neo4j/Milvus + LightRAG on Apple 'container'\n"
+	@printf "  $(COLOR_GREEN)make apple-up$(COLOR_RESET)                Start Postgres/Neo4j/Milvus + ForgeMind on Apple 'container'\n"
 	@printf "  $(COLOR_GREEN)make apple-down$(COLOR_RESET)              Stop and remove the stack (SETUP_OPTS=--purge also deletes data)\n"
 	@printf "  $(COLOR_GREEN)make apple-status$(COLOR_RESET)            Show stack containers, volumes, and networks\n"
-	@printf "  $(COLOR_GREEN)make apple-logs SVC=lightrag$(COLOR_RESET) Tail a service's logs\n"
+	@printf "  $(COLOR_GREEN)make apple-logs SVC=forgemind$(COLOR_RESET) Tail a service's logs\n"
 	@printf "  See docs/AppleContainerSetup.md for details.\n"
 
 dev:
@@ -73,14 +73,14 @@ dev:
 	@printf "$(COLOR_BLUE)Syncing backend and test dependencies with uv...$(COLOR_RESET)\n"
 	@uv sync --extra test --extra offline
 	@printf "$(COLOR_BLUE)Installing frontend dependencies with Bun...$(COLOR_RESET)\n"
-	@cd lightrag_webui && bun install --frozen-lockfile
+	@cd forgemind_webui && bun install --frozen-lockfile
 	@printf "$(COLOR_BLUE)Building frontend assets...$(COLOR_RESET)\n"
-	@cd lightrag_webui && bun run build
+	@cd forgemind_webui && bun run build
 	@printf "$(COLOR_GREEN)Development environment is ready.$(COLOR_RESET)\n"
 	@printf "Next steps:\n"
 	@printf "  source .venv/bin/activate\n"
 	@printf "  make env-base\n"
-	@printf "  lightrag-server\n"
+	@printf "  forgemind-server\n"
 
 env-base env base configure:
 	@$(SETUP_BASH) $(SETUP_SCRIPT) --base $(SETUP_OPTS)
@@ -108,8 +108,8 @@ env-backup backup:
 
 # Apple 'container' stack (macOS 26 + Apple Silicon). SETUP_BASH resolves a
 # bash 4+ interpreter, which apple-container.sh requires. Pass flags via
-# SETUP_OPTS (e.g. make apple-up SETUP_OPTS=--no-lightrag) and a service name
-# via SVC (e.g. make apple-logs SVC=lightrag).
+# SETUP_OPTS (e.g. make apple-up SETUP_OPTS=--no-forgemind) and a service name
+# via SVC (e.g. make apple-logs SVC=forgemind).
 apple-up:
 	@$(SETUP_BASH) $(APPLE_SCRIPT) up $(SETUP_OPTS)
 

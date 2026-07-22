@@ -26,10 +26,10 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.kg.shared_storage import get_namespace_data
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.kg.shared_storage import get_namespace_data
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
 
 pytestmark = pytest.mark.offline
 
@@ -69,8 +69,8 @@ def _status_to_text(status: object) -> str:
     return str(status).replace("DocStatus.", "").lower()
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"orphan-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,

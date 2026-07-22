@@ -15,13 +15,13 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.chunker import chunking_by_fixed_token
-from lightrag.sidecar import backfill_chunk_sidecars
-from lightrag.utils import (
+from forgemind.chunker import chunking_by_fixed_token
+from forgemind.sidecar import backfill_chunk_sidecars
+from forgemind.utils import (
     Tokenizer,
     enforce_chunk_token_limit_before_embedding,
 )
-from lightrag.utils_pipeline import build_chunks_dict_from_chunking_result
+from forgemind.utils_pipeline import build_chunks_dict_from_chunking_result
 
 _BLOCK_SEPARATOR = "\n\n"
 
@@ -44,7 +44,7 @@ def _tokenizer() -> Tokenizer:
 def _write_blocks(tmp_path: Path, blocks: list[tuple[str, str]]) -> tuple[str, str]:
     """Write blocks.jsonl; return (path, merged_text)."""
     path = tmp_path / "doc.blocks.jsonl"
-    lines = [json.dumps({"type": "meta", "format": "lightrag", "version": "1.0"})]
+    lines = [json.dumps({"type": "meta", "format": "forgemind", "version": "1.0"})]
     parts: list[str] = []
     for blockid, content in blocks:
         lines.append(
@@ -252,7 +252,7 @@ def test_real_tiktoken_token_windows_match_verbatim(tmp_path: Path) -> None:
     # the reconstructed merged text — including across the token-overlap fallback.
     tiktoken = pytest.importorskip("tiktoken")
     del tiktoken  # only needed to gate the test
-    from lightrag.utils import TiktokenTokenizer
+    from forgemind.utils import TiktokenTokenizer
 
     tok = TiktokenTokenizer()
     blocks = [
@@ -290,7 +290,7 @@ def test_real_tiktoken_multibyte_boundary_degrades_not_fails(tmp_path: Path) -> 
     # for the corrupt chunks while still attributing the clean ones, not FAIL the whole
     # document.
     pytest.importorskip("tiktoken")
-    from lightrag.utils import TiktokenTokenizer
+    from forgemind.utils import TiktokenTokenizer
 
     tok = TiktokenTokenizer()
     # Emoji are supplementary-plane (4-byte) chars that force byte-fallback tokens.

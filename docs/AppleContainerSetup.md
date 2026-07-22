@@ -1,12 +1,12 @@
-# Running the LightRAG storage stack on Apple `container`
+# Running the ForgeMind storage stack on Apple `container`
 
 [Apple `container`](https://github.com/apple/container) is Apple's native,
 open-source container runtime for macOS 26 (Tahoe) on Apple Silicon. It runs each
 container in its own lightweight Linux VM, with no background daemon.
 
-`scripts/setup/apple-container.sh` brings up the full LightRAG storage stack —
+`scripts/setup/apple-container.sh` brings up the full ForgeMind storage stack —
 **PostgreSQL**, **Neo4j**, and **Milvus** (standalone, with its `etcd` and
-`minio` sidecars) — plus the **LightRAG API server**, on Apple `container`
+`minio` sidecars) — plus the **ForgeMind API server**, on Apple `container`
 instead of Docker Compose. LLM and embeddings are reached over normal outbound
 HTTPS (e.g. the OpenAI API); there is **no GPU and no vLLM**, so the stack runs
 on a CPU-only Apple Silicon Mac.
@@ -34,8 +34,8 @@ features it lacks have to be reimplemented:
 - **A clone of the repository.** Every command below is run from the repo root:
 
   ```bash
-  git clone https://github.com/HKUDS/LightRAG.git
-  cd LightRAG
+  git clone https://github.com/krishrathi1/ForgeMind-AI.git
+  cd ForgeMind
   ```
 
 - **macOS 26 (Tahoe) or newer** on **Apple Silicon**. Container-to-container
@@ -76,17 +76,17 @@ No `sudo` is required.
 ## Quick start
 
 ```bash
-# Start the whole stack (databases + LightRAG server)
+# Start the whole stack (databases + ForgeMind server)
 bash scripts/setup/apple-container.sh up
 
-# Databases only (run the LightRAG server on the host yourself)
-bash scripts/setup/apple-container.sh up --no-lightrag
+# Databases only (run the ForgeMind server on the host yourself)
+bash scripts/setup/apple-container.sh up --no-forgemind
 
 # See what is running
 bash scripts/setup/apple-container.sh status
 
 # Tail a service's logs
-bash scripts/setup/apple-container.sh logs lightrag --follow
+bash scripts/setup/apple-container.sh logs forgemind --follow
 
 # Stop and remove containers (keeps data)
 bash scripts/setup/apple-container.sh down
@@ -97,14 +97,14 @@ bash scripts/setup/apple-container.sh down --purge
 
 Equivalent `make` targets are provided (they resolve a bash 4+ interpreter for
 you): `make apple-up`, `make apple-down`, `make apple-status`,
-`make apple-logs SVC=lightrag`, `make apple-restart SVC=<service>`,
+`make apple-logs SVC=forgemind`, `make apple-restart SVC=<service>`,
 `make apple-pull`. Pass script flags via `SETUP_OPTS`, e.g.
-`make apple-up SETUP_OPTS=--no-lightrag` or `make apple-down SETUP_OPTS=--purge`.
+`make apple-up SETUP_OPTS=--no-forgemind` or `make apple-down SETUP_OPTS=--purge`.
 
 When the stack is up:
 
-- LightRAG WebUI: <http://127.0.0.1:9621/webui>
-- LightRAG health: <http://127.0.0.1:9621/health>
+- ForgeMind WebUI: <http://127.0.0.1:9621/webui>
+- ForgeMind health: <http://127.0.0.1:9621/health>
 - Neo4j Browser / MinIO console: on the container's IP, printed by `up`
   (the host can reach the container subnet directly). To recover an IP later,
   re-run `up` (it is idempotent) or `container inspect <service>`.
@@ -113,20 +113,20 @@ When the stack is up:
 
 ```
 host (macOS 26, Apple Silicon)
-  └─ 127.0.0.1:9621 ──▶ [lightrag] ──┐   (--network lightrag)
-                                     ├─▶ postgres   :5432   (volume lightrag_pg)
-                                     ├─▶ neo4j       :7687   (volume lightrag_neo4j)
-                                     └─▶ milvus      :19530  (volume lightrag_milvus)
-                                            ├─▶ milvus-etcd  :2379  (volume lightrag_etcd)
-                                            └─▶ milvus-minio :9000  (volume lightrag_minio)
-  [lightrag] ──── outbound HTTPS ────▶ api.openai.com
+  └─ 127.0.0.1:9621 ──▶ [forgemind] ──┐   (--network forgemind)
+                                     ├─▶ postgres   :5432   (volume forgemind_pg)
+                                     ├─▶ neo4j       :7687   (volume forgemind_neo4j)
+                                     └─▶ milvus      :19530  (volume forgemind_milvus)
+                                            ├─▶ milvus-etcd  :2379  (volume forgemind_etcd)
+                                            └─▶ milvus-minio :9000  (volume forgemind_minio)
+  [forgemind] ──── outbound HTTPS ────▶ api.openai.com
 ```
 
-Only the LightRAG server publishes a host port (`127.0.0.1:9621`). The databases
+Only the ForgeMind server publishes a host port (`127.0.0.1:9621`). The databases
 are intentionally **not** published, so the stack never clashes with a Postgres
 already listening on the host's `5432`. Each service is reached by its container
-IP on the `lightrag` network. Containers are namespaced as `lightrag-<service>`
-(e.g. `lightrag-postgres`), so the script never touches or reuses a same-named
+IP on the `forgemind` network. Containers are namespaced as `forgemind-<service>`
+(e.g. `forgemind-postgres`), so the script never touches or reuses a same-named
 container from another project.
 
 > **Trust boundary.** This is a local, single-user development stack. The
@@ -145,7 +145,7 @@ container from another project.
 | milvus | `milvusdb/milvus:v2.6.11` (standalone, CPU) |
 | milvus-etcd | `quay.io/coreos/etcd:v3.5.25` |
 | milvus-minio | `minio/minio:RELEASE.2025-09-07T16-13-09Z` |
-| lightrag | `ghcr.io/hkuds/lightrag:latest` |
+| forgemind | `ghcr.io/krishrathi1/forgemind-ai:latest` |
 
 Two deviations from `docker-compose-full.yml` / `scripts/setup/templates/`, both
 forced by Apple Silicon:
@@ -162,19 +162,19 @@ forced by Apple Silicon:
 ## Configuration
 
 The script reads your existing host `.env` and **never modifies it**. For the
-containerized LightRAG server it writes a generated `.apple-container.env`
+containerized ForgeMind server it writes a generated `.apple-container.env`
 (git-ignored) that copies your `.env` and overrides only the storage selection
 and connection endpoints:
 
 ```
-LIGHTRAG_KV_STORAGE=PGKVStorage
-LIGHTRAG_DOC_STATUS_STORAGE=PGDocStatusStorage
-LIGHTRAG_GRAPH_STORAGE=Neo4JStorage
-LIGHTRAG_VECTOR_STORAGE=MilvusVectorDBStorage
+FORGEMIND_KV_STORAGE=PGKVStorage
+FORGEMIND_DOC_STATUS_STORAGE=PGDocStatusStorage
+FORGEMIND_GRAPH_STORAGE=Neo4JStorage
+FORGEMIND_VECTOR_STORAGE=MilvusVectorDBStorage
 POSTGRES_HOST=<postgres container IP>
 NEO4J_URI=neo4j://<neo4j IP>:7687
 MILVUS_URI=http://<milvus IP>:19530
-MILVUS_DB_NAME=lightrag
+MILVUS_DB_NAME=forgemind
 ```
 
 Your LLM/embedding settings (`LLM_BINDING`, `EMBEDDING_BINDING`, API keys, model
@@ -192,17 +192,17 @@ container is created with it). Common overrides (all optional):
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `rag` / `rag` / `rag` | Postgres credentials |
-| `NEO4J_USERNAME` / `NEO4J_PASSWORD` | `neo4j` / `lightragdev` | Neo4j auth (password ≥ 8 chars) |
+| `NEO4J_USERNAME` / `NEO4J_PASSWORD` | `neo4j` / `forgeminddev` | Neo4j auth (password ≥ 8 chars) |
 | `MINIO_ACCESS_KEY_ID` / `MINIO_SECRET_ACCESS_KEY` | `minioadmin` / `minioadmin` | MinIO / Milvus object store |
-| `MILVUS_DB_NAME` | `lightrag` | Milvus database name (required by MilvusVectorDBStorage) |
-| `LIGHTRAG_AC_MEM_HEAVY` | `6G` | memory for Milvus and Neo4j VMs |
-| `LIGHTRAG_AC_MEM_LIGHT` | `2G` | memory for Postgres and LightRAG VMs |
+| `MILVUS_DB_NAME` | `forgemind` | Milvus database name (required by MilvusVectorDBStorage) |
+| `FORGEMIND_AC_MEM_HEAVY` | `6G` | memory for Milvus and Neo4j VMs |
+| `FORGEMIND_AC_MEM_LIGHT` | `2G` | memory for Postgres and ForgeMind VMs |
 
 ## Data persistence
 
-All data lives in named volumes (`lightrag_pg`, `lightrag_neo4j`, `lightrag_milvus`,
-`lightrag_etcd`, `lightrag_minio`, `lightrag_lightrag`). Both the container and
-volume names are namespaced from `LIGHTRAG_AC_PREFIX`, so a second stack started
+All data lives in named volumes (`forgemind_pg`, `forgemind_neo4j`, `forgemind_milvus`,
+`forgemind_etcd`, `forgemind_minio`, `forgemind_forgemind`). Both the container and
+volume names are namespaced from `FORGEMIND_AC_PREFIX`, so a second stack started
 with a different prefix keeps its own containers **and** its own storage. `down`
 removes the containers but keeps the volumes, so a later `up` restores your data;
 only `down --purge` deletes the volumes.
@@ -210,18 +210,18 @@ only `down --purge` deletes the volumes.
 ## Troubleshooting
 
 - **`bind(...): Address already in use`** — something on the host already owns
-  `9621`. Stop it (e.g. a host `lightrag-server`) and retry. Database ports are
+  `9621`. Stop it (e.g. a host `forgemind-server`) and retry. Database ports are
   not published, so a host Postgres on `5432` is fine.
 - **A service IP changed after an individual `restart`** — the stack is wired by
   IP at `up` time. If you `restart` a database on its own and its IP changes, run
   `down` then `up` to re-wire dependents.
 - **Milvus or Neo4j is killed / slow** — they are memory-hungry; raise
-  `LIGHTRAG_AC_MEM_HEAVY` (e.g. `8G`).
+  `FORGEMIND_AC_MEM_HEAVY` (e.g. `8G`).
 - **Ingestion or a query fails while `/health` is green** — the stack is fine;
   the LLM/embedding call failed. Check that a real key is set on **both**
   `LLM_BINDING_API_KEY` and `EMBEDDING_BINDING_API_KEY`, and that the provider has
   quota/billing (OpenAI returns `429 insufficient_quota` when out of credit).
-  `logs lightrag` shows the exact HTTP error.
+  `logs forgemind` shows the exact HTTP error.
 - **`Rerank is enabled but no rerank model is configured`** — this CPU stack
   ships no local reranker. Retrieval still works; to silence it, either set a
   hosted reranker (`RERANK_BINDING` + `RERANK_MODEL` + key) or pass
@@ -233,5 +233,5 @@ only `down --purge` deletes the volumes.
 
 ```bash
 bash scripts/setup/apple-container.sh down --purge   # remove containers + data
-container network delete lightrag                    # remove the network (optional)
+container network delete forgemind                    # remove the network (optional)
 ```

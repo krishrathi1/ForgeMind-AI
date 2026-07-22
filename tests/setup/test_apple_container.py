@@ -37,7 +37,7 @@ def test_help_lists_commands_and_services() -> None:
         "milvus",
         "milvus-etcd",
         "milvus-minio",
-        "lightrag",
+        "forgemind",
     ):
         assert service in out
 
@@ -61,8 +61,8 @@ def test_generated_env_file_maps_storage_to_in_network_ips(tmp_path) -> None:
         "LLM_BINDING=openai\n"
         "OPENAI_API_KEY=sk-test\n"
         "EMBEDDING_DIM=3072\n"
-        "LIGHTRAG_KV_STORAGE=JsonKVStorage\n"  # must be overridden
-        "LIGHTRAG_VECTOR_STORAGE=NanoVectorDBStorage\n"
+        "FORGEMIND_KV_STORAGE=JsonKVStorage\n"  # must be overridden
+        "FORGEMIND_VECTOR_STORAGE=NanoVectorDBStorage\n"
     )
     src_before = src.read_text()
     gen = tmp_path / "out.env"
@@ -86,10 +86,10 @@ def test_generated_env_file_maps_storage_to_in_network_ips(tmp_path) -> None:
     assert (gen.stat().st_mode & 0o777) == 0o600
 
     # Storage backends forced to the external services.
-    assert values["LIGHTRAG_KV_STORAGE"] == "PGKVStorage"
-    assert values["LIGHTRAG_DOC_STATUS_STORAGE"] == "PGDocStatusStorage"
-    assert values["LIGHTRAG_GRAPH_STORAGE"] == "Neo4JStorage"
-    assert values["LIGHTRAG_VECTOR_STORAGE"] == "MilvusVectorDBStorage"
+    assert values["FORGEMIND_KV_STORAGE"] == "PGKVStorage"
+    assert values["FORGEMIND_DOC_STATUS_STORAGE"] == "PGDocStatusStorage"
+    assert values["FORGEMIND_GRAPH_STORAGE"] == "Neo4JStorage"
+    assert values["FORGEMIND_VECTOR_STORAGE"] == "MilvusVectorDBStorage"
 
     # Connection endpoints wired to the discovered container IPs.
     assert values["POSTGRES_HOST"] == "10.0.0.1"
@@ -125,7 +125,7 @@ def test_container_and_volume_names_derive_from_prefix() -> None:
     # A custom prefix must namespace BOTH container and volume names, so two
     # stacks never share storage.
     out = run_bash(
-        f'export LIGHTRAG_AC_PREFIX=proj2-; source "{SCRIPT}"; '
+        f'export FORGEMIND_AC_PREFIX=proj2-; source "{SCRIPT}"; '
         f'echo "container=$(cname postgres)"; echo "volume=$(vname pg)"'
     )
     values = parse_lines(out)
@@ -135,14 +135,14 @@ def test_container_and_volume_names_derive_from_prefix() -> None:
 
 def test_reads_db_credentials_and_milvus_db_from_env_source(tmp_path) -> None:
     # Credentials and MILVUS_DB_NAME are read from the source .env so the created
-    # database matches what the lightrag container connects with.
+    # database matches what the forgemind container connects with.
     envf = tmp_path / "custom.env"
     envf.write_text(
         "POSTGRES_PASSWORD='s3cret'\nNEO4J_PASSWORD=graphpass\nMILVUS_DB_NAME=mydb\n"
     )
     out = run_bash(
         "unset POSTGRES_PASSWORD NEO4J_PASSWORD MILVUS_DB_NAME; "
-        f'export LIGHTRAG_AC_ENV_FILE="{envf}"; source "{SCRIPT}"; '
+        f'export FORGEMIND_AC_ENV_FILE="{envf}"; source "{SCRIPT}"; '
         f'echo "pg=$PG_PASSWORD"; echo "neo=$NEO4J_PASS"; echo "milvus=$MILVUS_DB"'
     )
     values = parse_lines(out)
@@ -156,12 +156,12 @@ def test_credential_and_milvus_defaults_when_env_source_lacks_values(tmp_path) -
     envf.write_text("LLM_BINDING=openai\n")
     out = run_bash(
         "unset POSTGRES_PASSWORD MILVUS_DB_NAME; "
-        f'export LIGHTRAG_AC_ENV_FILE="{envf}"; source "{SCRIPT}"; '
+        f'export FORGEMIND_AC_ENV_FILE="{envf}"; source "{SCRIPT}"; '
         f'echo "pg=$PG_PASSWORD"; echo "milvus=$MILVUS_DB"'
     )
     values = parse_lines(out)
     assert values["pg"] == "rag"
-    assert values["milvus"] == "lightrag"
+    assert values["milvus"] == "forgemind"
 
 
 def test_image_tags_stay_in_sync_with_repo() -> None:
@@ -188,4 +188,4 @@ def test_image_tags_stay_in_sync_with_repo() -> None:
 
     # Postgres uses the multi-arch pgvector image, not the amd64-only AGE image
     # (the AGE image may still be named in comments explaining the deviation).
-    assert 'IMG_PG="${LIGHTRAG_AC_IMG_PG:-pgvector/pgvector:pg18}"' in script_text
+    assert 'IMG_PG="${FORGEMIND_AC_IMG_PG:-pgvector/pgvector:pg18}"' in script_text

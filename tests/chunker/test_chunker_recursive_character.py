@@ -5,9 +5,9 @@ import pytest
 pytest.importorskip("langchain_text_splitters")
 from langchain_text_splitters import RecursiveCharacterTextSplitter  # noqa: E402
 
-from lightrag.chunker import chunking_by_recursive_character  # noqa: E402
-from lightrag.chunker.recursive_character import _split_text_with_spans  # noqa: E402
-from lightrag.utils import Tokenizer, TokenizerInterface  # noqa: E402
+from forgemind.chunker import chunking_by_recursive_character  # noqa: E402
+from forgemind.chunker.recursive_character import _split_text_with_spans  # noqa: E402
+from forgemind.utils import Tokenizer, TokenizerInterface  # noqa: E402
 
 
 class _CharTokenizer(TokenizerInterface):

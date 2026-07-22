@@ -8,11 +8,11 @@ FROM --platform=$BUILDPLATFORM oven/bun:1 AS frontend-builder
 WORKDIR /app
 
 # Copy frontend source code
-COPY lightrag_webui/ ./lightrag_webui/
+COPY forgemind_webui/ ./forgemind_webui/
 
 # Build frontend assets for inclusion in the API package
 RUN --mount=type=cache,target=/root/.bun/install/cache \
-    cd lightrag_webui \
+    cd forgemind_webui \
     && bun install --frozen-lockfile \
     && bun run build
 
@@ -49,10 +49,10 @@ RUN --mount=type=cache,target=/root/.local/share/uv \
     uv sync --frozen --no-dev --extra api --no-install-project --no-editable
 
 # Copy project sources after dependency layer
-COPY lightrag/ ./lightrag/
+COPY forgemind/ ./forgemind/
 
 # Include pre-built frontend assets from the previous stage
-COPY --from=frontend-builder /app/lightrag/api/webui ./lightrag/api/webui
+COPY --from=frontend-builder /app/forgemind/api/webui ./forgemind/api/webui
 
 # Sync project in non-editable mode and ensure pip is available for runtime installs
 RUN --mount=type=cache,target=/root/.local/share/uv \
@@ -62,7 +62,7 @@ RUN --mount=type=cache,target=/root/.local/share/uv \
 # Prepare tiktoken cache directory and pre-populate tokenizer data
 # Ignore exit code 2 which indicates assets already cached
 RUN mkdir -p /app/data/tiktoken \
-    && uv run lightrag-download-cache --cache-dir /app/data/tiktoken || status=$?; \
+    && uv run forgemind-download-cache --cache-dir /app/data/tiktoken || status=$?; \
     if [ -n "${status:-}" ] && [ "$status" -ne 0 ] && [ "$status" -ne 2 ]; then exit "$status"; fi
 
 # Final stage
@@ -81,7 +81,7 @@ ENV UV_SYSTEM_PYTHON=1
 # Copy installed packages and application code
 COPY --from=builder /root/.local /root/.local
 COPY --from=builder /app/.venv /app/.venv
-COPY --from=builder /app/lightrag ./lightrag
+COPY --from=builder /app/forgemind ./forgemind
 COPY pyproject.toml .
 COPY setup.py .
 COPY uv.lock .
@@ -114,18 +114,18 @@ ENV PROMPT_DIR=/app/data/prompts
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gosu \
     && rm -rf /var/lib/apt/lists/* \
-    && groupadd -g 1000 lightrag \
-    && useradd -u 1000 -g lightrag -m -d /home/lightrag -s /usr/sbin/nologin lightrag \
-    && chown -R lightrag:lightrag /app /home/lightrag
+    && groupadd -g 1000 forgemind \
+    && useradd -u 1000 -g forgemind -m -d /home/forgemind -s /usr/sbin/nologin forgemind \
+    && chown -R forgemind:forgemind /app /home/forgemind
 
 # HOME and cache dirs for the non-root user so pipmaster's runtime pip installs
 # never fall back to an unwritable /root or a missing HOME.
-ENV HOME=/home/lightrag \
-    XDG_CACHE_HOME=/home/lightrag/.cache \
-    PIP_CACHE_DIR=/home/lightrag/.cache/pip \
-    UV_CACHE_DIR=/home/lightrag/.cache/uv
+ENV HOME=/home/forgemind \
+    XDG_CACHE_HOME=/home/forgemind/.cache \
+    PIP_CACHE_DIR=/home/forgemind/.cache/pip \
+    UV_CACHE_DIR=/home/forgemind/.cache/uv
 
-# Entrypoint starts as root, fixes mount ownership, then drops to lightrag.
+# Entrypoint starts as root, fixes mount ownership, then drops to forgemind.
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
@@ -134,4 +134,4 @@ EXPOSE 9621
 
 # Set entrypoint
 ENTRYPOINT ["docker-entrypoint.sh"]
-CMD ["python", "-m", "lightrag.api.lightrag_server"]
+CMD ["python", "-m", "forgemind.api.forgemind_server"]

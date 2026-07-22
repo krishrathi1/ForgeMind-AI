@@ -8,7 +8,7 @@ with MilvusVectorDBStorage.
 import pytest
 import os
 from unittest.mock import patch, MagicMock
-from lightrag.kg.milvus_impl import (
+from forgemind.kg.milvus_impl import (
     MilvusIndexConfig,
     SUPPORTED_INDEX_TYPES,
     SUPPORTED_METRIC_TYPES,

@@ -1,4 +1,4 @@
-"""Tests for ``lightrag/parser/external/docling/manifest.py`` helpers.
+"""Tests for ``forgemind/parser/external/docling/manifest.py`` helpers.
 
 Targets the contract guarantees that the rest of the docling flow relies on:
 ``select_main_json`` must find the bundle's main JSON even when ``_manifest.json``
@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.parser.external.docling.manifest import select_main_json
+from forgemind.parser.external.docling.manifest import select_main_json
 
 
 def _touch(path: Path, content: str = "{}") -> None:

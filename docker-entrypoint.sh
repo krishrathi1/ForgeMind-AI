@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Run the server as the non-root "lightrag" user (CIS Docker 4.1) while staying
+# Run the server as the non-root "forgemind" user (CIS Docker 4.1) while staying
 # compatible with existing deployments whose bind-mounted data is root-owned.
 #
 # Image-internal chown cannot fix runtime mounts, so when the container starts
@@ -13,7 +13,7 @@ set -e
 # flags to the server. Now that ENTRYPOINT is this script, a first arg starting
 # with "-" means the user only passed flags, so prepend the default command.
 if [ "${1#-}" != "$1" ]; then
-    set -- python -m lightrag.api.lightrag_server "$@"
+    set -- python -m forgemind.api.forgemind_server "$@"
 fi
 
 if [ "$(id -u)" = "0" ]; then
@@ -26,7 +26,7 @@ if [ "$(id -u)" = "0" ]; then
     # (e.g. a bind mount/PVC at /data with WORKING_DIR=/data/site01/storage): the
     # leaf does not exist yet, and once we drop to uid 1000 the server can no
     # longer mkdir it under the root-owned parent. Creating it here as root and
-    # handing it to lightrag avoids that PermissionError.
+    # handing it to forgemind avoids that PermissionError.
     #
     # ERROR_LOG/ACCESS_LOG (gunicorn) are *file* paths, so we chown their parent
     # directory rather than the file itself. Unset values and system roots are
@@ -41,7 +41,7 @@ if [ "$(id -u)" = "0" ]; then
             ""|.|/|/bin|/boot|/dev|/etc|/home|/lib|/lib64|/proc|/root|/run|/sbin|/sys|/usr|/var) continue ;;
         esac
         mkdir -p "$_d" 2>/dev/null || true
-        chown -R lightrag:lightrag "$_d" 2>/dev/null || true
+        chown -R forgemind:forgemind "$_d" 2>/dev/null || true
     done
     # NOTE: we deliberately do NOT chown /app/.env. On a bind-mount that would
     # change the *host* file's owner to uid 1000, forcing the host user to sudo
@@ -49,7 +49,7 @@ if [ "$(id -u)" = "0" ]; then
     # which the default 0644 already satisfies. A 0600 .env owned by another uid
     # must be made readable (chmod/chown on the host) or supplied via env vars
     # (compose env_file:/environment:, k8s env/envFrom).
-    exec gosu lightrag "$@"
+    exec gosu forgemind "$@"
 fi
 
 exec "$@"

@@ -280,7 +280,7 @@ def _extract(
     min_tokens: int = 50,
     subdoc_min_tokens: int | None = None,
 ):
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     # The whole-document and per-sub-document CB4 gates read separate env vars;
     # these fixtures are tiny, so force both low (sub defaults to the whole-doc
@@ -308,7 +308,7 @@ def _summary(blocks) -> list[tuple]:
 
 
 def _baseline(name: str):
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     warnings: dict = {}
     metadata: dict = {}
@@ -566,7 +566,7 @@ def test_content_preservation_end_to_end(monkeypatch) -> None:
     smart_blocks, warnings, _m2 = _extract(
         "redhead", _make_llm(_REDHEAD_TITLE), monkeypatch
     )
-    from lightrag.parser.docx.smart_heading.guardrails import (
+    from forgemind.parser.docx.smart_heading.guardrails import (
         canonicalize_paragraph_text,
     )
 
@@ -605,7 +605,7 @@ def test_softbreak_heading_lands_single_line(monkeypatch, tmp_path) -> None:
     from docx.oxml.ns import qn
     from docx.shared import Pt
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     para = doc.add_paragraph()
@@ -648,7 +648,7 @@ def test_softbreak_title_block_lands_single_line(monkeypatch, tmp_path) -> None:
     from docx.oxml.ns import qn
     from docx.shared import Pt
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     para = doc.add_paragraph()
@@ -698,7 +698,7 @@ def test_extreme_length_fallback_g9_4(monkeypatch, tmp_path) -> None:
     TOC lines included — with the fallback warning."""
     from docx import Document
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     for i in range(40):
@@ -738,7 +738,7 @@ def test_toc_retention_short_toc_kept_as_body(monkeypatch, tmp_path) -> None:
     intact) with no content claims. (Fallback side: test_extreme_length_...)"""
     from docx import Document
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     _p(doc, "第一章 绪论............3", size=12.0)
@@ -788,7 +788,7 @@ def test_toc_retention_long_toc_truncates_with_ellipsis(monkeypatch, tmp_path) -
     is line-accurate (5 kept, 3 removed lines, 3 fully-dropped paragraphs)."""
     from docx import Document
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     _p(doc, "目录", size=16.0)
@@ -827,7 +827,7 @@ def test_mixed_document_keeps_one_title_root(monkeypatch, tmp_path) -> None:
     of splitting the document into a second level-0 sub-document."""
     from docx import Document
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     _p(doc, "管理工作指引手册", size=18.0, center=True)
@@ -901,7 +901,7 @@ def test_subdoc_gate_follows_lowered_whole_doc_gate(monkeypatch, tmp_path) -> No
     outline-only — with the old independent 1000 default this asserts-false."""
     from docx import Document
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     _p(doc, "管理工作指引手册", size=18.0, center=True)
@@ -951,7 +951,7 @@ def test_object_only_paragraph_stays_body_at_chain_sz(monkeypatch, tmp_path) -> 
     from docx.oxml.ns import qn
     from docx.shared import Pt
 
-    from lightrag.parser.docx.parse_document import extract_docx_blocks
+    from forgemind.parser.docx.parse_document import extract_docx_blocks
 
     doc = Document()
     base = doc.styles.add_style("SzBase", WD_STYLE_TYPE.PARAGRAPH)

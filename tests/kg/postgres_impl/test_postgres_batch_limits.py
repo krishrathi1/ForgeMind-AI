@@ -13,7 +13,7 @@ from unittest.mock import patch
 
 import numpy as np
 
-from lightrag.kg.postgres_impl import (
+from forgemind.kg.postgres_impl import (
     DEFAULT_PG_DELETE_MAX_RECORDS_PER_BATCH,
     DEFAULT_PG_UPSERT_MAX_PAYLOAD_BYTES,
     DEFAULT_PG_UPSERT_MAX_RECORDS_PER_BATCH,
@@ -57,7 +57,7 @@ class TestResolvePgBatchLimits:
             "POSTGRES_DELETE_MAX_RECORDS_PER_BATCH": "0",
         }
         with patch.dict("os.environ", env, clear=True):
-            with patch("lightrag.kg.postgres_impl.logger") as mock_logger:
+            with patch("forgemind.kg.postgres_impl.logger") as mock_logger:
                 payload, upserts, deletes = _resolve_pg_batch_limits()
         assert (payload, upserts, deletes) == (0, -1, 0)
         warnings = [c.args[0] for c in mock_logger.warning.call_args_list]

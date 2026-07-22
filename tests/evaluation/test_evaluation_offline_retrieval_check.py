@@ -2,7 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from lightrag.evaluation.offline_retrieval_check import (
+from forgemind.evaluation.offline_retrieval_check import (
     audit_samples,
     load_cases,
     load_documents,
@@ -86,9 +86,9 @@ class OfflineRetrievalCheckTests(unittest.TestCase):
 
     def test_sample_oracle_has_full_recall_at_two(self):
         results = audit_samples(
-            load_cases(Path("lightrag/evaluation/sample_dataset.json")),
-            load_oracle(Path("lightrag/evaluation/sample_retrieval_oracle.json")),
-            load_documents(Path("lightrag/evaluation/sample_documents")),
+            load_cases(Path("forgemind/evaluation/sample_dataset.json")),
+            load_oracle(Path("forgemind/evaluation/sample_retrieval_oracle.json")),
+            load_documents(Path("forgemind/evaluation/sample_documents")),
         )
         summary = summarize(results, top_k=2)
 

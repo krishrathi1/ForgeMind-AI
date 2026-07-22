@@ -1,6 +1,6 @@
 # Asymmetric Embedding Configuration
 
-LightRAG keeps embedding behavior symmetric by default. Query/document asymmetric
+ForgeMind keeps embedding behavior symmetric by default. Query/document asymmetric
 embedding is enabled only when `EMBEDDING_ASYMMETRIC=true` is explicitly set.
 
 This avoids accidental retrieval changes when prefix variables are present in an
@@ -16,7 +16,7 @@ shape.
 
 Changing asymmetric embedding settings changes the vectors produced for stored
 documents and for future queries. After enabling, disabling, or changing any of
-these settings, clear the existing LightRAG data for the workspace and re-index
+these settings, clear the existing ForgeMind data for the workspace and re-index
 the source files:
 
 - `EMBEDDING_ASYMMETRIC`
@@ -31,19 +31,19 @@ make retrieval quality unpredictable.
 
 ## Binding Types
 
-LightRAG distinguishes two asymmetric embedding styles:
+ForgeMind distinguishes two asymmetric embedding styles:
 
 | Style | Bindings | How asymmetric behavior is applied |
 | --- | --- | --- |
-| Provider task parameters | `jina`, `gemini`, `voyageai` | LightRAG passes query/document context to the provider-specific `task`, `task_type`, or `input_type` parameter. |
-| Text task prefixes | `openai`, `azure_openai`, `ollama` | LightRAG prepends configured text prefixes before calling the embedding API. Use this only when the model card explicitly requires separate query/document prefixes. |
+| Provider task parameters | `jina`, `gemini`, `voyageai` | ForgeMind passes query/document context to the provider-specific `task`, `task_type`, or `input_type` parameter. |
+| Text task prefixes | `openai`, `azure_openai`, `ollama` | ForgeMind prepends configured text prefixes before calling the embedding API. Use this only when the model card explicitly requires separate query/document prefixes. |
 
 Other server embedding bindings do not currently support
 `EMBEDDING_ASYMMETRIC=true`.
 
 ## Default: Symmetric Embeddings
 
-When `EMBEDDING_ASYMMETRIC` is unset, LightRAG does not enable asymmetric
+When `EMBEDDING_ASYMMETRIC` is unset, ForgeMind does not enable asymmetric
 embedding behavior, even if prefix variables exist:
 
 ```env
@@ -79,7 +79,7 @@ Common examples that should normally stay in symmetric mode:
 | Alibaba GTE base models | `gte-large`, `gte-large-zh` | Base GTE models use plain text for normal retrieval. This does not apply to newer `instruct` variants such as `gte-Qwen2-1.5B-instruct`; check that model card. |
 | Jina Embeddings v2 | `jina-embeddings-v2-base-en`, `jina-embeddings-v2-base-zh` | Jina v2 is plain-text input. Jina v3/v4 are different and use the `task` parameter for retrieval tasks. |
 
-If a model is instruction-free, enabling LightRAG's asymmetric mode can make the
+If a model is instruction-free, enabling ForgeMind's asymmetric mode can make the
 input different from what the model was trained or documented to expect. That can
 reduce retrieval quality even though the server starts successfully.
 
@@ -113,7 +113,7 @@ EMBEDDING_MODEL=voyage-3
 ```
 
 If `EMBEDDING_QUERY_PREFIX` or `EMBEDDING_DOCUMENT_PREFIX` is also configured
-for these bindings, LightRAG logs a warning and ignores the prefixes.
+for these bindings, ForgeMind logs a warning and ignores the prefixes.
 
 ## Text Task Prefix Bindings
 

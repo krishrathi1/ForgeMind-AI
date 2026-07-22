@@ -20,8 +20,8 @@ from urllib.parse import quote
 
 import pytest
 
-from lightrag.parser.external.mineru import is_bundle_valid
-from lightrag.parser.external.mineru.client import MinerURawClient
+from forgemind.parser.external.mineru import is_bundle_valid
+from forgemind.parser.external.mineru.client import MinerURawClient
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +140,7 @@ class _FakeConnectError(_FakeRequestError):
 
 @pytest.fixture
 def fake_httpx(monkeypatch: pytest.MonkeyPatch) -> type:
-    import lightrag.parser.external.mineru.client as mod
+    import forgemind.parser.external.mineru.client as mod
 
     fake = type(
         "FakeHttpx",

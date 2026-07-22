@@ -21,9 +21,9 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.utils import EmbeddingFunc, Tokenizer, compute_mdhash_id
 
 pytestmark = pytest.mark.offline
 
@@ -55,8 +55,8 @@ def _deterministic_chunking(
     return [{"tokens": 1, "content": f"{content}::chunk1", "chunk_order_index": 0}]
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"flushorder-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,

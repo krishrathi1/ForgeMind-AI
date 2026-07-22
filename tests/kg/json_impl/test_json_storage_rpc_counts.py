@@ -14,11 +14,11 @@ import json
 
 import pytest
 
-from lightrag.base import DocStatus
-from lightrag.kg.json_doc_status_impl import JsonDocStatusStorage
-from lightrag.kg.json_kv_impl import JsonKVStorage
-from lightrag.kg.shared_storage import finalize_share_data, initialize_share_data
-from lightrag.namespace import NameSpace
+from forgemind.base import DocStatus
+from forgemind.kg.json_doc_status_impl import JsonDocStatusStorage
+from forgemind.kg.json_kv_impl import JsonKVStorage
+from forgemind.kg.shared_storage import finalize_share_data, initialize_share_data
+from forgemind.namespace import NameSpace
 
 pytestmark = pytest.mark.offline
 

@@ -11,13 +11,13 @@ import contextvars
 
 import pytest
 
-from lightrag.kg import shared_storage as ss
+from forgemind.kg import shared_storage as ss
 
 # Accessed via the module (not ``from``-imports) on purpose: another test in
-# the suite reloads lightrag.utils in place, which would leave from-imported
+# the suite reloads forgemind.utils in place, which would leave from-imported
 # class references (e.g. QueueFullError) pointing at the pre-reload class and
 # break pytest.raises identity checks when run in the same xdist worker.
-from lightrag import utils as lr_utils
+from forgemind import utils as lr_utils
 
 pytestmark = pytest.mark.offline
 

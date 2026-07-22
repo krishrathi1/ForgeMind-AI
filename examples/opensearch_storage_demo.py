@@ -1,5 +1,5 @@
 """
-Integration test for OpenSearch Storage in LightRAG.
+Integration test for OpenSearch Storage in ForgeMind.
 
 Tests all 4 storage types against a live OpenSearch cluster:
 - KV Storage: CRUD, filter_keys
@@ -20,15 +20,15 @@ Usage:
 
 import asyncio
 import numpy as np
-from lightrag.kg.opensearch_impl import (
+from forgemind.kg.opensearch_impl import (
     OpenSearchKVStorage,
     OpenSearchDocStatusStorage,
     OpenSearchGraphStorage,
     OpenSearchVectorDBStorage,
     ClientManager,
 )
-from lightrag.kg.shared_storage import initialize_share_data
-from lightrag.base import DocStatus
+from forgemind.kg.shared_storage import initialize_share_data
+from forgemind.base import DocStatus
 
 
 class MockEmbeddingFunc:

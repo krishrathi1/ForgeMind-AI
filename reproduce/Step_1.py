@@ -3,7 +3,7 @@ import json
 import time
 import asyncio
 
-from lightrag import LightRAG
+from forgemind import ForgeMind
 
 
 def insert_text(rag, file_path):
@@ -32,7 +32,7 @@ if not os.path.exists(WORKING_DIR):
 
 
 async def initialize_rag():
-    rag = LightRAG(working_dir=WORKING_DIR)
+    rag = ForgeMind(working_dir=WORKING_DIR)
 
     await rag.initialize_storages()  # Auto-initializes pipeline_status
     return rag

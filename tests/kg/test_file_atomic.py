@@ -1,4 +1,4 @@
-"""Tests for ``lightrag.file_atomic`` — the shared atomic-write helpers.
+"""Tests for ``forgemind.file_atomic`` — the shared atomic-write helpers.
 
 These tests cover the helper in isolation. End-to-end coverage of the
 individual storage backends that build on it lives in
@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 import pytest
 
-from lightrag.file_atomic import (
+from forgemind.file_atomic import (
     TMP_REAP_AGE_SECONDS,
     atomic_write,
     reap_orphan_tmp_files,
@@ -106,7 +106,7 @@ def test_atomic_write_replace_exception_cleans_tmp_and_preserves_prior(tmp_path)
     atomic_write(dst, lambda tmp: commit(tmp, "v1"))
 
     with patch(
-        "lightrag.file_atomic.os.replace",
+        "forgemind.file_atomic.os.replace",
         side_effect=OSError("simulated crash"),
     ):
         with pytest.raises(OSError, match="simulated crash"):

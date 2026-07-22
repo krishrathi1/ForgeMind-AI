@@ -24,11 +24,11 @@ _ENV_VARS_TO_ISOLATE = (
     "EMBEDDING_BINDING_HOST",
     "EMBEDDING_BINDING_API_KEY",
     "EMBEDDING_MODEL",
-    "LIGHTRAG_API_PREFIX",
-    "LIGHTRAG_KV_STORAGE",
-    "LIGHTRAG_VECTOR_STORAGE",
-    "LIGHTRAG_GRAPH_STORAGE",
-    "LIGHTRAG_DOC_STATUS_STORAGE",
+    "FORGEMIND_API_PREFIX",
+    "FORGEMIND_KV_STORAGE",
+    "FORGEMIND_VECTOR_STORAGE",
+    "FORGEMIND_GRAPH_STORAGE",
+    "FORGEMIND_DOC_STATUS_STORAGE",
     "AUTH_ACCOUNTS",
     "TOKEN_SECRET",
     "WHITELIST_PATHS",
@@ -43,14 +43,14 @@ def _isolate_env(monkeypatch):
     monkeypatch.setenv("EMBEDDING_BINDING", "ollama")
     monkeypatch.setenv("AUTH_ACCOUNTS", "")
     monkeypatch.setenv("TOKEN_SECRET", "")
-    monkeypatch.setenv("LIGHTRAG_API_KEY", "")
+    monkeypatch.setenv("FORGEMIND_API_KEY", "")
 
     # auth.py/utils_api.py derive module-level state from .env at import time.
     # If another test imported them first, make this route test explicitly open.
-    auth_module = sys.modules.get("lightrag.api.auth")
+    auth_module = sys.modules.get("forgemind.api.auth")
     if auth_module is not None:
         monkeypatch.setattr(auth_module.auth_handler, "accounts", {}, raising=False)
-    utils_api_module = sys.modules.get("lightrag.api.utils_api")
+    utils_api_module = sys.modules.get("forgemind.api.utils_api")
     if utils_api_module is not None:
         monkeypatch.setattr(utils_api_module, "auth_configured", False, raising=False)
 
@@ -58,12 +58,12 @@ def _isolate_env(monkeypatch):
 def _build_client():
     original_argv = sys.argv.copy()
     try:
-        sys.argv = ["lightrag-server"]
-        from lightrag.api.config import parse_args
-        from lightrag.api.lightrag_server import create_app
+        sys.argv = ["forgemind-server"]
+        from forgemind.api.config import parse_args
+        from forgemind.api.forgemind_server import create_app
 
         args = parse_args()
-        with patch("lightrag.api.lightrag_server.LightRAG") as mock_rag:
+        with patch("forgemind.api.forgemind_server.ForgeMind") as mock_rag:
             mock_rag.return_value = MagicMock()
             return TestClient(create_app(args))
     finally:
@@ -149,9 +149,9 @@ class TestQueryStreamResponseContentType:
 
         original_argv = sys.argv.copy()
         try:
-            sys.argv = ["lightrag-server"]
-            from lightrag.api.config import parse_args
-            from lightrag.api.lightrag_server import create_app
+            sys.argv = ["forgemind-server"]
+            from forgemind.api.config import parse_args
+            from forgemind.api.forgemind_server import create_app
 
             args = parse_args()
 
@@ -171,7 +171,7 @@ class TestQueryStreamResponseContentType:
 
             mock_rag.aquery_llm.side_effect = _fake_aquery
 
-            with patch("lightrag.api.lightrag_server.LightRAG", return_value=mock_rag):
+            with patch("forgemind.api.forgemind_server.ForgeMind", return_value=mock_rag):
                 app = create_app(args)
 
             client = TestClient(app)
@@ -199,9 +199,9 @@ class TestQueryStreamProtocolOrder:
     @staticmethod
     def _build_client_with_mock(query_error: Exception | None = None):
         original_argv = sys.argv.copy()
-        sys.argv = ["lightrag-server"]
-        from lightrag.api.config import parse_args
-        from lightrag.api.lightrag_server import create_app
+        sys.argv = ["forgemind-server"]
+        from forgemind.api.config import parse_args
+        from forgemind.api.forgemind_server import create_app
 
         args = parse_args()
 
@@ -225,7 +225,7 @@ class TestQueryStreamProtocolOrder:
 
         mock_rag.aquery_llm = MagicMock(side_effect=_fake_aquery)
 
-        with patch("lightrag.api.lightrag_server.LightRAG", return_value=mock_rag):
+        with patch("forgemind.api.forgemind_server.ForgeMind", return_value=mock_rag):
             app = create_app(args)
 
         client = TestClient(app)
@@ -332,7 +332,7 @@ class TestQueryStreamProtocolOrder:
     @pytest.mark.asyncio
     async def test_disconnect_awaits_background_query_cancellation(self):
         """Closing the response generator must finish query-task cleanup."""
-        from lightrag.api.routers.query_routes import QueryRequest, create_query_routes
+        from forgemind.api.routers.query_routes import QueryRequest, create_query_routes
 
         cleanup_complete = asyncio.Event()
 

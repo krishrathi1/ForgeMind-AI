@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 
-VERSION_FILE = Path(__file__).resolve().parents[2] / "lightrag" / "_version.py"
+VERSION_FILE = Path(__file__).resolve().parents[2] / "forgemind" / "_version.py"
 
 
 def normalize_core_version(raw_version: str) -> str:
@@ -30,7 +30,7 @@ def update_assignment(content: str, name: str, value: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Update LightRAG version constants.")
+    parser = argparse.ArgumentParser(description="Update ForgeMind version constants.")
     parser.add_argument(
         "--core-version",
         required=True,

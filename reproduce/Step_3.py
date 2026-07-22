@@ -1,7 +1,7 @@
 import re
 import json
-from lightrag import LightRAG, QueryParam
-from lightrag.utils import always_get_an_event_loop
+from forgemind import ForgeMind, QueryParam
+from forgemind.utils import always_get_an_event_loop
 
 
 def extract_queries(file_path):
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     mode = "hybrid"
     WORKING_DIR = f"../{cls}"
 
-    rag = LightRAG(working_dir=WORKING_DIR)
+    rag = ForgeMind(working_dir=WORKING_DIR)
     query_param = QueryParam(mode=mode)
 
     queries = extract_queries(f"../datasets/questions/{cls}_questions.txt")

@@ -9,7 +9,7 @@ transaction (all-or-nothing); ``remove_edges`` runs one transaction per chunk.
 import pytest
 from unittest.mock import AsyncMock
 
-from lightrag.kg.postgres_impl import PGGraphStorage
+from forgemind.kg.postgres_impl import PGGraphStorage
 
 
 # ---------------------------------------------------------------------------

@@ -34,21 +34,21 @@ Maintained by **Krish** ([@krishrathi1](https://github.com/krishrathi1)).
 >
 > **📦 Offline Deployment**: For offline or air-gapped environments, see the [Offline Deployment Guide](./docs/OfflineDeployment.md) for instructions on pre-installing all dependencies and cache files.
 
-### Install LightRAG Server
+### Install ForgeMind Server
 
 * Install from PyPI
 
 ```bash
-### Install LightRAG Server as tool using uv (recommended)
-uv tool install "lightrag-hku[api]"
+### Install ForgeMind Server as tool using uv (recommended)
+uv tool install "forgemind-ai[api]"
 
 ### Or using pip
 # python -m venv .venv
 # source .venv/bin/activate  # Windows: .venv\Scripts\activate
-# pip install "lightrag-hku[api]"
+# pip install "forgemind-ai[api]"
 
 ### Build front-end artifacts
-cd lightrag_webui
+cd forgemind_webui
 bun install --frozen-lockfile
 bun run build
 cd ..
@@ -59,11 +59,11 @@ cd ..
 cp env.example .env  # Update the .env with your LLM and embedding configurations
 # Launch the server. It binds to all interfaces (0.0.0.0) by default.
 # SECURITY: before exposing it on a network, configure authentication in .env
-# (LIGHTRAG_API_KEY, or AUTH_ACCOUNTS together with TOKEN_SECRET), or bind to
+# (FORGEMIND_API_KEY, or AUTH_ACCOUNTS together with TOKEN_SECRET), or bind to
 # 127.0.0.1 for local-only access; without auth every endpoint is public.
 # Note: the Ollama-compatible /api/* routes stay open by default for client
 # compatibility; set WHITELIST_PATHS=/health to require auth on them too.
-lightrag-server
+forgemind-server
 ```
 
 * Installation from Source
@@ -93,7 +93,7 @@ source .venv/bin/activate  # Activate the virtual environment (Linux/macOS)
 # pip install -e ".[test,offline]"
 
 # Build front-end artifacts
-cd lightrag_webui
+cd forgemind_webui
 bun install --frozen-lockfile
 bun run build
 cd ..
@@ -101,10 +101,10 @@ cd ..
 # setup env file
 make env-base  # Or: cp env.example .env and update it manually
 # Launch API-WebUI server
-lightrag-server
+forgemind-server
 ```
 
-* Launching the LightRAG Server with Docker Compose
+* Launching the ForgeMind Server with Docker Compose
 
 ```bash
 git clone https://github.com/krishrathi1/ForgeMind-AI.git
@@ -114,7 +114,7 @@ cp env.example .env  # Update the .env with your LLM and embedding configuration
 docker compose up
 ```
 
-> Historical versions of LightRAG docker images can be found here: [LightRAG Docker Images]( https://github.com/krishrathi1/ForgeMind-AI/pkgs/container/lightrag)
+> Historical versions of ForgeMind docker images can be found here: [ForgeMind Docker Images]( https://github.com/krishrathi1/ForgeMind-AI/pkgs/container/forgemind)
 >
 > Official GHCR images published by GitHub Actions are signed with Sigstore Cosign using GitHub OIDC. See [docs/DockerDeployment.md](./docs/DockerDeployment.md#verify-official-ghcr-images-with-cosign) for verification commands.
 >
@@ -140,10 +140,10 @@ For full description of every target see [docs/InteractiveSetup.md](./docs/Inter
 The native docx parser's opt-in `smart_heading` engine parameter uses spaCy for sentence/NER heuristics. The spaCy runtime is already included in the `api` extra — only the two pinned language models (`zh_core_web_sm` / `en_core_web_sm` 3.8.0, GitHub release wheels not published on PyPI) need one extra step:
 
 ```bash
-lightrag-download-cache --spacy --spacy-install
+forgemind-download-cache --spacy --spacy-install
 ```
 
-Enable smart_heading per file/rule (e.g. `LIGHTRAG_PARSER=docx:native(smart_heading=true)`), or globally in `.env`:
+Enable smart_heading per file/rule (e.g. `FORGEMIND_PARSER=docx:native(smart_heading=true)`), or globally in `.env`:
 
 ```bash
 # .docx files routed to the native engine get smart_heading by default;
@@ -151,32 +151,32 @@ Enable smart_heading per file/rule (e.g. `LIGHTRAG_PARSER=docx:native(smart_head
 DOCX_SMART_HEADING=true
 ```
 
-When the global switch is on (or a `LIGHTRAG_PARSER` rule carries `native(smart_heading=true)`), the server verifies the models at startup and fails fast with install guidance if they are missing. Deployments that never enable smart_heading need no models. The main Docker image ships the models pre-installed (the lite image does not); for air-gapped hosts see the [Offline Deployment Guide](./docs/OfflineDeployment.md).
+When the global switch is on (or a `FORGEMIND_PARSER` rule carries `native(smart_heading=true)`), the server verifies the models at startup and fails fast with install guidance if they are missing. Deployments that never enable smart_heading need no models. The main Docker image ships the models pre-installed (the lite image does not); for air-gapped hosts see the [Offline Deployment Guide](./docs/OfflineDeployment.md).
 
-## About LightRAG
+## About ForgeMind
 
 ### A Lightweight, Graph-Based RAG Framework
 
-LightRAG is a lightweight knowledge-graph RAG framework and an efficient alternative to Microsoft GraphRAG. It adopts a dual-layer architecture to manage both knowledge graphs (KGs) and vector embeddings, effectively bridging the gap between traditional vector-based RAG and graph-based RAG approaches. Designed for high scalability, LightRAG addresses key challenges in large-scale graph indexing and retrieval, including heavy computational overhead, slow response times, and the high cost of incremental updates. While supporting large datasets, LightRAG can still deliver exceptionally high RAG quality, even when paired with a 30B open-source large language model (LLM).
+ForgeMind is a lightweight knowledge-graph RAG framework and an efficient alternative to Microsoft GraphRAG. It adopts a dual-layer architecture to manage both knowledge graphs (KGs) and vector embeddings, effectively bridging the gap between traditional vector-based RAG and graph-based RAG approaches. Designed for high scalability, ForgeMind addresses key challenges in large-scale graph indexing and retrieval, including heavy computational overhead, slow response times, and the high cost of incremental updates. While supporting large datasets, ForgeMind can still deliver exceptionally high RAG quality, even when paired with a 30B open-source large language model (LLM).
 
 ### Features & Advantages
 
-- **Deep Contextual Understanding:** Through graph-structured indexing, LightRAG captures complex semantic dependencies between entities, overcoming the fragmented context limitations typical of traditional chunk-based retrieval methods. Its generation quality and context awareness are particularly outstanding in vertical domains (e.g., legal, financial) that require global comprehension or logical reasoning.
-- **Exceptional Comprehensiveness & Diversity:** LightRAG’s dual-level retrieval mechanism allows it to integrate detailed facts and abstract concepts concurrently. This enables the system to achieve remarkable performance in query result comprehensiveness and diversity, making it highly effective at handling complex, cross-document queries.
-- **Extreme Retrieval Efficiency & Low Cost:** LightRAG does not rely on inefficient community reports or multi-hop reasoning for complex queries. This drastically reduces the number of LLM calls required during both the indexing and querying phases, significantly lowering response latency and LLM computational costs.
-- **Rapid Adaptation to Dynamic Data:** LightRAG supports seamless, incremental knowledge base updates. New data only needs to go through a standard graph indexing pipeline to generate a local graph, which is then directly integrated into the existing graph via set merging. This process eliminates the need to disrupt the original structure or rebuild the global index, ensuring real-time relevance in dynamic data environments. When deleting documents, the system leverages LLM caching from the construction phase to rapidly rebuild affected entity relationships, vastly improving knowledge base update efficiency.
+- **Deep Contextual Understanding:** Through graph-structured indexing, ForgeMind captures complex semantic dependencies between entities, overcoming the fragmented context limitations typical of traditional chunk-based retrieval methods. Its generation quality and context awareness are particularly outstanding in vertical domains (e.g., legal, financial) that require global comprehension or logical reasoning.
+- **Exceptional Comprehensiveness & Diversity:** ForgeMind’s dual-level retrieval mechanism allows it to integrate detailed facts and abstract concepts concurrently. This enables the system to achieve remarkable performance in query result comprehensiveness and diversity, making it highly effective at handling complex, cross-document queries.
+- **Extreme Retrieval Efficiency & Low Cost:** ForgeMind does not rely on inefficient community reports or multi-hop reasoning for complex queries. This drastically reduces the number of LLM calls required during both the indexing and querying phases, significantly lowering response latency and LLM computational costs.
+- **Rapid Adaptation to Dynamic Data:** ForgeMind supports seamless, incremental knowledge base updates. New data only needs to go through a standard graph indexing pipeline to generate a local graph, which is then directly integrated into the existing graph via set merging. This process eliminates the need to disrupt the original structure or rebuild the global index, ensuring real-time relevance in dynamic data environments. When deleting documents, the system leverages LLM caching from the construction phase to rapidly rebuild affected entity relationships, vastly improving knowledge base update efficiency.
 
 ### Multimodal Capability Upgrades
 
-Starting from version v1.5, LightRAG has officially introduced analysis and retrieval capabilities for multimodal documents:
+Starting from version v1.5, ForgeMind has officially introduced analysis and retrieval capabilities for multimodal documents:
 
 - **Multi-Engine Document Parsing:** Its document processing pipeline supports parsing engines such as MinerU, Docling, and Native, enabling the highly efficient extraction of text, tables, formulas, and images from documents.
 - **Cross-Modal Entity & Relation Mapping:** It achieves cross-modal entity extraction and relationship mapping within a unified framework, resulting in seamless indexing and querying.
 - **Enhanced Application Scenarios:** The brand-new multimodal processing pipeline significantly improves RAG quality for documents rich in multimodal content, such as operation manuals and academic papers.
 
-### LightRAG API Server
+### ForgeMind API Server
 
-The LightRAG server offers not only a web-based UI for exploring LightRAG functionalities but also a comprehensive REST API. For more information about the LightRAG server, please refer to [LightRAG Server](./docs/LightRAG-API-Server.md).
+The ForgeMind server offers not only a web-based UI for exploring ForgeMind functionalities but also a comprehensive REST API. For more information about the ForgeMind server, please refer to [ForgeMind Server](./docs/ForgeMind-API-Server.md).
 
 ![iShot_2025-03-23_12.40.08](./README.assets/iShot_2025-03-23_12.40.08.png)
 
@@ -184,7 +184,7 @@ The LightRAG server offers not only a web-based UI for exploring LightRAG functi
 
 ### Selecting LLM Models
 
-LightRAG requires LLM/VLMs of four different roles during its workflow. You should configure models with different capabilities and speeds for different roles to strike a balance between performance and processing speed. LightRAG has higher capability requirements for Large Language Models (LLMs) than traditional RAG because it requires LLMs to perform complex entity-relation extraction tasks from documents. During the query phase, the LLM needs to process a large volume of retrieved information, including entities, relationships, and text chunks. This requires the model to have the capability of generating high-quality responses in long, noisy contexts.
+ForgeMind requires LLM/VLMs of four different roles during its workflow. You should configure models with different capabilities and speeds for different roles to strike a balance between performance and processing speed. ForgeMind has higher capability requirements for Large Language Models (LLMs) than traditional RAG because it requires LLMs to perform complex entity-relation extraction tasks from documents. During the query phase, the LLM needs to process a large volume of retrieved information, including entities, relationships, and text chunks. This requires the model to have the capability of generating high-quality responses in long, noisy contexts.
 
 **Recommended models by role:**
 
@@ -197,7 +197,7 @@ Within your acceptable latency and cost budget, prefer the highest-scoring model
 
 ### Selecting Query Modes
 
-LightRAG supports five query modes:
+ForgeMind supports five query modes:
 
 - **local**: Focuses on precise matching of local contexts and specific entities. It retrieves candidate entities and their directly associated attributes from the knowledge graph. This mode is suitable for Q&A targeting specific objects, concrete concepts, or detailed facts, providing highly relevant and detailed local context support.
 - **global**: Focuses on macro themes, cross-document reasoning, and deep relationships between entities. It retrieves relationship chains covering broad themes and concepts. This mode is suitable for queries that require summarization across multiple contexts, trend analysis, or understanding complex semantic dependencies.
@@ -205,13 +205,13 @@ LightRAG supports five query modes:
 - **naive**: Traditional RAG retrieval based on text chunks. It does not use a knowledge graph and relies directly on vector similarity to retrieve from the original text chunks.
 - **mix**: Fully-featured mode that merges retrieval results from local, global, and naive modes to provide the most comprehensive and rich retrieval results.
 
-The default query mode for LightRAG is `mix`. Using `mix` mode generally yields the most ideal query results. The `mix` mode takes slightly longer than `naive`, while other query modes are roughly comparable in latency.
+The default query mode for ForgeMind is `mix`. Using `mix` mode generally yields the most ideal query results. The `mix` mode takes slightly longer than `naive`, while other query modes are roughly comparable in latency.
 
 ### Embedding Models
 
-When choosing an Embedding model, pay attention to its multilingual support capabilities. Since LightRAG's retrieval quality has limited dependency on the Embedding model, it is recommended to choose low-dimensional and fast models. Any mainstream, up-to-date embedding model works well; for local deployment, `BAAI/bge-m3` is a solid choice. We highly recommend deploying the Embedding model locally to achieve the best performance.
+When choosing an Embedding model, pay attention to its multilingual support capabilities. Since ForgeMind's retrieval quality has limited dependency on the Embedding model, it is recommended to choose low-dimensional and fast models. Any mainstream, up-to-date embedding model works well; for local deployment, `BAAI/bge-m3` is a solid choice. We highly recommend deploying the Embedding model locally to achieve the best performance.
 
-**Important Note**: The Embedding model must be determined before document indexing, and the same model must be used in the query phase. Once selected, embedding models generally cannot be changed. If changed, you will need to re-embed all text chunks, entities, and relationships. LightRAG does not currently provide a re-embedding tool. Some storage backends (e.g., PostgreSQL) require the vector dimension to be defined when creating tables for the first time, so changing the Embedding model requires deleting vector-related tables so LightRAG can recreate them.
+**Important Note**: The Embedding model must be determined before document indexing, and the same model must be used in the query phase. Once selected, embedding models generally cannot be changed. If changed, you will need to re-embed all text chunks, entities, and relationships. ForgeMind does not currently provide a re-embedding tool. Some storage backends (e.g., PostgreSQL) require the vector dimension to be defined when creating tables for the first time, so changing the Embedding model requires deleting vector-related tables so ForgeMind can recreate them.
 
 ### Enabling Reranking
 
@@ -219,10 +219,10 @@ Enabling the Rerank option during the query phase can significantly improve quer
 
 ### Document Processing Pipeline Configuration
 
-The default pipeline configuration in LightRAG does not allow the system to perform at its best. The quality of document parsing greatly impacts document indexing and querying. Therefore, we recommend configuring the pipeline to enable the MinerU parsing engine and activating the pipeline's image analysis features. Suggested configuration:
+The default pipeline configuration in ForgeMind does not allow the system to perform at its best. The quality of document parsing greatly impacts document indexing and querying. Therefore, we recommend configuring the pipeline to enable the MinerU parsing engine and activating the pipeline's image analysis features. Suggested configuration:
 
 ```
-LIGHTRAG_PARSER=*:native-iteP,*:mineru-iteP,*:legacy-R
+FORGEMIND_PARSER=*:native-iteP,*:mineru-iteP,*:legacy-R
 
 VLM_PROCESS_ENABLE=true
 VLM_LLM_MODEL=<your_vlm_model_name>
@@ -251,14 +251,14 @@ EMBEDDING_BATCH_NUM=32
 
 ### Selecting Backend Storage
 
-LightRAG requires four types of backend storage:
+ForgeMind requires four types of backend storage:
 
 - **KV_STORAGE**: Used to save LLM response caches, text chunking results, entity-relation extraction results, etc.
 - **VECTOR_STORAGE**: Used to store vector information for text chunks, entities, and relationships.
 - **GRAPH_STORAGE**: Used to save the knowledge graph.
 - **DOC_STATUS_STORAGE**: Used to store the document list.
 
-By default, LightRAG's storage backends are file-persisted, in-memory databases. These default storages are intended only for development and debugging, and are not suitable for production. In a production environment, if you prefer a single backend to handle all four storage types, you can choose PostgreSQL, MongoDB, or OpenSearch. Alternatively, you can select specialized databases for vector or graph storage, such as using Milvus or Qdrant for vector storage, and Neo4j or Memgraph for graph storage.
+By default, ForgeMind's storage backends are file-persisted, in-memory databases. These default storages are intended only for development and debugging, and are not suitable for production. In a production environment, if you prefer a single backend to handle all four storage types, you can choose PostgreSQL, MongoDB, or OpenSearch. Alternatively, you can select specialized databases for vector or graph storage, such as using Milvus or Qdrant for vector storage, and Neo4j or Memgraph for graph storage.
 
 ### Other Important Configurations for Document Processing
 
@@ -278,7 +278,7 @@ LLM timeouts during entity-relation extraction usually trace back to one of thre
 - **The model is slow.** A model running below ~50 tokens/second may be unable to finish a chunk that contains many entities and relations before the request times out. Increase the timeout via `*_LLM_TIMEOUT` — either the global `LLM_TIMEOUT` or the role-specific `EXTRACT_LLM_TIMEOUT` for the extraction phase. Note that the effective execution timeout is **twice** the configured value, so `EXTRACT_LLM_TIMEOUT=300` allows up to **600 seconds**.
 - **The chunk produces too many entities and relations.** Reference/bibliography chunks, for example, can make the model emit an enormous number of records that cannot complete in time. Cap the output length with `OPENAI_LLM_MAX_TOKENS` or `OPENAI_LLM_MAX_COMPLETION_TOKENS` (the correct parameter name depends on the LLM provider — see `env.example`). A useful sizing rule is `max_output_tokens < LLM_TIMEOUT × tokens_per_second` (e.g., `9000 < 240s × 50 tps`).
 - **The model gets stuck in an output loop.** Some models (locally deployed Qwen models in particular) occasionally fall into an endless-output loop on certain text. When this is intermittent, simply re-processing the document once usually resolves it.
-- **References specifically (P chunking strategy).** When using the paragraph-semantic (`P`) chunking strategy (e.g., `LIGHTRAG_PARSER=...-iteP`), set `CHUNK_P_DROP_REFERENCES=true` to automatically drop the trailing reference section before chunking. This prevents references from generating a flood of low-value entities and relations, a common source of timeouts. It can also be enabled per file via the filename hint `paper.[-P(drop_rf=true)].pdf`; related detection knobs (`CHUNK_P_REFERENCES_TAIL_N`, `CHUNK_P_REFERENCES_HEADINGS`) are documented in `env.example`.
+- **References specifically (P chunking strategy).** When using the paragraph-semantic (`P`) chunking strategy (e.g., `FORGEMIND_PARSER=...-iteP`), set `CHUNK_P_DROP_REFERENCES=true` to automatically drop the trailing reference section before chunking. This prevents references from generating a flood of low-value entities and relations, a common source of timeouts. It can also be enabled per file via the filename hint `paper.[-P(drop_rf=true)].pdf`; related detection knobs (`CHUNK_P_REFERENCES_TAIL_N`, `CHUNK_P_REFERENCES_HEADINGS`) are documented in `env.example`.
 
 ### Other Important Configurations for Document Querying
 
@@ -287,11 +287,11 @@ During the document query stage, you may also want to adjust the following envir
 - **ENABLE_CONTENT_HEADINGS**: Controls whether the section heading where a text chunk resides is sent to the LLM; enabled by default, providing richer context for the LLM and improving answer quality.
 - **ENABLE_LLM_CACHE**: Whether to cache query results. Enabled by default; identical query questions, query modes, and LLM model parameters will return the same result.
 
-## Using LightRAG As SDK
+## Using ForgeMind As SDK
 
-> ⚠️ **For integration into your project, we strongly recommend using the REST API provided by the LightRAG Server.** The LightRAG SDK is primarily intended for embedded applications or academic research and evaluation purposes.
+> ⚠️ **For integration into your project, we strongly recommend using the REST API provided by the ForgeMind Server.** The ForgeMind SDK is primarily intended for embedded applications or academic research and evaluation purposes.
 
-### Install LightRAG SDK
+### Install ForgeMind SDK
 
 * Install from source code
 
@@ -308,13 +308,13 @@ source .venv/bin/activate  # 激活虚拟环境 (Linux/macOS)
 * Install from PyPI
 
 ```bash
-uv pip install lightrag-hku
-# 或: pip install lightrag-hku
+uv pip install forgemind-ai
+# 或: pip install forgemind-ai
 ```
 
-### LightRAG SDK Sample Code
+### ForgeMind SDK Sample Code
 
-To get started with LightRAG core, refer to the sample codes available in the `examples` folder. Additionally, a [video demo](https://www.youtube.com/watch?v=g21royNJ4fw) demonstration is provided to guide you through the local setup process. If you already possess an OpenAI API key, you can run the demo right away:
+To get started with ForgeMind core, refer to the sample codes available in the `examples` folder. Additionally, a [video demo](https://www.youtube.com/watch?v=g21royNJ4fw) demonstration is provided to guide you through the local setup process. If you already possess an OpenAI API key, you can run the demo right away:
 
 ```bash
 ### you should run the demo code with project folder
@@ -324,43 +324,43 @@ export OPENAI_API_KEY="sk-...your_opeai_key..."
 ### download the demo document of "A Christmas Carol" by Charles Dickens
 curl https://raw.githubusercontent.com/gusye1234/nano-graphrag/main/tests/mock_data.txt > ./book.txt
 ### run the demo code
-python examples/lightrag_openai_demo.py
+python examples/forgemind_openai_demo.py
 ```
 
-For a streaming response implementation example, please see `examples/lightrag_openai_compatible_demo.py`. Prior to execution, ensure you modify the sample code's LLM and embedding configurations accordingly.
+For a streaming response implementation example, please see `examples/forgemind_openai_compatible_demo.py`. Prior to execution, ensure you modify the sample code's LLM and embedding configurations accordingly.
 
 **Note 1**: When running the demo program, please be aware that different test scripts may use different embedding models. If you switch to a different embedding model, you must clear the data directory (`./dickens`); otherwise, the program may encounter errors. If you wish to retain the LLM cache, you can preserve the `kv_store_llm_response_cache.json` file while clearing the data directory.
 
-**Note 2**: Only `lightrag_openai_demo.py` and `lightrag_openai_compatible_demo.py` are officially supported sample codes. Other sample files are community contributions that haven't undergone full testing and optimization.
+**Note 2**: Only `forgemind_openai_demo.py` and `forgemind_openai_compatible_demo.py` are officially supported sample codes. Other sample files are community contributions that haven't undergone full testing and optimization.
 
 ### **Notes on SDK Usage**
 
-For detailed instructions on using the SDK, please refer to **[docs/ProgramingWithCore.md](./docs/ProgramingWithCore.md)**. Some LightRAG features are not exposed via the REST API and are accessible only through the SDK. These features are typically experimental and may not be compatible with future versions.
+For detailed instructions on using the SDK, please refer to **[docs/ProgramingWithCore.md](./docs/ProgramingWithCore.md)**. Some ForgeMind features are not exposed via the REST API and are accessible only through the SDK. These features are typically experimental and may not be compatible with future versions.
 
 ## Replicating Findings in the Paper
 
-LightRAG consistently outperforms NaiveRAG, RQ-RAG, HyDE, and GraphRAG across agriculture, computer science, legal, and mixed domains. For the full evaluation methodology, prompts, and reproduce steps, see **[docs/Reproduce.md](./docs/Reproduce.md)**.
+ForgeMind consistently outperforms NaiveRAG, RQ-RAG, HyDE, and GraphRAG across agriculture, computer science, legal, and mixed domains. For the full evaluation methodology, prompts, and reproduce steps, see **[docs/Reproduce.md](./docs/Reproduce.md)**.
 
 **Overall Performance Table**
 
 ||**Agriculture**||**CS**||**Legal**||**Mix**||
 |----------------------|---------------|------------|------|------------|---------|------------|-------|------------|
-||NaiveRAG|**LightRAG**|NaiveRAG|**LightRAG**|NaiveRAG|**LightRAG**|NaiveRAG|**LightRAG**|
+||NaiveRAG|**ForgeMind**|NaiveRAG|**ForgeMind**|NaiveRAG|**ForgeMind**|NaiveRAG|**ForgeMind**|
 |**Comprehensiveness**|32.4%|**67.6%**|38.4%|**61.6%**|16.4%|**83.6%**|38.8%|**61.2%**|
 |**Diversity**|23.6%|**76.4%**|38.0%|**62.0%**|13.6%|**86.4%**|32.4%|**67.6%**|
 |**Empowerment**|32.4%|**67.6%**|38.8%|**61.2%**|16.4%|**83.6%**|42.8%|**57.2%**|
 |**Overall**|32.4%|**67.6%**|38.8%|**61.2%**|15.2%|**84.8%**|40.0%|**60.0%**|
-||RQ-RAG|**LightRAG**|RQ-RAG|**LightRAG**|RQ-RAG|**LightRAG**|RQ-RAG|**LightRAG**|
+||RQ-RAG|**ForgeMind**|RQ-RAG|**ForgeMind**|RQ-RAG|**ForgeMind**|RQ-RAG|**ForgeMind**|
 |**Comprehensiveness**|31.6%|**68.4%**|38.8%|**61.2%**|15.2%|**84.8%**|39.2%|**60.8%**|
 |**Diversity**|29.2%|**70.8%**|39.2%|**60.8%**|11.6%|**88.4%**|30.8%|**69.2%**|
 |**Empowerment**|31.6%|**68.4%**|36.4%|**63.6%**|15.2%|**84.8%**|42.4%|**57.6%**|
 |**Overall**|32.4%|**67.6%**|38.0%|**62.0%**|14.4%|**85.6%**|40.0%|**60.0%**|
-||HyDE|**LightRAG**|HyDE|**LightRAG**|HyDE|**LightRAG**|HyDE|**LightRAG**|
+||HyDE|**ForgeMind**|HyDE|**ForgeMind**|HyDE|**ForgeMind**|HyDE|**ForgeMind**|
 |**Comprehensiveness**|26.0%|**74.0%**|41.6%|**58.4%**|26.8%|**73.2%**|40.4%|**59.6%**|
 |**Diversity**|24.0%|**76.0%**|38.8%|**61.2%**|20.0%|**80.0%**|32.4%|**67.6%**|
 |**Empowerment**|25.2%|**74.8%**|40.8%|**59.2%**|26.0%|**74.0%**|46.0%|**54.0%**|
 |**Overall**|24.8%|**75.2%**|41.6%|**58.4%**|26.4%|**73.6%**|42.4%|**57.6%**|
-||GraphRAG|**LightRAG**|GraphRAG|**LightRAG**|GraphRAG|**LightRAG**|GraphRAG|**LightRAG**|
+||GraphRAG|**ForgeMind**|GraphRAG|**ForgeMind**|GraphRAG|**ForgeMind**|GraphRAG|**ForgeMind**|
 |**Comprehensiveness**|45.6%|**54.4%**|48.4%|**51.6%**|48.4%|**51.6%**|**50.4%**|49.6%|
 |**Diversity**|22.8%|**77.2%**|40.8%|**59.2%**|26.4%|**73.6%**|36.0%|**64.0%**|
 |**Empowerment**|41.2%|**58.8%**|45.2%|**54.8%**|43.6%|**56.4%**|**50.8%**|49.2%|
@@ -415,7 +415,7 @@ LightRAG consistently outperforms NaiveRAG, RQ-RAG, HyDE, and GraphRAG across ag
   <div style="width: 100%; max-width: 600px; margin: 20px auto; padding: 20px; background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, rgba(0, 217, 255, 0.05) 100%); border-radius: 15px; border: 1px solid rgba(0, 217, 255, 0.2);">
     <div style="display: flex; justify-content: center; align-items: center; gap: 15px;">
       <span style="font-size: 24px;">⭐</span>
-      <span style="color: #00d9ff; font-size: 18px;">Thank you for visiting LightRAG!</span>
+      <span style="color: #00d9ff; font-size: 18px;">Thank you for visiting ForgeMind!</span>
       <span style="font-size: 24px;">⭐</span>
     </div>
   </div>

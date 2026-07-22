@@ -9,7 +9,7 @@ import pytest
 from fastapi import APIRouter
 from fastapi.testclient import TestClient
 
-from lightrag.llm.bedrock import (
+from forgemind.llm.bedrock import (
     bedrock_complete,
     bedrock_complete_if_cache,
     bedrock_embed,
@@ -17,7 +17,7 @@ from lightrag.llm.bedrock import (
 
 _API_ENV_VARS_TO_ISOLATE = (
     "AUTH_ACCOUNTS",
-    "LIGHTRAG_API_KEY",
+    "FORGEMIND_API_KEY",
     "TOKEN_SECRET",
 )
 
@@ -30,19 +30,19 @@ def _isolate_api_auth_env(monkeypatch):
 
 
 def _reload_api_modules_if_mocked() -> None:
-    """Drop cached lightrag.api entries so importlib reloads with isolated env.
+    """Drop cached forgemind.api entries so importlib reloads with isolated env.
 
     Other test files (e.g. test_token_auto_renewal.py) replace
-    ``sys.modules["lightrag.api.config"]`` with a Mock at import time. When
+    ``sys.modules["forgemind.api.config"]`` with a Mock at import time. When
     pytest collects those files before ours, any subsequent
-    ``from .config import global_args`` inside lightrag_server picks up the
+    ``from .config import global_args`` inside forgemind_server picks up the
     Mock, which breaks ``create_app`` in create_app_* tests below.
     """
     for modname in (
-        "lightrag.api.lightrag_server",
-        "lightrag.api.utils_api",
-        "lightrag.api.auth",
-        "lightrag.api.config",
+        "forgemind.api.forgemind_server",
+        "forgemind.api.utils_api",
+        "forgemind.api.auth",
+        "forgemind.api.config",
     ):
         sys.modules.pop(modname, None)
 
@@ -114,7 +114,7 @@ async def test_bedrock_complete_skips_reasoning_content_block(monkeypatch):
     captured_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeReasoningSession(captured_calls, []),
     ):
         result = await bedrock_complete_if_cache(
@@ -132,7 +132,7 @@ async def test_bedrock_complete_forwards_keyword_extraction_to_if_cache():
     hashing_kv = SimpleNamespace(global_config={"llm_model_name": "bedrock-model"})
 
     with patch(
-        "lightrag.llm.bedrock.bedrock_complete_if_cache",
+        "forgemind.llm.bedrock.bedrock_complete_if_cache",
         AsyncMock(return_value="{}"),
     ) as mocked_complete:
         await bedrock_complete(
@@ -152,7 +152,7 @@ async def test_bedrock_keyword_extraction_does_not_inject_system_prompt(monkeypa
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, client_kwargs_calls),
     ):
         result = await bedrock_complete_if_cache(
@@ -175,7 +175,7 @@ async def test_bedrock_default_endpoint_sentinel_uses_sdk_default(monkeypatch):
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_complete_if_cache(
@@ -195,7 +195,7 @@ async def test_bedrock_empty_endpoint_url_uses_sdk_default(monkeypatch):
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_complete_if_cache(
@@ -215,7 +215,7 @@ async def test_bedrock_custom_endpoint_url_is_forwarded(monkeypatch):
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_complete_if_cache(
@@ -260,7 +260,7 @@ async def test_bedrock_embed_custom_endpoint_url_is_forwarded(monkeypatch):
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeEmbeddingSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_embed(
@@ -282,7 +282,7 @@ async def test_bedrock_embed_default_endpoint_sentinel_uses_sdk_default(monkeypa
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeEmbeddingSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_embed(
@@ -301,7 +301,7 @@ async def test_bedrock_embed_empty_endpoint_url_uses_sdk_default(monkeypatch):
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeEmbeddingSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_embed(
@@ -350,7 +350,7 @@ async def test_bedrock_embed_cohere_passes_modelid_to_invoke_model(monkeypatch):
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeCohereEmbeddingSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_embed(
@@ -372,7 +372,7 @@ async def test_bedrock_complete_forwards_explicit_sigv4_client_kwargs(monkeypatc
     client_kwargs_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_complete_if_cache(
@@ -425,7 +425,7 @@ async def test_bedrock_timeout_maps_to_botocore_client_config(monkeypatch):
     client_kwargs_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, client_kwargs_calls),
     ):
         await bedrock_complete_if_cache(
@@ -449,7 +449,7 @@ async def test_bedrock_stream_timeout_maps_to_botocore_client_config(monkeypatch
     client_kwargs_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeStreamingSession(captured_calls, client_kwargs_calls),
     ):
         stream = await bedrock_complete_if_cache(
@@ -474,7 +474,7 @@ async def test_bedrock_no_timeout_keeps_botocore_defaults(monkeypatch):
     client_kwargs_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession([], client_kwargs_calls),
     ):
         await bedrock_complete_if_cache(
@@ -494,7 +494,7 @@ async def test_bedrock_extra_fields_maps_to_additional_model_request_fields(
     captured_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, []),
     ):
         await bedrock_complete_if_cache(
@@ -515,7 +515,7 @@ async def test_bedrock_empty_extra_fields_is_dropped(monkeypatch):
     captured_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession(captured_calls, []),
     ):
         await bedrock_complete_if_cache(
@@ -543,7 +543,7 @@ async def test_bedrock_api_key_is_ignored_and_does_not_mutate_env(monkeypatch):
     monkeypatch.delenv("AWS_SESSION_TOKEN", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeSession([], []),
     ):
         with pytest.warns(DeprecationWarning, match="api_key=.*ignored"):
@@ -570,7 +570,7 @@ async def test_bedrock_embed_forwards_sigv4_and_ignores_api_key(monkeypatch):
     client_kwargs_calls: list[dict] = []
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeEmbeddingSession([], client_kwargs_calls),
     ):
         with pytest.warns(DeprecationWarning, match="api_key=.*ignored"):
@@ -599,7 +599,7 @@ def test_bedrock_auth_docstrings_describe_generic_api_key_behavior():
     assert "EMBEDDING_BINDING_API_KEY" in bedrock_embed.func.__doc__
 
 
-class _FakeLightRAG:
+class _FakeForgeMind:
     last_init_kwargs = None
     last_instance = None
 
@@ -712,7 +712,7 @@ def _make_args(tmp_path) -> SimpleNamespace:
         vlm_process_enable=False,
         max_parallel_insert=2,
         max_graph_nodes=1000,
-        simulated_model_name="lightrag",
+        simulated_model_name="forgemind",
         simulated_model_tag="latest",
         summary_language="English",
         rerank_binding="null",
@@ -736,36 +736,36 @@ def _make_args(tmp_path) -> SimpleNamespace:
 async def test_create_app_query_role_uses_bedrock_binding(tmp_path, monkeypatch):
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(_make_args(tmp_path), force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
 
     args = _make_args(tmp_path)
 
     with (
         patch(
-            "lightrag.llm.bedrock.bedrock_complete_if_cache",
+            "forgemind.llm.bedrock.bedrock_complete_if_cache",
             AsyncMock(return_value="bedrock-ok"),
         ) as mocked_bedrock,
         patch(
-            "lightrag.llm.openai.openai_complete_if_cache",
+            "forgemind.llm.openai.openai_complete_if_cache",
             AsyncMock(side_effect=AssertionError("OpenAI fallback should not be used")),
         ) as mocked_openai,
     ):
-        lightrag_server.create_app(args)
-        query_cfg = _FakeLightRAG.last_init_kwargs["role_llm_configs"]["query"]
+        forgemind_server.create_app(args)
+        query_cfg = _FakeForgeMind.last_init_kwargs["role_llm_configs"]["query"]
         query_func = query_cfg.func
         result = await query_func("hello")
 
@@ -793,21 +793,21 @@ async def test_create_app_bedrock_query_role_uses_role_sigv4_credentials(
 ):
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(_make_args(tmp_path), force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
 
     args = _make_args(tmp_path)
     args.query_aws_region = "us-west-2"
@@ -816,11 +816,11 @@ async def test_create_app_bedrock_query_role_uses_role_sigv4_credentials(
     args.query_aws_session_token = "query-session"
 
     with patch(
-        "lightrag.llm.bedrock.bedrock_complete_if_cache",
+        "forgemind.llm.bedrock.bedrock_complete_if_cache",
         AsyncMock(return_value="bedrock-ok"),
     ) as mocked_bedrock:
-        lightrag_server.create_app(args)
-        query_func = _FakeLightRAG.last_init_kwargs["role_llm_configs"]["query"].func
+        forgemind_server.create_app(args)
+        query_func = _FakeForgeMind.last_init_kwargs["role_llm_configs"]["query"].func
         await query_func("hello")
 
     assert mocked_bedrock.await_args.kwargs["aws_region"] == "us-west-2"
@@ -830,25 +830,25 @@ async def test_create_app_bedrock_query_role_uses_role_sigv4_credentials(
 
 
 def _setup_bedrock_app_modules(monkeypatch, args):
-    """Prepare an isolated lightrag_server module for create_app tests."""
+    """Prepare an isolated forgemind_server module for create_app tests."""
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(args, force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
-    return lightrag_server
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
+    return forgemind_server
 
 
 @pytest.mark.offline
@@ -859,17 +859,17 @@ async def test_create_app_bedrock_base_llm_func_passes_global_timeout(
     """LLM_TIMEOUT must reach the Bedrock driver through the base llm_model_func.
 
     This proves the server-layer wiring: the driver-level timeout tests pass
-    even if lightrag_server.py forgets to forward args.llm_timeout.
+    even if forgemind_server.py forgets to forward args.llm_timeout.
     """
     args = _make_args(tmp_path)
-    lightrag_server = _setup_bedrock_app_modules(monkeypatch, args)
+    forgemind_server = _setup_bedrock_app_modules(monkeypatch, args)
 
     with patch(
-        "lightrag.llm.bedrock.bedrock_complete_if_cache",
+        "forgemind.llm.bedrock.bedrock_complete_if_cache",
         AsyncMock(return_value="bedrock-ok"),
     ) as mocked_bedrock:
-        lightrag_server.create_app(args)
-        base_func = _FakeLightRAG.last_init_kwargs["llm_model_func"]
+        forgemind_server.create_app(args)
+        base_func = _FakeForgeMind.last_init_kwargs["llm_model_func"]
         await base_func("hello")
 
     assert mocked_bedrock.await_args.kwargs["timeout"] == 180
@@ -881,14 +881,14 @@ async def test_create_app_bedrock_query_role_inherits_global_timeout(
     tmp_path, monkeypatch
 ):
     args = _make_args(tmp_path)
-    lightrag_server = _setup_bedrock_app_modules(monkeypatch, args)
+    forgemind_server = _setup_bedrock_app_modules(monkeypatch, args)
 
     with patch(
-        "lightrag.llm.bedrock.bedrock_complete_if_cache",
+        "forgemind.llm.bedrock.bedrock_complete_if_cache",
         AsyncMock(return_value="bedrock-ok"),
     ) as mocked_bedrock:
-        lightrag_server.create_app(args)
-        query_func = _FakeLightRAG.last_init_kwargs["role_llm_configs"]["query"].func
+        forgemind_server.create_app(args)
+        query_func = _FakeForgeMind.last_init_kwargs["role_llm_configs"]["query"].func
         await query_func("hello")
 
     assert mocked_bedrock.await_args.kwargs["timeout"] == 180
@@ -901,14 +901,14 @@ async def test_create_app_bedrock_query_role_uses_role_specific_timeout(
 ):
     args = _make_args(tmp_path)
     args.query_llm_timeout = 99
-    lightrag_server = _setup_bedrock_app_modules(monkeypatch, args)
+    forgemind_server = _setup_bedrock_app_modules(monkeypatch, args)
 
     with patch(
-        "lightrag.llm.bedrock.bedrock_complete_if_cache",
+        "forgemind.llm.bedrock.bedrock_complete_if_cache",
         AsyncMock(return_value="bedrock-ok"),
     ) as mocked_bedrock:
-        lightrag_server.create_app(args)
-        query_func = _FakeLightRAG.last_init_kwargs["role_llm_configs"]["query"].func
+        forgemind_server.create_app(args)
+        query_func = _FakeForgeMind.last_init_kwargs["role_llm_configs"]["query"].func
         await query_func("hello")
 
     assert mocked_bedrock.await_args.kwargs["timeout"] == 99
@@ -922,15 +922,15 @@ async def test_create_app_bedrock_server_timeout_overrides_caller_value(
     """Caller-passed timeout must not raise a duplicate-keyword TypeError and is
     overridden by the server-configured value, matching the OpenAI wrappers."""
     args = _make_args(tmp_path)
-    lightrag_server = _setup_bedrock_app_modules(monkeypatch, args)
+    forgemind_server = _setup_bedrock_app_modules(monkeypatch, args)
 
     with patch(
-        "lightrag.llm.bedrock.bedrock_complete_if_cache",
+        "forgemind.llm.bedrock.bedrock_complete_if_cache",
         AsyncMock(return_value="bedrock-ok"),
     ) as mocked_bedrock:
-        lightrag_server.create_app(args)
-        base_func = _FakeLightRAG.last_init_kwargs["llm_model_func"]
-        query_func = _FakeLightRAG.last_init_kwargs["role_llm_configs"]["query"].func
+        forgemind_server.create_app(args)
+        base_func = _FakeForgeMind.last_init_kwargs["llm_model_func"]
+        query_func = _FakeForgeMind.last_init_kwargs["role_llm_configs"]["query"].func
 
         await base_func("hello", timeout=5)
         assert mocked_bedrock.await_args.kwargs["timeout"] == 180
@@ -946,27 +946,27 @@ async def test_create_app_keyword_openai_role_forwards_nested_extra_body(
 ):
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    monkeypatch.setattr(logging.getLogger("lightrag"), "propagate", True)
+    monkeypatch.setattr(logging.getLogger("forgemind"), "propagate", True)
     monkeypatch.setenv(
         "KEYWORD_OPENAI_LLM_EXTRA_BODY",
         '{"chat_template_kwargs": {"enable_thinking": false}}',
     )
 
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(_make_args(tmp_path), force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
 
     args = _make_args(tmp_path)
     args.keyword_llm_binding = "openai"
@@ -975,16 +975,16 @@ async def test_create_app_keyword_openai_role_forwards_nested_extra_body(
     args.keyword_llm_binding_api_key = "keyword-secret"
 
     with (
-        caplog.at_level("INFO", logger="lightrag"),
+        caplog.at_level("INFO", logger="forgemind"),
         patch(
-            "lightrag.llm.openai.openai_complete_if_cache",
+            "forgemind.llm.openai.openai_complete_if_cache",
             AsyncMock(
                 return_value='{"high_level_keywords":[],"low_level_keywords":[]}'
             ),
         ) as mocked_openai,
     ):
-        lightrag_server.create_app(args)
-        keyword_cfg = _FakeLightRAG.last_init_kwargs["role_llm_configs"]["keyword"]
+        forgemind_server.create_app(args)
+        keyword_cfg = _FakeForgeMind.last_init_kwargs["role_llm_configs"]["keyword"]
         result = await keyword_cfg.func(
             "keyword prompt", response_format={"type": "json_object"}
         )
@@ -1021,51 +1021,51 @@ async def test_create_app_keyword_openai_role_forwards_nested_extra_body(
 def test_create_app_rejects_bedrock_role_api_key(tmp_path, monkeypatch):
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(_make_args(tmp_path), force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
 
     args = _make_args(tmp_path)
     args.query_llm_binding_api_key = "absk-role"
 
     with pytest.raises(ValueError, match="does not support role-specific"):
-        lightrag_server.create_app(args)
+        forgemind_server.create_app(args)
 
 
 @pytest.mark.offline
 def test_health_role_llm_config_uses_runtime_snapshot(tmp_path, monkeypatch):
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(_make_args(tmp_path), force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "get_namespace_data",
         AsyncMock(return_value={"busy": False}),
     )
-    monkeypatch.setattr(lightrag_server, "get_default_workspace", lambda: "default")
+    monkeypatch.setattr(forgemind_server, "get_default_workspace", lambda: "default")
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "cleanup_keyed_lock",
         lambda: {"cleanup_performed": {}, "current_status": {}},
     )
 
-    app = lightrag_server.create_app(_make_args(tmp_path))
-    _FakeLightRAG.last_instance.role_config_snapshot = {
+    app = forgemind_server.create_app(_make_args(tmp_path))
+    _FakeForgeMind.last_instance.role_config_snapshot = {
         "query": {
             "binding": "runtime-binding",
             "model": "runtime-model",
@@ -1074,14 +1074,14 @@ def test_health_role_llm_config_uses_runtime_snapshot(tmp_path, monkeypatch):
             "metadata": {"binding": "runtime-binding"},
         }
     }
-    _FakeLightRAG.last_instance.queue_status_snapshot = {
+    _FakeForgeMind.last_instance.queue_status_snapshot = {
         "query": {"available": True, "rejected_total": 2}
     }
-    _FakeLightRAG.last_instance.embedding_queue_status_snapshot = {
+    _FakeForgeMind.last_instance.embedding_queue_status_snapshot = {
         "available": True,
         "running": 1,
     }
-    _FakeLightRAG.last_instance.rerank_queue_status_snapshot = {
+    _FakeForgeMind.last_instance.rerank_queue_status_snapshot = {
         "available": False,
     }
 
@@ -1125,34 +1125,34 @@ def test_health_pipeline_active_derivation(
 ):
     _reload_api_modules_if_mocked()
     monkeypatch.setattr(sys, "argv", ["pytest"])
-    config = importlib.import_module("lightrag.api.config")
+    config = importlib.import_module("forgemind.api.config")
     config.initialize_config(_make_args(tmp_path), force=True)
-    lightrag_server = importlib.import_module("lightrag.api.lightrag_server")
-    monkeypatch.setattr(lightrag_server, "LightRAG", _FakeLightRAG)
-    monkeypatch.setattr(lightrag_server, "check_frontend_build", lambda: (True, False))
+    forgemind_server = importlib.import_module("forgemind.api.forgemind_server")
+    monkeypatch.setattr(forgemind_server, "ForgeMind", _FakeForgeMind)
+    monkeypatch.setattr(forgemind_server, "check_frontend_build", lambda: (True, False))
     monkeypatch.setattr(
-        lightrag_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_document_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_query_routes", lambda *_args, **_kwargs: APIRouter()
     )
     monkeypatch.setattr(
-        lightrag_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
+        forgemind_server, "create_graph_routes", lambda *_args, **_kwargs: APIRouter()
     )
-    monkeypatch.setattr(lightrag_server, "OllamaAPI", _FakeOllamaAPI)
+    monkeypatch.setattr(forgemind_server, "OllamaAPI", _FakeOllamaAPI)
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "get_namespace_data",
         AsyncMock(return_value=pipeline_state),
     )
-    monkeypatch.setattr(lightrag_server, "get_default_workspace", lambda: "default")
+    monkeypatch.setattr(forgemind_server, "get_default_workspace", lambda: "default")
     monkeypatch.setattr(
-        lightrag_server,
+        forgemind_server,
         "cleanup_keyed_lock",
         lambda: {"cleanup_performed": {}, "current_status": {}},
     )
 
-    app = lightrag_server.create_app(_make_args(tmp_path))
+    app = forgemind_server.create_app(_make_args(tmp_path))
     response = TestClient(app).get("/health")
 
     assert response.status_code == 200
@@ -1195,12 +1195,12 @@ class _FakeTruncatedSession(_FakeSession):
 @pytest.mark.asyncio
 async def test_bedrock_max_tokens_stop_reason_marks_result_truncated(monkeypatch):
     """Converse stopReason == "max_tokens" flags the response as uncacheable."""
-    from lightrag.utils import is_truncated_response
+    from forgemind.utils import is_truncated_response
 
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeTruncatedSession([], [], "max_tokens"),
     ):
         result = await bedrock_complete_if_cache(
@@ -1215,12 +1215,12 @@ async def test_bedrock_max_tokens_stop_reason_marks_result_truncated(monkeypatch
 @pytest.mark.offline
 @pytest.mark.asyncio
 async def test_bedrock_end_turn_stop_reason_is_not_marked_truncated(monkeypatch):
-    from lightrag.utils import is_truncated_response
+    from forgemind.utils import is_truncated_response
 
     monkeypatch.delenv("AWS_REGION", raising=False)
 
     with patch(
-        "lightrag.llm.bedrock.aioboto3.Session",
+        "forgemind.llm.bedrock.aioboto3.Session",
         return_value=_FakeTruncatedSession([], [], "end_turn"),
     ):
         result = await bedrock_complete_if_cache(

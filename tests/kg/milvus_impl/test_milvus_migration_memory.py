@@ -12,7 +12,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from pymilvus import MilvusException
 
-from lightrag.kg.milvus_impl import MilvusVectorDBStorage
+from forgemind.kg.milvus_impl import MilvusVectorDBStorage
 
 
 class _EmbeddingFunc:
@@ -152,7 +152,7 @@ class TestMigrationFlushBackpressure:
 
         with patch.object(storage, "_create_indexes_after_collection"):
             with patch.object(storage, "_rebuild_milvus_client") as rebuild:
-                with patch("lightrag.kg.milvus_impl.time.sleep"):
+                with patch("forgemind.kg.milvus_impl.time.sleep"):
                     storage._migrate_collection_schema(
                         source_collection_name=storage.legacy_namespace,
                         target_collection_name=storage.final_namespace,
@@ -173,7 +173,7 @@ class TestMigrationBatchThrottle:
         _wire_iterator(client, [_rows(2), _rows(2, 2)])
 
         with patch.object(storage, "_create_indexes_after_collection"):
-            with patch("lightrag.kg.milvus_impl.time.sleep") as sleep:
+            with patch("forgemind.kg.milvus_impl.time.sleep") as sleep:
                 storage._migrate_collection_schema(
                     source_collection_name=storage.legacy_namespace,
                     target_collection_name=storage.final_namespace,
@@ -191,7 +191,7 @@ class TestMigrationBatchThrottle:
         _wire_iterator(client, [_rows(2)])
 
         with patch.object(storage, "_create_indexes_after_collection"):
-            with patch("lightrag.kg.milvus_impl.time.sleep") as sleep:
+            with patch("forgemind.kg.milvus_impl.time.sleep") as sleep:
                 storage._migrate_collection_schema(
                     source_collection_name=storage.legacy_namespace,
                     target_collection_name=storage.final_namespace,

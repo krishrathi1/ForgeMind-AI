@@ -1,4 +1,4 @@
-name: Upload LightRAG-hku Package
+name: Upload ForgeMind-AI Package
 
 on:
   release:
@@ -25,20 +25,20 @@ jobs:
 
       - name: Build Frontend WebUI
         run: |
-          cd lightrag_webui
+          cd forgemind_webui
           bun install --frozen-lockfile
           bun run build
           cd ..
 
       - name: Verify Frontend Build
         run: |
-          if [ ! -f "lightrag/api/webui/index.html" ]; then
+          if [ ! -f "forgemind/api/webui/index.html" ]; then
             echo "❌ Error: Frontend build failed - index.html not found"
             exit 1
           fi
           echo "✅ Frontend build verified"
           echo "Frontend files:"
-          ls -lh lightrag/api/webui/ | head -10
+          ls -lh forgemind/api/webui/ | head -10
 
       - uses: actions/setup-python@v6
         with:
@@ -65,7 +65,7 @@ jobs:
       - name: Update version definitions
         run: |
           python scripts/release/set_version.py --core-version "${{ steps.get_version.outputs.package_version }}"
-          grep '__version__ = ' lightrag/_version.py
+          grep '__version__ = ' forgemind/_version.py
 
       - name: Build release distributions
         run: |

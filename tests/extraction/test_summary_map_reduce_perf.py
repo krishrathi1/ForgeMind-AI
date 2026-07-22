@@ -19,7 +19,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CountingTokenizer(TokenizerInterface):
@@ -61,7 +61,7 @@ async def test_map_reduce_chunking_is_preserved():
     """Forcing the chunking path must still split the descriptions into groups,
     summarize each via the LLM, and join the results — i.e. memoizing the
     token counts must not change the chunk boundaries or the final output."""
-    from lightrag.operate import _handle_entity_relation_summary
+    from forgemind.operate import _handle_entity_relation_summary
 
     # Distinct summaries per reduce call so the joined result reflects the
     # number of chunks produced.
@@ -91,7 +91,7 @@ async def test_map_phase_encodes_each_description_once():
     map-reduce iteration. Pre-fix the chunk-building pass re-encoded every
     description, so each of the 4 inputs appeared 2x in the first iteration;
     post-fix it appears exactly once (the second pass reuses the counts)."""
-    from lightrag.operate import _handle_entity_relation_summary
+    from forgemind.operate import _handle_entity_relation_summary
 
     mock_extract = AsyncMock(side_effect=["SUM_ONE", "SUM_TWO", "SUM_THREE"])
     global_config, counter = _make_chunking_config(mock_extract)

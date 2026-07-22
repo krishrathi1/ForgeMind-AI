@@ -222,7 +222,7 @@ A pre-pass (`_glue_heading_only_blocks`) is therefore inserted before LevelMerge
 - **Hard cap preserved**: the sub-block came out of AnchorSplit within `target_max`, but prepending the parent heading line(s) can tip it over the cap. Since nothing downstream re-splits an over-limit block (LevelMerge only prevents it from growing further), an over-cap bonded block is re-split here: **first peel off the leading heading line(s)**, split the body at the **full `target_max`** (so later prefix-free body pieces keep the full budget), then glue the heading prefix back onto the **first body piece**. Only when the first body piece is too large to also hold the prefix is it alone re-split with a reduced cap — so a large prefix does not over-fragment the whole subsection. This way the heading always travels with real body content and is never sliced off as a heading-only orphan (which LevelMerge would otherwise absorb backward), and every emitted piece is still ≤ `target_max`. (Degenerate case: when the prefix alone fills the cap — a very long title, or a tiny `chunk_token_size` — it cannot be kept whole, so the whole block is split directly and the oversized heading line is character-split; here the cap wins over heading integrity.)
 - **No extra backfill into the previous block**: because `keep="left"` preserves the parent's `level`, the bonded whole is just an ordinary small block (not pinned as independent). Whether it merges back into the previous block `2.3` follows LevelMerge's existing rules entirely — peer merging when `2.3` is still < `target_ideal`, or tail absorption when the whole is below `small_tail_threshold` (which can pull it even into an already-saturated previous block), both bounded by the re-measured real token ≤ `target_max`. This pre-pass only guarantees the heading is **never detached from its child content**; it does not lock the whole as an independent block — so letting `2.3 + 2.4 + 2.4.1` share one chunk when size allows is exactly the intended anti-fragmentation behaviour.
 
-> Boundary ambiguity: a body line that genuinely begins with `#␠` would be misjudged as a heading line — this is the same heuristic ambiguity already documented and accepted in `lightrag/parser/_markdown.py`, with very low probability in real corpora.
+> Boundary ambiguity: a body line that genuinely begins with `#␠` would be misjudged as a heading line — this is the same heuristic ambiguity already documented and accepted in `forgemind/parser/_markdown.py`, with very low probability in real corpora.
 
 ### 3.6 Hierarchy-Aware Merging — Gather Fine-Grained Clauses to the Ideal Size Without Cross-Topic Pollution 〔LevelMerge〕
 
@@ -311,11 +311,11 @@ Proportional constraints: `table_max < target_ideal < target_max`, `table_ideal 
 | Parameter | Source | Description |
 |---|---|---|
 | `content` | `full_docs[doc_id].content` | The concatenated merged text, used for degradation when the sidecar is missing |
-| `blocks_path` | `full_docs[doc_id].lightrag_document_path` | The `.blocks.jsonl` path, the P strategy's main input |
+| `blocks_path` | `full_docs[doc_id].forgemind_document_path` | The `.blocks.jsonl` path, the P strategy's main input |
 | `.tables.json` (implicit) | Derived from `blocks_path` (`<base>.blocks.jsonl` → `<base>.tables.json`) | The header source for HeaderRecovery (§3.3.3); silently skipped when missing |
 | `chunk_token_size` | `chunk_options.chunk_token_size` / `CHUNK_P_SIZE` | The target hard cap N, default `2000` |
 | `chunk_overlap_token_size` | `CHUNK_P_OVERLAP_SIZE` / `chunk_overlap_token_size` | The cap on long-body fallback within one content line and on the table bridge budget, default `100` |
-| `tokenizer` | The tokenizer already resolved by LightRAG | The basis for all token counting and text-overlap extraction |
+| `tokenizer` | The tokenizer already resolved by ForgeMind | The basis for all token counting and text-overlap extraction |
 
 The P strategy **does not accept** `split_by_character` / `split_by_character_only`, because the normal path is driven by heading and paragraph structure.
 
@@ -374,15 +374,15 @@ Internally the implementation also uses temporary fields like `paragraphs`, `con
 |---|---|---|
 | `CHUNK_P_SIZE` | `2000` (uses `DEFAULT_CHUNK_P_SIZE` when unset; does **not** inherit `CHUNK_SIZE`) | P-specific `chunk_token_size`; paragraph-semantic merging needs a larger cap than the global default, hence an independent default rather than falling back to `CHUNK_SIZE` |
 | `CHUNK_P_OVERLAP_SIZE` | Unset (inherits `CHUNK_OVERLAP_SIZE`) | P-specific overlap; affects only long-body fallback within one content line and the table bridge budget, and does **not** make table row-level slices overlap each other |
-| `CHUNK_OVERLAP_SIZE` / `LightRAG(chunk_overlap_token_size=…)` | `100` | Global fallback when no P-specific overlap is set |
+| `CHUNK_OVERLAP_SIZE` / `ForgeMind(chunk_overlap_token_size=…)` | `100` | Global fallback when no P-specific overlap is set |
 
 For config syntax, the precedence chain, runtime overrides via `addon_params["chunker"]`, etc., see [FileProcessingConfiguration-zh.md](FileProcessingConfiguration-zh.md) §3.
 
-`P` is a chunking option orthogonal to the engine (`suffix:engine-options`) and can combine with any sidecar-producing engine. A typical `LIGHTRAG_PARSER` setup enabling P:
+`P` is a chunking option orthogonal to the engine (`suffix:engine-options`) and can combine with any sidecar-producing engine. A typical `FORGEMIND_PARSER` setup enabling P:
 
 ```bash
 # docx uses native, pdf uses mineru, other supported formats use docling, all with P; unsupported formats fall back to legacy-R
-LIGHTRAG_PARSER=docx:native-teP,pdf:mineru-iteP,*:docling-iteP,*:legacy-R
+FORGEMIND_PARSER=docx:native-teP,pdf:mineru-iteP,*:docling-iteP,*:legacy-R
 CHUNK_P_SIZE=2000
 CHUNK_P_OVERLAP_SIZE=100
 ```
@@ -420,7 +420,7 @@ ls -l INPUT/__parsed__/<doc>.<ext>.parsed/<doc>.blocks.jsonl
 
 If the file is missing or empty, the P strategy degrades wholesale to R and gains none of P's benefits. Common causes:
 
-- No sidecar-producing engine was configured for that format (e.g. `LIGHTRAG_PARSER=docx:native-...` / `pdf:mineru-...` / `*:docling-...`), so it actually took the `legacy` path.
+- No sidecar-producing engine was configured for that format (e.g. `FORGEMIND_PARSER=docx:native-...` / `pdf:mineru-...` / `*:docling-...`), so it actually took the `legacy` path.
 - Parse failure (check the `pipeline_status` error entries).
 - The format is not supported by the chosen engine (e.g. native supports only docx; switch to mineru / docling to cover more formats).
 
@@ -463,8 +463,8 @@ If many tail blocks below `small_tail_threshold` appear, it may be:
 Check in this order:
 
 1. Does `full_docs[doc_id].process_options` include `P`?
-2. Is `full_docs[doc_id].parse_format` equal to `lightrag`? If it is `raw`, the legacy path was taken and P auto-degrades to R.
-3. Does the `.blocks.jsonl` pointed to by `lightrag_document_path` exist and is it non-empty?
+2. Is `full_docs[doc_id].parse_format` equal to `forgemind`? If it is `raw`, the legacy path was taken and P auto-degrades to R.
+3. Does the `.blocks.jsonl` pointed to by `forgemind_document_path` exist and is it non-empty?
 4. Are there `paragraph_semantic ... fallback to recursive_character` lines in the log?
 
 #### 7.4.2 Table Scattered, Leading/Trailing Explanation Separated (§3.2 / §3.3 not in effect)

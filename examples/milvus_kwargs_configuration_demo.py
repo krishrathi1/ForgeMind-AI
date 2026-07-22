@@ -3,7 +3,7 @@ Example: Configuring Milvus Index Parameters via vector_db_storage_cls_kwargs
 
 This example demonstrates how to configure Milvus indexing parameters through
 vector_db_storage_cls_kwargs, which is the recommended approach when using
-frameworks that build on top of LightRAG (like RAGAnything).
+frameworks that build on top of ForgeMind (like RAGAnything).
 
 This approach allows configuration to be passed through framework layers without
 requiring environment variable changes or direct code modifications.
@@ -11,8 +11,8 @@ requiring environment variable changes or direct code modifications.
 
 import os
 import asyncio
-from lightrag import LightRAG, QueryParam
-from lightrag.llm.openai import openai_complete_if_cache, openai_embed
+from forgemind import ForgeMind, QueryParam
+from forgemind.llm.openai import openai_complete_if_cache, openai_embed
 
 
 async def main():
@@ -20,11 +20,11 @@ async def main():
     os.environ["MILVUS_URI"] = "http://localhost:19530"
     # os.environ["MILVUS_USER"] = "root"
     # os.environ["MILVUS_PASSWORD"] = "your_password"
-    # os.environ["MILVUS_DB_NAME"] = "lightrag"
+    # os.environ["MILVUS_DB_NAME"] = "forgemind"
 
-    # Initialize LightRAG with Milvus index configuration via vector_db_storage_cls_kwargs
+    # Initialize ForgeMind with Milvus index configuration via vector_db_storage_cls_kwargs
     # This is the recommended approach for framework integration (e.g., RAGAnything)
-    rag = LightRAG(
+    rag = ForgeMind(
         working_dir="./demo_index",
         llm_model_func=openai_complete_if_cache,
         embedding_func=openai_embed,
@@ -60,7 +60,7 @@ async def main():
     await rag.initialize_storages()
 
     print(
-        "✅ LightRAG initialized with Milvus index configuration via vector_db_storage_cls_kwargs"
+        "✅ ForgeMind initialized with Milvus index configuration via vector_db_storage_cls_kwargs"
     )
     print(
         f"   Index Type: {rag.vector_db_storages['entities'].index_config.index_type}"
@@ -76,7 +76,7 @@ async def main():
 
     # Example: Insert some text
     sample_text = """
-    LightRAG is a Retrieval-Augmented Generation framework that uses graph-based
+    ForgeMind is a Retrieval-Augmented Generation framework that uses graph-based
     knowledge representation for enhanced information retrieval. It supports multiple
     vector storage backends including Milvus, which offers advanced indexing options
     for optimal performance.
@@ -86,7 +86,7 @@ async def main():
     print("\n✅ Sample text inserted")
 
     # Example: Query with different modes
-    result = await rag.aquery("What is LightRAG?", param=QueryParam(mode="hybrid"))
+    result = await rag.aquery("What is ForgeMind?", param=QueryParam(mode="hybrid"))
     print(f"\n✅ Query result: {result[:200]}...")
 
     # Cleanup

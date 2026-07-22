@@ -1,4 +1,4 @@
-"""Unit tests for the legacy engine adapter (lightrag.parser.legacy.parser).
+"""Unit tests for the legacy engine adapter (forgemind.parser.legacy.parser).
 
 Covers the worker-stage extraction contract directly: success path
 (persist + archive + RAW ParseResult), the unsupported-suffix gate, the
@@ -8,11 +8,11 @@ whitespace-only extraction guard (scanned-PDF case) and the
 
 import pytest
 
-import lightrag.pipeline as _pipeline
-from lightrag.constants import FULL_DOCS_FORMAT_RAW
-from lightrag.parser.base import ParseContext
-from lightrag.parser.legacy.extractors import LegacyExtractionError
-from lightrag.parser.legacy.parser import LegacyParser
+import forgemind.pipeline as _pipeline
+from forgemind.constants import FULL_DOCS_FORMAT_RAW
+from forgemind.parser.base import ParseContext
+from forgemind.parser.legacy.extractors import LegacyExtractionError
+from forgemind.parser.legacy.parser import LegacyParser
 
 pytestmark = pytest.mark.offline
 
@@ -85,7 +85,7 @@ async def test_legacy_parse_whitespace_only_extraction_raises(
     # A scanned PDF (no text layer) extracts to pure whitespace; the parser
     # must fail the doc instead of persisting an empty document.
     monkeypatch.setattr(
-        "lightrag.parser.legacy.extractors.extract_text",
+        "forgemind.parser.legacy.extractors.extract_text",
         lambda file_bytes, suffix, *, pdf_password=None: "\n \n\t\n",
     )
     source = tmp_path / "scanned.pdf"
@@ -109,7 +109,7 @@ async def test_legacy_parse_passes_pdf_password_from_env(
         seen["pdf_password"] = pdf_password
         return "decrypted text"
 
-    monkeypatch.setattr("lightrag.parser.legacy.extractors.extract_text", _capture)
+    monkeypatch.setattr("forgemind.parser.legacy.extractors.extract_text", _capture)
     monkeypatch.setenv("PDF_DECRYPT_PASSWORD", "s3cret")
     source = tmp_path / "locked.pdf"
     source.write_bytes(b"%PDF-fake")

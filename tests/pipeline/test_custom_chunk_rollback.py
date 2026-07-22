@@ -4,7 +4,7 @@
 hatch: incomplete operations are rolled BACK to the previously committed
 document state (the SDK caller owns roll-forward by repeating the call).
 
-Real LightRAG object (JSON storages, offline), extraction monkeypatched to a
+Real ForgeMind object (JSON storages, offline), extraction monkeypatched to a
 deterministic fake — same harness as test_custom_chunk_patch.py.
 """
 
@@ -15,12 +15,12 @@ from uuid import uuid4
 import numpy as np
 import pytest
 
-import lightrag.lightrag as lightrag_module
-from lightrag import LightRAG
-from lightrag.base import DocStatus
-from lightrag.operate import KGRebuildReport
-from lightrag.utils import EmbeddingFunc, Tokenizer
-from lightrag.utils_pipeline import (
+import forgemind.forgemind as forgemind_module
+from forgemind import ForgeMind
+from forgemind.base import DocStatus
+from forgemind.operate import KGRebuildReport
+from forgemind.utils import EmbeddingFunc, Tokenizer
+from forgemind.utils_pipeline import (
     CUSTOM_CHUNK_PATCH_METADATA_KEY,
     KG_RECOVERY_WARNINGS_METADATA_KEY,
     make_custom_chunk_id,
@@ -45,8 +45,8 @@ async def _dummy_llm(*args, **kwargs) -> str:
     return "ok"
 
 
-async def _build_rag(tmp_path) -> LightRAG:
-    rag = LightRAG(
+async def _build_rag(tmp_path) -> ForgeMind:
+    rag = ForgeMind(
         working_dir=str(tmp_path / "wd"),
         workspace=f"ccroll-{uuid4().hex[:8]}",
         llm_model_func=_dummy_llm,
@@ -102,7 +102,7 @@ def _chunk_id(doc_key: str, content: str) -> str:
 
 async def _fail_one_merge(monkeypatch):
     calls = {"n": 0}
-    orig_merge = lightrag_module.merge_nodes_and_edges
+    orig_merge = forgemind_module.merge_nodes_and_edges
 
     async def merge_boom(**kwargs):
         calls["n"] += 1
@@ -110,13 +110,13 @@ async def _fail_one_merge(monkeypatch):
             raise RuntimeError("merge boom")
         return await orig_merge(**kwargs)
 
-    monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", merge_boom)
+    monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", merge_boom)
     return calls
 
 
 async def _fail_after_one_merge(monkeypatch):
     calls = {"n": 0}
-    orig_merge = lightrag_module.merge_nodes_and_edges
+    orig_merge = forgemind_module.merge_nodes_and_edges
 
     async def merge_then_boom(**kwargs):
         calls["n"] += 1
@@ -124,7 +124,7 @@ async def _fail_after_one_merge(monkeypatch):
         if calls["n"] == 1:
             raise RuntimeError("post-merge boom")
 
-    monkeypatch.setattr(lightrag_module, "merge_nodes_and_edges", merge_then_boom)
+    monkeypatch.setattr(forgemind_module, "merge_nodes_and_edges", merge_then_boom)
     return calls
 
 

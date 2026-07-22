@@ -24,12 +24,12 @@ import pytest
 
 faiss = pytest.importorskip("faiss")
 
-from lightrag.kg.faiss_impl import FaissVectorDBStorage  # noqa: E402
-from lightrag.kg.shared_storage import (  # noqa: E402
+from forgemind.kg.faiss_impl import FaissVectorDBStorage  # noqa: E402
+from forgemind.kg.shared_storage import (  # noqa: E402
     initialize_share_data,
     finalize_share_data,
 )
-from lightrag.utils import EmbeddingFunc  # noqa: E402
+from forgemind.utils import EmbeddingFunc  # noqa: E402
 
 DIM = 8
 
@@ -517,7 +517,7 @@ async def test_reload_warns_on_index_meta_skew(tmp_path, caplog):
     on reload; auto-repair is intentionally not in scope here."""
     import logging
 
-    from lightrag.utils import logger as lightrag_logger
+    from forgemind.utils import logger as forgemind_logger
 
     embed = _CountingEmbed()
     writer = _make_storage(tmp_path, embed)
@@ -535,18 +535,18 @@ async def test_reload_warns_on_index_meta_skew(tmp_path, caplog):
     with open(writer._meta_file, "w", encoding="utf-8") as f:
         json.dump(meta, f)
 
-    # The lightrag logger sets propagate=False (lightrag/utils.py), so caplog —
+    # The forgemind logger sets propagate=False (forgemind/utils.py), so caplog —
     # which attaches to root by default — never sees its records. Flip propagate
     # for the duration of the reload, then restore.
     caplog.clear()
-    old_propagate = lightrag_logger.propagate
-    lightrag_logger.propagate = True
+    old_propagate = forgemind_logger.propagate
+    forgemind_logger.propagate = True
     try:
-        with caplog.at_level(logging.WARNING, logger="lightrag"):
+        with caplog.at_level(logging.WARNING, logger="forgemind"):
             reader = _make_storage(tmp_path, embed)
             await reader.initialize()
     finally:
-        lightrag_logger.propagate = old_propagate
+        forgemind_logger.propagate = old_propagate
 
     # The reader's index still has 2 vectors but only 1 reachable via meta —
     # this is the "known risk, not auto-repaired" state.

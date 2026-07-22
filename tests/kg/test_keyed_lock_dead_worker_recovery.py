@@ -25,8 +25,8 @@ import sys
 
 import pytest
 
-import lightrag.kg.shared_storage as shared_storage
-from lightrag.kg.shared_storage import (
+import forgemind.kg.shared_storage as shared_storage
+from forgemind.kg.shared_storage import (
     KeyedHolderTable,
     _get_combined_key,
     _pid_alive,
@@ -229,7 +229,7 @@ async def test_namespace_lock_reclaims_dead_holder():
     finalize_share_data()
     initialize_share_data(2)
     try:
-        from lightrag.kg.shared_storage import (
+        from forgemind.kg.shared_storage import (
             get_final_namespace,
             get_namespace_lock,
         )

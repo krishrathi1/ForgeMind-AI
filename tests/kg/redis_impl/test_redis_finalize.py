@@ -27,7 +27,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from lightrag.kg.redis_impl import (
+from forgemind.kg.redis_impl import (
     RedisConnectionManager,
     RedisDocStatusStorage,
     RedisKVStorage,
@@ -163,7 +163,7 @@ async def test_release_pool_closes_only_on_last_reference():
     fake_pool.aclose = AsyncMock()
     try:
         with patch(
-            "lightrag.kg.redis_impl.ConnectionPool.from_url", return_value=fake_pool
+            "forgemind.kg.redis_impl.ConnectionPool.from_url", return_value=fake_pool
         ):
             RedisConnectionManager.get_pool(url)  # refcount 1
             RedisConnectionManager.get_pool(url)  # refcount 2
@@ -187,7 +187,7 @@ async def test_close_all_pools_disconnects_and_clears_registry():
     fake_pool.aclose = AsyncMock()
     try:
         with patch(
-            "lightrag.kg.redis_impl.ConnectionPool.from_url", return_value=fake_pool
+            "forgemind.kg.redis_impl.ConnectionPool.from_url", return_value=fake_pool
         ):
             RedisConnectionManager.get_pool(url)
 
@@ -221,10 +221,10 @@ def test_init_error_no_running_loop_does_not_mask_exception(cls):
             warnings.simplefilter("always")
             with (
                 patch(
-                    "lightrag.kg.redis_impl.ConnectionPool.from_url",
+                    "forgemind.kg.redis_impl.ConnectionPool.from_url",
                     return_value=fake_pool,
                 ),
-                patch("lightrag.kg.redis_impl.Redis", side_effect=boom),
+                patch("forgemind.kg.redis_impl.Redis", side_effect=boom),
             ):
                 with pytest.raises(RuntimeError, match="unique-init-boom"):
                     s.__post_init__()
@@ -251,10 +251,10 @@ async def test_init_error_with_loop_schedules_pool_close(cls):
     try:
         with (
             patch(
-                "lightrag.kg.redis_impl.ConnectionPool.from_url",
+                "forgemind.kg.redis_impl.ConnectionPool.from_url",
                 return_value=fake_pool,
             ),
-            patch("lightrag.kg.redis_impl.Redis", side_effect=boom),
+            patch("forgemind.kg.redis_impl.Redis", side_effect=boom),
         ):
             with pytest.raises(RuntimeError, match="unique-init-boom2"):
                 s.__post_init__()
@@ -282,10 +282,10 @@ async def test_init_error_background_pool_close_failure_is_swallowed():
     try:
         with (
             patch(
-                "lightrag.kg.redis_impl.ConnectionPool.from_url",
+                "forgemind.kg.redis_impl.ConnectionPool.from_url",
                 return_value=fake_pool,
             ),
-            patch("lightrag.kg.redis_impl.Redis", side_effect=boom),
+            patch("forgemind.kg.redis_impl.Redis", side_effect=boom),
         ):
             with pytest.raises(RuntimeError, match="unique-init-boom3"):
                 s.__post_init__()

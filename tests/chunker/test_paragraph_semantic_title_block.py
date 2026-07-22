@@ -19,14 +19,14 @@ from pathlib import Path
 
 import pytest
 
-from lightrag.chunker.paragraph_semantic import (
+from forgemind.chunker.paragraph_semantic import (
     _expand_block_with_table_splits,
     _glue_heading_only_blocks,
     _merge_small_blocks,
     _split_long_block,
     chunking_by_paragraph_semantic,
 )
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 pytestmark = pytest.mark.offline
 

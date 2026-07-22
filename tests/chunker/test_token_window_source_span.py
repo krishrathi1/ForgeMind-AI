@@ -18,9 +18,9 @@ from __future__ import annotations
 
 import pytest
 
-from lightrag.chunker import chunking_by_fixed_token
-from lightrag.chunker.token_size import _source_span, _token_window_source_span
-from lightrag.utils import Tokenizer, TokenizerInterface
+from forgemind.chunker import chunking_by_fixed_token
+from forgemind.chunker.token_size import _source_span, _token_window_source_span
+from forgemind.utils import Tokenizer, TokenizerInterface
 
 
 class _CharTokenizer(TokenizerInterface):
@@ -140,7 +140,7 @@ def test_delta_decode_matches_full_prefix_reference(content: str) -> None:
 @pytest.mark.offline
 def test_delta_decode_matches_full_prefix_with_tiktoken() -> None:
     pytest.importorskip("tiktoken")
-    from lightrag.utils import TiktokenTokenizer
+    from forgemind.utils import TiktokenTokenizer
 
     tok = TiktokenTokenizer()
     content = (

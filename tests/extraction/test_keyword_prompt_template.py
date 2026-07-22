@@ -3,7 +3,7 @@ import re
 
 import pytest
 
-from lightrag.prompt import PROMPTS
+from forgemind.prompt import PROMPTS
 
 
 @pytest.mark.offline
@@ -59,11 +59,11 @@ def test_keywords_extraction_prompt_labels_template_as_not_source_text():
 @pytest.mark.offline
 def test_keywords_extraction_prompt_keeps_single_real_user_query_section():
     rendered = PROMPTS["keywords_extraction"].format(
-        query="How did LightRAG improve retrieval?",
+        query="How did ForgeMind improve retrieval?",
         examples="\n".join(PROMPTS["keywords_extraction_examples"]),
         language="English",
     )
 
     assert rendered.count("User Query:") == 1
-    assert "User Query: How did LightRAG improve retrieval?" in rendered
+    assert "User Query: How did ForgeMind improve retrieval?" in rendered
     assert "User Query:" not in "\n".join(PROMPTS["keywords_extraction_examples"])

@@ -22,12 +22,12 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from lxml import etree
 
-from lightrag.parser.docx.parse_document import (
+from forgemind.parser.docx.parse_document import (
     DocxContentError,
     extract_docx_blocks,
     extract_paragraph_content,
 )
-from lightrag.parser.docx.table_extractor import extract_paragraph_content_table
+from forgemind.parser.docx.table_extractor import extract_paragraph_content_table
 
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 PARAGRAPH_NS = {
