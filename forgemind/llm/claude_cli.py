@@ -53,9 +53,7 @@ def _resolve_executable() -> str:
     override = os.getenv("CLAUDE_CLI_PATH")
     if override:
         if not os.path.isfile(override):
-            raise RuntimeError(
-                f"CLAUDE_CLI_PATH points at a missing file: {override}"
-            )
+            raise RuntimeError(f"CLAUDE_CLI_PATH points at a missing file: {override}")
         return override
 
     resolved = shutil.which("claude")
@@ -126,9 +124,7 @@ async def _run_cli(argv: list[str], prompt: str, timeout: float) -> str:
     except asyncio.TimeoutError:
         process.kill()
         await process.wait()
-        raise RuntimeError(
-            f"Claude CLI timed out after {timeout}s"
-        ) from None
+        raise RuntimeError(f"Claude CLI timed out after {timeout}s") from None
 
     if process.returncode != 0:
         detail = _decode(stderr).strip() or _decode(stdout).strip()
