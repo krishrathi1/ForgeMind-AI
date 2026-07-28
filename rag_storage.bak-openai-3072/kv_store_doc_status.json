@@ -1,0 +1,136 @@
+{
+  "doc-4696a8b463b2655defbbe6c70ffd73bf": {
+    "status": "failed",
+    "content_summary": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>HydraCompletion — Explained</title>\n<style>\n  :root{\n    --bg:#0f1220; --panel:#171b2e; --panel2:#1e2440; --i...",
+    "content_length": 15687,
+    "created_at": "2026-07-28T10:13:04.275755+00:00",
+    "updated_at": "2026-07-28T10:29:09.866676+00:00",
+    "file_path": "hydra_explainer.html",
+    "track_id": "upload_20260728_154304_8efa8b9d",
+    "content_hash": "588be74c0c9ca0916f8469014e22c002",
+    "metadata": {
+      "process_options": "R",
+      "source_file": "hydra_explainer.html",
+      "parse_start_time": 1785234548,
+      "parse_stage_skipped": true,
+      "parse_format": "raw",
+      "parse_engine": "legacy",
+      "analyzing_start_time": 1785234549,
+      "analyzing_stage_skipped": true,
+      "process_start_time": 1785234549,
+      "process_end_time": 1785234549
+    },
+    "error_msg": "Failed to persist pre-rebuild changes: NanoVectorDBStorage[chunks] index flush failed: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_api_key. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}",
+    "chunks_count": 6,
+    "chunks_list": [
+      "doc-4696a8b463b2655defbbe6c70ffd73bf-chunk-000",
+      "doc-4696a8b463b2655defbbe6c70ffd73bf-chunk-001",
+      "doc-4696a8b463b2655defbbe6c70ffd73bf-chunk-002",
+      "doc-4696a8b463b2655defbbe6c70ffd73bf-chunk-003",
+      "doc-4696a8b463b2655defbbe6c70ffd73bf-chunk-004",
+      "doc-4696a8b463b2655defbbe6c70ffd73bf-chunk-005"
+    ]
+  },
+  "doc-15b5ff034ff36fe4a7519a6a0690c3a3": {
+    "status": "failed",
+    "content_summary": "Palak Sati\nB.Tech Computer Science — Graduation Year: 2027\n+91 8859177545 — palak.sati.23cse@bmu.edu.in\nLinkedIn — GitHub — Portfolio — Engineering Playbook — Change Blueprint\nEducation\nB.Tech in Computer Science Engineering 2023 – 2027\nCGPA: 7.63\nCl...",
+    "content_length": 2296,
+    "created_at": "2026-07-28T10:13:04.300088+00:00",
+    "updated_at": "2026-07-28T10:29:10.789192+00:00",
+    "file_path": "Palak (3).pdf",
+    "track_id": "upload_20260728_154304_a7fa2f48",
+    "content_hash": "fd6825bae2008af6f26e1e0d6d9d0e0f",
+    "metadata": {
+      "process_options": "R",
+      "source_file": "Palak (3).pdf",
+      "parse_start_time": 1785234548,
+      "parse_stage_skipped": true,
+      "parse_format": "raw",
+      "parse_engine": "legacy",
+      "analyzing_start_time": 1785234549,
+      "analyzing_stage_skipped": true,
+      "process_start_time": 1785234549,
+      "process_end_time": 1785234550
+    },
+    "error_msg": "Failed to persist pre-rebuild changes: NanoVectorDBStorage[chunks] index flush failed: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_api_key. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}",
+    "chunks_count": 1,
+    "chunks_list": [
+      "doc-15b5ff034ff36fe4a7519a6a0690c3a3-chunk-000"
+    ]
+  },
+  "doc-32832cb6c5b67c060b29bb22d29008a6": {
+    "status": "failed",
+    "content_summary": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>SARVESH — AI Builder & Coach</title>\n<meta name=\"description\" content=\"Sarvesh — AI Builder & Coach. I build ...",
+    "content_length": 50871,
+    "created_at": "2026-07-28T10:13:04.317421+00:00",
+    "updated_at": "2026-07-28T10:29:11.369514+00:00",
+    "file_path": "sarvesh-portfolio-HERO-WEB_2.html",
+    "track_id": "upload_20260728_154304_ced5f47a",
+    "content_hash": "fd71e70de4c6cab9a2be89459baa8282",
+    "metadata": {
+      "process_options": "R",
+      "source_file": "sarvesh-portfolio-HERO-WEB_2.html",
+      "parse_start_time": 1785234548,
+      "parse_stage_skipped": true,
+      "parse_format": "raw",
+      "parse_engine": "legacy",
+      "analyzing_start_time": 1785234549,
+      "analyzing_stage_skipped": true,
+      "process_start_time": 1785234549,
+      "process_end_time": 1785234551
+    },
+    "error_msg": "Failed to persist pre-rebuild changes: NanoVectorDBStorage[chunks] index flush failed: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_api_key. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}",
+    "chunks_count": 16,
+    "chunks_list": [
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-000",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-001",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-002",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-003",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-004",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-005",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-006",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-007",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-008",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-009",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-010",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-011",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-012",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-013",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-014",
+      "doc-32832cb6c5b67c060b29bb22d29008a6-chunk-015"
+    ]
+  },
+  "doc-301147f6157d3a3eceb96a368de59138": {
+    "status": "failed",
+    "content_summary": "Speech AI Model Plan - 2 x RTX 6000 Ada 48GB\nUpdated: 18 Jun 2026\nPage 1\n Speech AI Model Selection and Training Plan\n For your 30 lakh INR server: 2 x NVIDIA RTX 6000 Ada 48GB GPUs, Threadripper PRO 9975WX, 256GB ECC RAM\n Focus domains: Speech-to-Te...",
+    "content_length": 18742,
+    "created_at": "2026-07-28T10:13:11.457615+00:00",
+    "updated_at": "2026-07-28T10:29:11.733068+00:00",
+    "file_path": "speech_ai_llm_models_training_plan_2x48gb.pdf",
+    "track_id": "upload_20260728_154311_854c9ada",
+    "content_hash": "20a48b8e66a8024a7b4e8c8fb5835b11",
+    "metadata": {
+      "process_options": "R",
+      "source_file": "speech_ai_llm_models_training_plan_2x48gb.pdf",
+      "parse_start_time": 1785234548,
+      "parse_stage_skipped": true,
+      "parse_format": "raw",
+      "parse_engine": "legacy",
+      "analyzing_start_time": 1785234549,
+      "analyzing_stage_skipped": true,
+      "process_start_time": 1785234549,
+      "process_end_time": 1785234551
+    },
+    "error_msg": "Failed to persist pre-rebuild changes: NanoVectorDBStorage[chunks] index flush failed: Error code: 401 - {'error': {'message': 'Incorrect API key provided: your_api_key. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}",
+    "chunks_count": 7,
+    "chunks_list": [
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-000",
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-001",
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-002",
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-003",
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-004",
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-005",
+      "doc-301147f6157d3a3eceb96a368de59138-chunk-006"
+    ]
+  }
+}
