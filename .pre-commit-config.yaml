@@ -2,10 +2,15 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+      # Golden fixtures are compared byte-for-byte by
+      # tests/parser/docx/test_native_docx_golden.py. Assets whose payload has
+      # no binary magic bytes (e.g. a stub "pic.png" holding plain ASCII) are
+      # detected as text, and appending a trailing newline breaks the
+      # comparison -- so keep these hooks away from the fixture tree.
       - id: trailing-whitespace
-        exclude: ^forgemind/api/webui/
+        exclude: ^(forgemind/api/webui/|tests/parser/docx/golden/)
       - id: end-of-file-fixer
-        exclude: ^forgemind/api/webui/
+        exclude: ^(forgemind/api/webui/|tests/parser/docx/golden/)
       - id: requirements-txt-fixer
         exclude: ^forgemind/api/webui/
 
