@@ -68,15 +68,28 @@ def _resolve_executable() -> str:
 
 def _render_prompt(
     prompt: str,
+    system_prompt: str | None,
     history_messages: list[dict[str, Any]] | None,
 ) -> str:
-    """Flatten history into the single prompt the CLI accepts.
+    """Flatten instructions and history into the single prompt the CLI accepts.
 
     ``claude -p`` is stateless per invocation, so prior turns are replayed as
     a transcript prefix rather than as structured messages.
+
+    The caller's ``system_prompt`` is folded in here rather than passed as
+    ``--system-prompt`` because it is not a fixed persona: on the query path
+    ForgeMind formats the whole retrieved context (entities, relations and text
+    chunks) into it, which overflows the ~32k Windows command-line limit and
+    fails with ``[WinError 206]``. Everything size-unbounded therefore travels
+    over stdin, leaving only the fixed base persona on argv.
     """
+    sections: list[str] = []
+    if system_prompt:
+        sections.append(f"<instructions>\n{system_prompt}\n</instructions>")
+
     if not history_messages:
-        return prompt
+        sections.append(prompt)
+        return "\n\n".join(sections)
 
     lines: list[str] = ["<conversation_history>"]
     for message in history_messages:
@@ -94,7 +107,8 @@ def _render_prompt(
     lines.append("</conversation_history>")
     lines.append("")
     lines.append(prompt)
-    return "\n".join(lines)
+    sections.append("\n".join(lines))
+    return "\n\n".join(sections)
 
 
 async def _run_cli(argv: list[str], prompt: str, timeout: float) -> str:
@@ -204,12 +218,11 @@ async def claude_cli_complete_if_cache(
     if model:
         argv += ["--model", model]
 
-    combined_system = _BASE_SYSTEM_PROMPT
-    if system_prompt:
-        combined_system = f"{_BASE_SYSTEM_PROMPT}\n\n{system_prompt}"
-    argv += ["--system-prompt", combined_system]
+    # Only the fixed persona goes on argv; the caller's system prompt is
+    # size-unbounded (see _render_prompt) and rides stdin with the user prompt.
+    argv += ["--system-prompt", _BASE_SYSTEM_PROMPT]
 
-    rendered_prompt = _render_prompt(prompt, history_messages)
+    rendered_prompt = _render_prompt(prompt, system_prompt, history_messages)
 
     logger.debug(f"Claude CLI invoking model={model or 'default'} timeout={timeout}s")
     raw_stdout = await _run_cli(argv, rendered_prompt, timeout)
